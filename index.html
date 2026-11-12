@@ -1,273 +1,338 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taller N° 1 (10%) - Diseño de Sistemas - UNEFA</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script type="text/javascript">
-        (function() {
-            emailjs.init("WN1xWLVSZhHOF9qTv");
-        })();
-    </script>
-    <style>
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNEFA Tucupido — Taller N° 1: Diseño de Sistemas (20 Pts)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <!-- Fuente Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            unefa: {
+              navy: '#0f294a',
+              blue: '#1e3a8a',
+              gold: '#d97706'
+            }
+          }
         }
-    </style>
+      }
+    }
+  </script>
+  <style>
+    /* Bloqueo de selección externa durante examen activo */
+    body.exam-locked {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body.exam-locked input,
+    body.exam-locked textarea {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 10.5pt;
+      }
+      .no-print { display: none !important; }
+      .print-break-inside { break-inside: avoid; }
+      .shadow-lg, .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
+      .border { border-color: #cbd5e1 !important; }
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 md:p-6 select-none">
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- PANTALLA DE ACCESO Y CONFIGURACIÓN DE SALA -->
-    <div id="pantalla-login" class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 mt-10">
-        <div class="text-center mb-6">
-            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">UNEFA • Núcleo Guárico Sede Tucupido</span>
-            <h1 class="text-2xl font-black text-white mt-3">Taller N° 1: Diseño de Sistemas (10%)</h1>
-            <p class="text-slate-400 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633</p>
+  <!-- ===================================================================== -->
+  <!-- NOTIFICACIONES TOAST Y MODAL DE CONFIRMACIÓN (SIN ALERT / CONFIRM)    -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
+
+  <div id="confirm-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center gap-3 text-[#0f294a] mb-3">
+        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h3 id="modal-title" class="text-lg font-bold">Confirmar</h3>
+      </div>
+      <p id="modal-message" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
+      <div class="flex justify-end gap-3">
+        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">
+          Cancelar
+        </button>
+        <button type="button" id="modal-confirm-btn" class="px-5 py-2 rounded-xl text-sm font-bold bg-[#0f294a] text-white hover:bg-blue-900 transition">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Configuración EmailJS (Para el Docente) -->
+  <div id="emailjs-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+        <h3 class="text-base font-extrabold text-[#0f294a]">Configuración de Correo Docente (EmailJS)</h3>
+        <button type="button" onclick="closeEmailConfig()" class="text-slate-400 hover:text-slate-700 text-xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+        Ingrese sus credenciales gratuitas de <strong>EmailJS</strong> para recibir automáticamente el acta de cada grupo en su correo electrónico al finalizar la prueba.
+      </p>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Public Key:</label>
+          <input type="text" id="cfg_public_key" placeholder="Ej. user_XXXXXXXXXXXX"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-600 outline-none" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Service ID:</label>
+          <input type="text" id="cfg_service_id" placeholder="Ej. service_xxxxxxx"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-600 outline-none" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Template ID:</label>
+          <input type="text" id="cfg_template_id" placeholder="Ej. template_xxxxxxx"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-600 outline-none" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Correo del Docente (Destinatario):</label>
+          <input type="email" id="cfg_teacher_email" placeholder="cesar.rengifo@ejemplo.com"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-6">
+        <button type="button" onclick="closeEmailConfig()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cerrar</button>
+        <button type="button" onclick="saveEmailConfig()" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0f294a] text-white hover:bg-blue-900">Guardar Credenciales</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PANTALLA 1: REGISTRO PREVIO E INSTRUCCIONES (ANTES DE INICIAR)        -->
+  <!-- ===================================================================== -->
+  <div id="pre-exam-screen" class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 flex-1">
+    <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+      <!-- Membrete Oficial UNEFA -->
+      <div class="bg-[#0f294a] text-white p-6 sm:p-8 text-center relative">
+        <button type="button" onclick="openEmailConfig()" title="Configurar envío de correo EmailJS"
+          class="absolute top-4 right-4 text-xs bg-white/10 hover:bg-white/20 text-amber-300 px-3 py-1.5 rounded-xl border border-white/15 transition">
+          ⚙ Correo Docente
+        </button>
+
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-400 mb-3">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+          </svg>
         </div>
 
-        <div class="space-y-5">
-            <!-- Selección de Modo -->
-            <div class="grid grid-cols-2 gap-3 p-1 bg-slate-950 rounded-xl border border-slate-800">
-                <button type="button" onclick="cambiarModo('crear')" id="btn-modo-crear" class="py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow">Crear Nueva Sala</button>
-                <button type="button" onclick="cambiarModo('unirse')" id="btn-modo-unirse" class="py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white">Unirse a Sala</button>
-            </div>
+        <p class="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-amber-300">
+          República Bolivariana de Venezuela • Ministerio del Poder Popular para la Defensa
+        </p>
+        <h1 class="text-lg sm:text-2xl font-extrabold mt-1">
+          Universidad Nacional Experimental Politécnica de la Fuerza Armada Bolivariana (UNEFA)
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
+          NÚCLEO GUÁRICO — SEDE TUCUPIDO
+        </p>
 
-            <!-- Panel Crear Sala -->
-            <div id="seccion-crear" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Tamaño del Grupo y Dispositivos:</label>
-                    <select id="tamano-grupo" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
-                        <option value="2">2 Integrantes (Máximo 2 Dispositivos)</option>
-                        <option value="3">3 Integrantes (Máximo 3 Dispositivos)</option>
-                    </select>
-                </div>
-
-                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Datos del Líder (Integrante 1)</h3>
-                    <input type="text" id="crear-est1-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                    <input type="text" id="crear-est1-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                </div>
-
-                <button type="button" onclick="crearSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
-                    🚀 Generar Código de Sala y Comenzar
-                </button>
-            </div>
-
-            <!-- Panel Unirse a Sala -->
-            <div id="seccion-unirse" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Código de Sala (Ej. UNEFA-1234):</label>
-                    <input type="text" id="join-codigo" placeholder="Ej. UNEFA-1234" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono uppercase tracking-widest text-emerald-400 font-bold text-center focus:border-emerald-500 outline-none">
-                </div>
-
-                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Tus Datos (Integrante 2 o 3)</h3>
-                    <input type="text" id="join-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                    <input type="text" id="join-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                </div>
-
-                <button type="button" onclick="unirseSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
-                    🔗 Unirse a la Sesión Grupal
-                </button>
-            </div>
+        <!-- Ficha Académica del Taller -->
+        <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 text-left bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-xs">
+          <div>
+            <span class="text-slate-400 block">Departamento:</span>
+            <strong class="text-white">ING. DE SISTEMAS</strong>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Asignatura:</span>
+            <strong class="text-white">DISEÑO DE SISTEMAS</strong>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Semestre / Sección:</span>
+            <strong class="text-amber-300">6° Sem. • 06S-2633</strong>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Fecha / Ponderación:</span>
+            <strong class="text-emerald-300">19/11/2026 • 10% (20 Pts)</strong>
+          </div>
+          <div class="col-span-2 sm:col-span-4 border-t border-slate-700/80 pt-2 mt-1 flex flex-wrap justify-between gap-2">
+            <span><span class="text-slate-400">Evaluación:</span> <strong class="text-white">TALLER N° 1 (Unidad 3)</strong></span>
+            <span><span class="text-slate-400">Docente:</span> <strong class="text-amber-300">CESAR E. RENGIFO S.</strong></span>
+          </div>
         </div>
+      </div>
+
+      <div class="p-6 sm:p-8 space-y-6">
+        <!-- Instrucciones Oficiales y Advertencia Anti-Fuga -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl text-xs sm:text-sm text-slate-700 space-y-2">
+          <h2 class="font-extrabold text-[#0f294a] uppercase text-xs tracking-wider">Instrucciones y Protocolo de Seguridad:</h2>
+          <ol class="list-decimal list-inside space-y-1">
+            <li>Llene todos los datos de identificación del equipo en letra clara antes de iniciar.</li>
+            <li>Usted dispondrá de un tiempo estricto de <strong>90 minutos</strong> para realizar esta prueba (Valor: <strong>20 puntos</strong> / 10%).</li>
+            <li>Cuide su redacción y ortografía; formule cualquier duda al docente antes de pulsar <em>Comenzar Prueba</em>.</li>
+            <li class="text-rose-700 font-bold">
+              MODO PANTALLA BLOQUEADA: Al iniciar, el navegador entrará en Pantalla Completa. Si intenta cambiar de pestaña, minimizar la ventana, abrir otra aplicación o salir de pantalla completa, <u>la prueba finalizará inmediatamente</u> y se bloqueará con la nota obtenida hasta ese segundo.
+            </li>
+          </ol>
+        </div>
+
+        <!-- Registro de Integrantes (2 obligatorios + 3er integrante opcional) -->
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 class="text-base font-extrabold text-[#0f294a]">Registro de Integrantes del Grupo</h3>
+            <button type="button" id="toggle-member3-btn" onclick="toggleThirdMember()"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-[#0f294a] hover:bg-blue-100 border border-blue-200 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Agregar 3er Integrante (Opcional)
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="members-grid">
+            <!-- Integrante 1 -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a] block mb-2">Estudiante N° 1 (Obligatorio)</span>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Apellidos y Nombres *</label>
+                  <input type="text" id="est1_nombre" placeholder="Ej. Pérez Rodríguez, Carlos Eduardo"
+                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
+                  <input type="text" id="est1_ci" placeholder="Ej. V-28.456.789"
+                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Integrante 2 -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a] block mb-2">Estudiante N° 2 (Obligatorio)</span>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Apellidos y Nombres *</label>
+                  <input type="text" id="est2_nombre" placeholder="Ej. Gómez Silva, María Fernanda"
+                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
+                  <input type="text" id="est2_ci" placeholder="Ej. V-29.123.456"
+                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Integrante 3 (Oculto por defecto hasta hacer clic en '+ Agregar 3er Integrante') -->
+            <div id="member3-card" class="hidden md:col-span-2 p-4 rounded-xl bg-blue-50/60 border border-blue-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a]">Estudiante N° 3 (Integrante Adicional del Grupo)</span>
+                <button type="button" onclick="toggleThirdMember()" class="text-xs font-semibold text-rose-600 hover:underline">
+                  Quitar 3er Integrante
+                </button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Apellidos y Nombres *</label>
+                  <input type="text" id="est3_nombre" placeholder="Ej. Rojas Díaz, José Gregorio"
+                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
+                  <input type="text" id="est3_ci" placeholder="Ej. V-30.111.222"
+                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón de Inicio con Activación de Pantalla Completa -->
+        <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p class="text-xs text-slate-500">
+            Al pulsar el botón, acepta las normas de supervisión y bloqueo de salida de pantalla.
+          </p>
+          <button type="button" onclick="startStrictExam()"
+            class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Comenzar Prueba (90 Minutos)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PANTALLA 2: ENTORNO DE EVALUACIÓN ACTIVO (BLOQUEO ANTI-FUGA)          -->
+  <!-- ===================================================================== -->
+  <div id="active-exam-screen" class="hidden flex-1 flex flex-col">
+
+    <!-- Barra Superior Fija con Temporizador Regresivo de 90 Minutos -->
+    <header class="bg-[#0f294a] text-white shadow-md sticky top-0 z-40 no-print">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <span class="text-[11px] uppercase tracking-wider text-amber-300 font-bold block">
+            UNEFA Tucupido • Taller N° 1 (10%) — Diseño de Sistemas
+          </span>
+          <p id="header-group-names" class="text-xs sm:text-sm font-semibold text-white truncate max-w-xl"></p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div id="security-status-pill" class="hidden sm:flex items-center gap-1.5 text-xs bg-emerald-950/80 text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-700">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>Pantalla Protegida Activa</span>
+          </div>
+
+          <div class="flex items-center gap-2 bg-slate-900 px-4 py-1.5 rounded-xl border border-amber-500/40">
+            <span class="text-xs text-slate-400">Tiempo:</span>
+            <span id="countdown-display" class="font-mono text-base font-extrabold text-amber-400">90:00</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Banner de Infracción (Solo se muestra si el alumno abandona la pantalla) -->
+    <div id="violation-banner" class="hidden bg-rose-700 text-white px-6 py-5 shadow-lg border-b-4 border-rose-900">
+      <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-rose-900/70 flex items-center justify-center shrink-0">
+          <svg class="w-7 h-7 text-amber-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-extrabold uppercase tracking-wide">
+            PRUEBA FINALIZADA AUTOMÁTICAMENTE POR ABANDONO DE PANTALLA
+          </h2>
+          <p id="violation-reason-text" class="text-xs sm:text-sm text-rose-100 mt-1">
+            Se detectó salida del modo pantalla completa o cambio de pestaña/ventana. El examen ha sido cerrado y bloqueado con las respuestas registradas hasta este momento.
+          </p>
+        </div>
+      </div>
     </div>
 
-    <!-- PANTALLA DE EVALUACIÓN -->
-    <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 hidden">
-        
-        <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-6 mb-8 gap-4">
-            <div>
-                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Sala Activa: <strong id="lbl-codigo-sala" class="text-white">------</strong></span>
-                <h2 class="text-xl md:text-2xl font-black text-white mt-2">Taller N° 1: Diseño de Sistemas</h2>
-                <p class="text-slate-400 text-xs mt-1">Grupo: <span id="lbl-integrantes-resumen" class="text-slate-200 font-semibold">Cargando...</span></p>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-slate-400 uppercase block tracking-wider">Dispositivos</span>
-                    <span id="lbl-contador-dispositivos" class="text-sm font-bold text-emerald-400">1 / 2</span>
-                </div>
-                <div class="bg-slate-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-red-400 uppercase block tracking-wider">Tiempo Restante</span>
-                    <span id="timer" class="text-sm font-mono font-bold text-white">90:00</span>
-                </div>
-            </div>
-        </div>
+    <!-- Cuerpo del Examen -->
+    <main class="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 space-y-8 flex-1">
 
-        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
-            <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES:</p>
-            <p>1. Llene todos los datos en letra imprenta | 2. Tiempo límite: 90 minutos | 3. Valor total: 20 puntos (10% de la nota final).</p>
-            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA ANTI-FRAUDE: Si abandona la pantalla o cambia de pestaña, la prueba finalizará automáticamente.</p>
-        </div>
-
-        <form id="formTaller" class="space-y-10" onsubmit="return false;">
-
-            <!-- I PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN</h3>
-                    <p class="text-xs text-slate-400">Valor: 4 puntos (1 punto c/u). Complete con la palabra que le dé sentido lógico.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
-                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" oninput="sincronizarCampo('resp_c1')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
-                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" oninput="sincronizarCampo('resp_c2')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> en la red interna (Backend)</p>
-                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" oninput="sincronizarCampo('resp_c3')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario.</p>
-                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" oninput="sincronizarCampo('resp_c4')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
-                </div>
-            </div>
-
-            <!-- II PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE</h3>
-                    <p class="text-xs text-slate-400">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
-                    <div>
-                        <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="a" onchange="sincronizarRadio('p_sel1', 'a')"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="b" onchange="sincronizarRadio('p_sel1', 'b')"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="c" onchange="sincronizarRadio('p_sel1', 'c')"> c) Conectar dos tablas mediante llaves foráneas.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="d" onchange="sincronizarRadio('p_sel1', 'd')"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-slate-800 pt-3">
-                        <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a" onchange="sincronizarRadio('p_sel2', 'a')"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="b" onchange="sincronizarRadio('p_sel2', 'b')"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="c" onchange="sincronizarRadio('p_sel2', 'c')"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="d" onchange="sincronizarRadio('p_sel2', 'd')"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- III PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO</h3>
-                    <p class="text-xs text-slate-400">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
-                    <div>
-                        <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?</label>
-                        <textarea id="resp_d1" rows="3" oninput="sincronizarCampo('resp_d1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?</label>
-                        <textarea id="resp_d2" rows="3" oninput="sincronizarCampo('resp_d2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- IV PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN</h3>
-                    <p class="text-xs text-slate-400">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</code></p>
-                    <textarea id="resp_e1" rows="4" oninput="sincronizarCampo('resp_e1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
-                </div>
-
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</code></p>
-                    <textarea id="resp_e2" rows="4" oninput="sincronizarCampo('resp_e2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
-                </div>
-            </div>
-
-            <!-- Botones -->
-            <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
-                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
-                    📤 Enviar Evaluación Grupal Oficial
-                </button>
-                <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
-                    🖨️ Imprimir Acta PDF con Calificación
-                </button>
-            </div>
-
-        </form>
-    </div>
-
-    <!-- SCRIPT DE CONTROL Y FIREBASE ROBUSTO -->
-    <script>
-        const firebaseConfig = {
-            databaseURL: "https://evaluaciones-unefa-default-rtdb.firebaseio.com/"
-        };
-        
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
-
-        let salaActual = null;
-        let maxDispositivos = 2;
-        let miIdDispositivo = 'dev_' + Math.random().toString(36).substring(2, 9);
-        let tiempoRestante = 90 * 60;
-        let timerInterval = null;
-        let examenEntregado = false;
-        let actualizandoRemoto = false;
-
-        function cambiarModo(modo) {
-            if(modo === 'crear') {
-                document.getElementById('seccion-crear').classList.remove('hidden');
-                document.getElementById('seccion-unirse').classList.add('hidden');
-                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
-            } else {
-                document.getElementById('seccion-crear').classList.add('hidden');
-                document.getElementById('seccion-unirse').classList.remove('hidden');
-                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
-            }
-        }
-
-        async function crearSalaGrupo() {
-            const tamano = parseInt(document.getElementById('tamano-grupo').value);
-            const nombre1 = document.getElementById('crear-est1-nombre').value.trim();
-            const ci1 = document.getElementById('crear-est1-ci').value.trim();
-
-            if(!nombre1 || !ci1) {
-                alert("Por favor ingrese los datos del Líder (Integrante 1).");
-                return;
-            }
-
-            const codigoSala = 'UNEFA-' + Math.floor(1000 + Math.random() * 9000);
-            salaActual = codigoSala;
-            maxDispositivos = tamano;
-
-            const datosSala = {
-                config: { tamanoGrupo: tamano },
-                integrantes: {
-                    [miIdDispositivo]: { nombre: nombre1, ci: ci1, rol: 'Líder' }
-                },
-                dispositivosActivos: {
-                    [miIdDispositivo]: true
-                },
-                respuestas: {},
-                estado: 'en_progreso'
-            };
-
-            try {
-                await db.ref('salas/' + codigoSala).set(datosSala);
-                iniciarInterfazEvaluacion(codigoSala, `${nombre1} (C.I: ${ci1})`);
-                activarSeguridadAntifuga();
-            } catch(e) {
-                alert("Error al conectar con la sala. Verifique su conexión.");
-  
+      <!-- =============================================================== -->
+      <!-- I PARTE: COMPLETACIÓN (VALOR: 4 PUNTOS)                         -->
+      <!-- =============================================================== -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 print-break-inside">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-4">
+          <h3 class="text-lg font-extrabold text-[#0f294a]">I PARTE: COMPLETACIÓN</h3>
+          <span class="px-3 py-1 rounded-full text-xs font-bol
