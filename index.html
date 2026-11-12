@@ -6,14 +6,10 @@
     <title>Taller N° 1 (10%) - Diseño de Sistemas - UNEFA</title>
     <!-- Tailwind CSS para diseño moderno -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Firebase SDK (Compat) para sincronización en tiempo real -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <!-- SDK de EmailJS para envío de correos -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
-            // Credenciales de EmailJS proporcionadas por el profesor
             emailjs.init("WN1xWLVSZhHOF9qTv");
         })();
     </script>
@@ -95,8 +91,8 @@
             
             <div class="flex items-center gap-4">
                 <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-slate-400 uppercase block tracking-wider">Dispositivos</span>
-                    <span id="lbl-contador-dispositivos" class="text-sm font-bold text-emerald-400">1 / 2</span>
+                    <span class="text-[10px] text-slate-400 uppercase block tracking-wider">Modo Local</span>
+                    <span class="text-xs font-bold text-emerald-400">Sin Servidor</span>
                 </div>
                 <div class="bg-slate-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
                     <span class="text-[10px] text-red-400 uppercase block tracking-wider">Tiempo Restante</span>
@@ -109,7 +105,7 @@
         <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
             <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES:</p>
             <p>1. Llene todos los datos en letra imprenta | 2. Tiempo límite: 90 minutos | 3. Valor total: 20 puntos (10% de la nota final).</p>
-            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA ANTI-FRAUDE: Si abandona la pantalla, cambia de pestaña o minimiza el navegador, la prueba finalizará automáticamente para todo el grupo.</p>
+            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA ANTI-FRAUDE: Si abandona la pantalla, cambia de pestaña o minimiza el navegador, la prueba finalizará automáticamente.</p>
         </div>
 
         <!-- FORMULARIO DE EVALUACIÓN -->
@@ -123,11 +119,156 @@
                 </div>
                 
                 <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
-                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" oninput="sincronizarCampo('resp_c1')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
-                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" oninput="sincronizarCampo('resp_c2')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> en la red interna (Backend)</p>
-                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" oninput="sincronizarCampo('resp_c3')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario.</p>
-                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" oninput="sincronizarCampo('resp_c4')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
+                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
+                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> en la red interna (Backend)</p>
+                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario.</p>
+                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
                 </div>
+            </div>
+
+            <!-- II PARTE: SELECCIÓN SIMPLE (2 ptos) -->
+            <div class="space-y-4">
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE</h3>
+                    <p class="text-xs text-slate-400">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta.</p>
+                </div>
+                
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div>
+                        <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
+                        <div class="space-y-2 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="a" onchange="guardarEstadoLocal()"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="b" onchange="guardarEstadoLocal()"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="c" onchange="guardarEstadoLocal()"> c) Conectar dos tablas mediante llaves foráneas.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="d" onchange="guardarEstadoLocal()"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-3">
+                        <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
+                        <div class="space-y-2 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a" onchange="guardarEstadoLocal()"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="b" onchange="guardarEstadoLocal()"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="c" onchange="guardarEstadoLocal()"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="d" onchange="guardarEstadoLocal()"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- III PARTE: DESARROLLO (4 ptos) -->
+            <div class="space-y-4">
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO</h3>
+                    <p class="text-xs text-slate-400">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados.</p>
+                </div>
+                
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div>
+                        <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?</label>
+                        <textarea id="resp_d1" rows="3" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?</label>
+                        <textarea id="resp_d2" rows="3" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IV PARTE: EJERCICIOS PRÁCTICOS (10 ptos) -->
+            <div class="space-y-4">
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN</h3>
+                    <p class="text-xs text-slate-400">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK.</p>
+                </div>
+                
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <p class="font-bold text-sm text-emerald-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</p>
+                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</code></p>
+                    <textarea id="resp_e1" rows="4" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                </div>
+
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <p class="font-bold text-sm text-emerald-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</p>
+                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</code></p>
+                    <textarea id="resp_e2" rows="4" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                </div>
+            </div>
+
+            <!-- Botón de Entrega Grupal -->
+            <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
+                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
+                    📤 Enviar Evaluación Grupal al Correo
+                </button>
+                <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
+                    🖨️ Imprimir Acta PDF
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <!-- SCRIPT DE CONTROL LOCAL (SIN SERVIDOR / SIN DB) -->
+    <script>
+        let salaActual = null;
+        let integrantesGrupo = [];
+        let tiempoRestante = 90 * 60; // 90 minutos
+        let timerInterval = null;
+        let examenEntregado = false;
+
+        function cambiarModo(modo) {
+            if(modo === 'crear') {
+                document.getElementById('seccion-crear').classList.remove('hidden');
+                document.getElementById('seccion-unirse').classList.add('hidden');
+                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+            } else {
+                document.getElementById('seccion-crear').classList.add('hidden');
+                document.getElementById('seccion-unirse').classList.remove('hidden');
+                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+            }
+        }
+
+        // Crear Sala Local
+        function crearSalaGrupo() {
+            const tamano = parseInt(document.getElementById('tamano-grupo').value);
+            const nombre1 = document.getElementById('crear-est1-nombre').value.trim();
+            const ci1 = document.getElementById('crear-est1-ci').value.trim();
+
+            if(!nombre1 || !ci1) {
+                alert("Por favor ingrese los datos del Líder (Integrante 1).");
+                return;
+            }
+
+            const codigoSala = 'UNEFA-' + Math.floor(1000 + Math.random() * 9000);
+            salaActual = codigoSala;
+            
+            integrantesGrupo = [
+                { nombre: nombre1, ci: ci1, rol: 'Integrante 1 (Líder)' }
+            ];
+
+            // Guardar estructura inicial en localStorage
+            const datosSala = {
+                tamanoMaximo: tamano,
+                integrantes: integrantesGrupo,
+                respuestas: {}
+            };
+            localStorage.setItem('unefa_sala_' + codigoSala, JSON.stringify(datosSala));
+
+            iniciarInterfazEvaluacion(codigoSala, integrantesGrupo.map(i => `${i.nombre} (C.I: ${i.ci})`).join(' | '));
+            activarSeguridadAntifuga();
+        }
+
+        // Unirse a Sala Local (Simulado en la misma PC o mediante código compartido)
+        function unirseSalaGrupo() {
+            const codigo = document.getElementById('join-codigo').value.trim().toUpperCase();
+            const nombre = document.getElementById('join-nombre').value.trim();
+            const ci = document.getElementById('join-ci').value.trim();
+
+            if(!codigo || !nombre || !ci) {
+                alert("Por favor complete todos              </div>
             </div>
 
             <!-- II PARTE: SELECCIÓN SIMPLE (2 ptos) -->
