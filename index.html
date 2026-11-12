@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UNEFA Tucupido — Taller N° 1: Diseño de Sistemas (20 Pts)</title>
+  <title>UNEFA - Evaluación Unidad 3: Diseño de Archivos y Bases de Datos</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- EmailJS SDK -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <!-- Fuente Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,12 +14,15 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
           colors: {
             unefa: {
               navy: '#0f294a',
-              blue: '#1e3a8a',
-              gold: '#d97706'
+              blue: '#1e40af',
+              gold: '#d97706',
+              light: '#f8fafc'
             }
           }
         }
@@ -29,38 +30,80 @@
     }
   </script>
   <style>
-    /* Bloqueo de selección externa durante examen activo */
-    body.exam-locked {
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    body.exam-locked input,
-    body.exam-locked textarea {
-      user-select: text;
-      -webkit-user-select: text;
-    }
-
+    /* Estilos de impresión limpios para el Acta de Evaluación */
     @media print {
       body {
         background: #ffffff !important;
         color: #000000 !important;
-        font-size: 10.5pt;
+        font-size: 11pt;
       }
-      .no-print { display: none !important; }
-      .print-break-inside { break-inside: avoid; }
-      .shadow-lg, .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
-      .border { border-color: #cbd5e1 !important; }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-break-inside {
+        break-inside: avoid;
+      }
+      .shadow-lg, .shadow-md, .shadow-sm {
+        box-shadow: none !important;
+      }
+      .border {
+        border-color: #cbd5e1 !important;
+      }
     }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-  <!-- ===================================================================== -->
-  <!-- NOTIFICACIONES TOAST Y MODAL DE CONFIRMACIÓN (SIN ALERT / CONFIRM)    -->
-  <!-- ===================================================================== -->
+  <!-- Barra Superior Institucional (Sticky) -->
+  <header class="bg-[#0f294a] text-white shadow-md sticky top-0 z-40 no-print">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Emblema SVG Institucional -->
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-[11px] uppercase tracking-wider text-amber-300 font-semibold block">UNEFA • Ingeniería de Sistemas</span>
+          <h1 class="text-sm sm:text-base font-bold leading-tight">Diseño de Sistemas — Unidad 3 (20 Pts)</h1>
+        </div>
+      </div>
+
+      <!-- Indicadores de Estado y Cronómetro -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <div id="autosave-badge" class="hidden sm:flex items-center gap-1.5 text-xs bg-slate-800/80 text-emerald-300 px-3 py-1.5 rounded-full border border-slate-700">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Guardado automático</span>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-900/70 px-3 py-1.5 rounded-xl border border-slate-700">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span id="timer-display" class="font-mono text-sm font-semibold text-white">00:00</span>
+          <button type="button" id="toggle-timer-btn" onclick="toggleTimer()" title="Pausar/Reanudar cronómetro" class="text-xs text-slate-300 hover:text-amber-300 ml-1 underline">
+            Pausar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Progreso -->
+    <div class="w-full bg-slate-800 h-1.5">
+      <div id="progress-bar" class="bg-amber-500 h-1.5 transition-all duration-300" style="width: 0%"></div>
+    </div>
+  </header>
+
+  <!-- Notificación Toast (Reemplazo de alert()) -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-  <div id="confirm-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+  <!-- Modal de Confirmación Personalizado (Reemplazo de confirm()) -->
+  <div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center gap-3 text-[#0f294a] mb-3">
         <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
@@ -68,271 +111,222 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 id="modal-title" class="text-lg font-bold">Confirmar</h3>
+        <h3 id="modal-title" class="text-lg font-bold">Confirmar Acción</h3>
       </div>
       <p id="modal-message" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
       <div class="flex justify-end gap-3">
         <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">
           Cancelar
         </button>
-        <button type="button" id="modal-confirm-btn" class="px-5 py-2 rounded-xl text-sm font-bold bg-[#0f294a] text-white hover:bg-blue-900 transition">
+        <button type="button" id="modal-confirm-btn" class="px-5 py-2 rounded-xl text-sm font-semibold bg-[#0f294a] text-white hover:bg-blue-900 transition shadow-sm">
           Confirmar
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal Configuración EmailJS (Para el Docente) -->
-  <div id="emailjs-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-      <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-        <h3 class="text-base font-extrabold text-[#0f294a]">Configuración de Correo Docente (EmailJS)</h3>
-        <button type="button" onclick="closeEmailConfig()" class="text-slate-400 hover:text-slate-700 text-xl leading-none">&times;</button>
-      </div>
-      <p class="text-xs text-slate-600 mb-4 leading-relaxed">
-        Ingrese sus credenciales gratuitas de <strong>EmailJS</strong> para recibir automáticamente el acta de cada grupo en su correo electrónico al finalizar la prueba.
-      </p>
-      <div class="space-y-3 text-xs">
+  <!-- Contenido Principal -->
+  <main class="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 flex-1">
+
+    <!-- Encabezado Académico Formal (Visible también al imprimir) -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5 mb-6">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Public Key:</label>
-          <input type="text" id="cfg_public_key" placeholder="Ej. user_XXXXXXXXXXXX"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-600 outline-none" />
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Service ID:</label>
-          <input type="text" id="cfg_service_id" placeholder="Ej. service_xxxxxxx"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-600 outline-none" />
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Template ID:</label>
-          <input type="text" id="cfg_template_id" placeholder="Ej. template_xxxxxxx"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-600 outline-none" />
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Correo del Docente (Destinatario):</label>
-          <input type="email" id="cfg_teacher_email" placeholder="cesar.rengifo@ejemplo.com"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none" />
-        </div>
-      </div>
-      <div class="flex justify-end gap-2 mt-6">
-        <button type="button" onclick="closeEmailConfig()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cerrar</button>
-        <button type="button" onclick="saveEmailConfig()" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0f294a] text-white hover:bg-blue-900">Guardar Credenciales</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================================================================== -->
-  <!-- PANTALLA 1: REGISTRO PREVIO E INSTRUCCIONES (ANTES DE INICIAR)        -->
-  <!-- ===================================================================== -->
-  <div id="pre-exam-screen" class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 flex-1">
-    <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-      <!-- Membrete Oficial UNEFA -->
-      <div class="bg-[#0f294a] text-white p-6 sm:p-8 text-center relative">
-        <button type="button" onclick="openEmailConfig()" title="Configurar envío de correo EmailJS"
-          class="absolute top-4 right-4 text-xs bg-white/10 hover:bg-white/20 text-amber-300 px-3 py-1.5 rounded-xl border border-white/15 transition">
-          ⚙ Correo Docente
-        </button>
-
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-400 mb-3">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-          </svg>
-        </div>
-
-        <p class="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-amber-300">
-          República Bolivariana de Venezuela • Ministerio del Poder Popular para la Defensa
-        </p>
-        <h1 class="text-lg sm:text-2xl font-extrabold mt-1">
-          Universidad Nacional Experimental Politécnica de la Fuerza Armada Bolivariana (UNEFA)
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
-          NÚCLEO GUÁRICO — SEDE TUCUPIDO
-        </p>
-
-        <!-- Ficha Académica del Taller -->
-        <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 text-left bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-xs">
-          <div>
-            <span class="text-slate-400 block">Departamento:</span>
-            <strong class="text-white">ING. DE SISTEMAS</strong>
-          </div>
-          <div>
-            <span class="text-slate-400 block">Asignatura:</span>
-            <strong class="text-white">DISEÑO DE SISTEMAS</strong>
-          </div>
-          <div>
-            <span class="text-slate-400 block">Semestre / Sección:</span>
-            <strong class="text-amber-300">6° Sem. • 06S-2633</strong>
-          </div>
-          <div>
-            <span class="text-slate-400 block">Fecha / Ponderación:</span>
-            <strong class="text-emerald-300">19/11/2026 • 10% (20 Pts)</strong>
-          </div>
-          <div class="col-span-2 sm:col-span-4 border-t border-slate-700/80 pt-2 mt-1 flex flex-wrap justify-between gap-2">
-            <span><span class="text-slate-400">Evaluación:</span> <strong class="text-white">TALLER N° 1 (Unidad 3)</strong></span>
-            <span><span class="text-slate-400">Docente:</span> <strong class="text-amber-300">CESAR E. RENGIFO S.</strong></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="p-6 sm:p-8 space-y-6">
-        <!-- Instrucciones Oficiales y Advertencia Anti-Fuga -->
-        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl text-xs sm:text-sm text-slate-700 space-y-2">
-          <h2 class="font-extrabold text-[#0f294a] uppercase text-xs tracking-wider">Instrucciones y Protocolo de Seguridad:</h2>
-          <ol class="list-decimal list-inside space-y-1">
-            <li>Llene todos los datos de identificación del equipo en letra clara antes de iniciar.</li>
-            <li>Usted dispondrá de un tiempo estricto de <strong>90 minutos</strong> para realizar esta prueba (Valor: <strong>20 puntos</strong> / 10%).</li>
-            <li>Cuide su redacción y ortografía; formule cualquier duda al docente antes de pulsar <em>Comenzar Prueba</em>.</li>
-            <li class="text-rose-700 font-bold">
-              MODO PANTALLA BLOQUEADA: Al iniciar, el navegador entrará en Pantalla Completa. Si intenta cambiar de pestaña, minimizar la ventana, abrir otra aplicación o salir de pantalla completa, <u>la prueba finalizará inmediatamente</u> y se bloqueará con la nota obtenida hasta ese segundo.
-            </li>
-          </ol>
-        </div>
-
-        <!-- Registro de Integrantes (2 obligatorios + 3er integrante opcional) -->
-        <div>
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <h3 class="text-base font-extrabold text-[#0f294a]">Registro de Integrantes del Grupo</h3>
-            <button type="button" id="toggle-member3-btn" onclick="toggleThirdMember()"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-[#0f294a] hover:bg-blue-100 border border-blue-200 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              Agregar 3er Integrante (Opcional)
-            </button>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="members-grid">
-            <!-- Integrante 1 -->
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a] block mb-2">Estudiante N° 1 (Obligatorio)</span>
-              <div class="space-y-3">
-                <div>
-                  <label class="block text-xs font-medium text-slate-700 mb-1">Apellidos y Nombres *</label>
-                  <input type="text" id="est1_nombre" placeholder="Ej. Pérez Rodríguez, Carlos Eduardo"
-                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
-                  <input type="text" id="est1_ci" placeholder="Ej. V-28.456.789"
-                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Integrante 2 -->
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a] block mb-2">Estudiante N° 2 (Obligatorio)</span>
-              <div class="space-y-3">
-                <div>
-                  <label class="block text-xs font-medium text-slate-700 mb-1">Apellidos y Nombres *</label>
-                  <input type="text" id="est2_nombre" placeholder="Ej. Gómez Silva, María Fernanda"
-                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
-                  <input type="text" id="est2_ci" placeholder="Ej. V-29.123.456"
-                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Integrante 3 (Oculto por defecto hasta hacer clic en '+ Agregar 3er Integrante') -->
-            <div id="member3-card" class="hidden md:col-span-2 p-4 rounded-xl bg-blue-50/60 border border-blue-200">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a]">Estudiante N° 3 (Integrante Adicional del Grupo)</span>
-                <button type="button" onclick="toggleThirdMember()" class="text-xs font-semibold text-rose-600 hover:underline">
-                  Quitar 3er Integrante
-                </button>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-medium text-slate-700 mb-1">Apellidos y Nombres *</label>
-                  <input type="text" id="est3_nombre" placeholder="Ej. Rojas Díaz, José Gregorio"
-                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
-                  <input type="text" id="est3_ci" placeholder="Ej. V-30.111.222"
-                    class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botón de Inicio con Activación de Pantalla Completa -->
-        <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p class="text-xs text-slate-500">
-            Al pulsar el botón, acepta las normas de supervisión y bloqueo de salida de pantalla.
+          <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">República Bolivariana de Venezuela</p>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-[#0f294a]">Universidad Nacional Experimental de las Fuerzas Armadas (UNEFA)</h2>
+          <p class="text-sm text-slate-600 mt-1">
+            <strong class="text-slate-800">Asignatura:</strong> Diseño de Sistemas &nbsp;|&nbsp;
+            <strong class="text-slate-800">Unidad 3:</strong> Diseño de Archivos y Bases de Datos
           </p>
-          <button type="button" onclick="startStrictExam()"
-            class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg transition flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            Comenzar Prueba (90 Minutos)
-          </button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================================================================== -->
-  <!-- PANTALLA 2: ENTORNO DE EVALUACIÓN ACTIVO (BLOQUEO ANTI-FUGA)          -->
-  <!-- ===================================================================== -->
-  <div id="active-exam-screen" class="hidden flex-1 flex flex-col">
-
-    <!-- Barra Superior Fija con Temporizador Regresivo de 90 Minutos -->
-    <header class="bg-[#0f294a] text-white shadow-md sticky top-0 z-40 no-print">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <span class="text-[11px] uppercase tracking-wider text-amber-300 font-bold block">
-            UNEFA Tucupido • Taller N° 1 (10%) — Diseño de Sistemas
+        <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-left md:text-right shrink-0">
+          <span class="text-xs text-slate-500 block">Modalidad de Evaluación</span>
+          <span class="text-sm font-bold text-[#0f294a]">Taller Práctico-Teórico en Parejas</span>
+          <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-1 border border-emerald-200">
+            Ponderación: 20 Puntos
           </span>
-          <p id="header-group-names" class="text-xs sm:text-sm font-semibold text-white truncate max-w-xl"></p>
+        </div>
+      </div>
+
+      <!-- Registro de Integrantes de la Pareja -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-bold text-[#0f294a] flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Identificación de los Integrantes (Obligatorio)
+          </h3>
+          <span id="completion-text" class="text-xs font-semibold text-slate-500">Progreso: 0%</span>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div id="security-status-pill" class="hidden sm:flex items-center gap-1.5 text-xs bg-emerald-950/80 text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-700">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span>Pantalla Protegida Activa</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <!-- Estudiante 1 -->
+          <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a] mb-2 block">Integrante N° 1</span>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Nombre y Apellido Completo *</label>
+                <input type="text" id="est1_nombre" oninput="handleInputSave()" placeholder="Ej. Carlos Eduardo Pérez"
+                  class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
+                <input type="text" id="est1_ci" oninput="handleInputSave()" placeholder="Ej. V-28.456.789"
+                  class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+              </div>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2 bg-slate-900 px-4 py-1.5 rounded-xl border border-amber-500/40">
-            <span class="text-xs text-slate-400">Tiempo:</span>
-            <span id="countdown-display" class="font-mono text-base font-extrabold text-amber-400">90:00</span>
+          <!-- Estudiante 2 -->
+          <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#0f294a] mb-2 block">Integrante N° 2</span>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Nombre y Apellido Completo *</label>
+                <input type="text" id="est2_nombre" oninput="handleInputSave()" placeholder="Ej. María Fernanda Gómez"
+                  class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Cédula de Identidad *</label>
+                <input type="text" id="est2_ci" oninput="handleInputSave()" placeholder="Ej. V-29.123.456"
+                  class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Sección / Semestre *</label>
+            <input type="text" id="seccion" oninput="handleInputSave()" placeholder="Ej. 06S-2610-D1"
+              class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Turno / Fecha</label>
+            <input type="text" id="turno" oninput="handleInputSave()" placeholder="Ej. Diurno — Laboratorio de Computación"
+              class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
           </div>
         </div>
       </div>
-    </header>
+    </section>
 
-    <!-- Banner de Infracción (Solo se muestra si el alumno abandona la pantalla) -->
-    <div id="violation-banner" class="hidden bg-rose-700 text-white px-6 py-5 shadow-lg border-b-4 border-rose-900">
-      <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-4">
-        <div class="w-12 h-12 rounded-2xl bg-rose-900/70 flex items-center justify-center shrink-0">
-          <svg class="w-7 h-7 text-amber-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+    <!-- Navegación Rápida por Secciones (Tabs) -->
+    <nav class="flex flex-wrap gap-2 mb-6 no-print" aria-label="Navegación de secciones">
+      <button type="button" onclick="scrollToSection('sec-1')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-[#0f294a] border border-slate-200 hover:border-blue-500 shadow-sm transition">
+        I. Selección Simple (3 pts)
+      </button>
+      <button type="button" onclick="scrollToSection('sec-2')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-[#0f294a] border border-slate-200 hover:border-blue-500 shadow-sm transition">
+        II. Completación (3 pts)
+      </button>
+      <button type="button" onclick="scrollToSection('sec-3')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-[#0f294a] border border-slate-200 hover:border-blue-500 shadow-sm transition">
+        III. Desarrollo Teórico (4 pts)
+      </button>
+      <button type="button" onclick="scrollToSection('sec-4')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-[#0f294a] border border-slate-200 hover:border-blue-500 shadow-sm transition">
+        IV. Normalización Práctica (10 pts)
+      </button>
+    </nav>
+
+    <!-- Formulario Principal de Evaluación -->
+    <div id="exam-workspace" class="space-y-8">
+
+      <!-- ========================================================= -->
+      <!-- SECCIÓN I: SELECCIÓN SIMPLE (3 PUNTOS)                    -->
+      <!-- ========================================================= -->
+      <section id="sec-1" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 print-break-inside">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Parte Teórica Objetiva</span>
+            <h3 class="text-lg font-extrabold text-[#0f294a]">Sección I: Selección Simple</h3>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#0f294a] border border-blue-200">
+            Valor: 3 Puntos (1 pto c/u)
+          </span>
         </div>
-        <div>
-          <h2 class="text-base sm:text-lg font-extrabold uppercase tracking-wide">
-            PRUEBA FINALIZADA AUTOMÁTICAMENTE POR ABANDONO DE PANTALLA
-          </h2>
-          <p id="violation-reason-text" class="text-xs sm:text-sm text-rose-100 mt-1">
-            Se detectó salida del modo pantalla completa o cambio de pestaña/ventana. El examen ha sido cerrado y bloqueado con las respuestas registradas hasta este momento.
-          </p>
+        <p class="text-sm text-slate-600 mb-6">Seleccione la única alternativa correcta para cada planteamiento fundamentado en la Unidad 3.</p>
+
+        <div class="space-y-6" id="mc-container">
+          <!-- Renderizado dinámico por JS para asegurar limpieza y estado -->
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Cuerpo del Examen -->
-    <main class="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 space-y-8 flex-1">
+      <!-- ========================================================= -->
+      <!-- SECCIÓN II: COMPLETACIÓN (3 PUNTOS)                       -->
+      <!-- ========================================================= -->
+      <section id="sec-2" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 print-break-inside">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Precisión Conceptual</span>
+            <h3 class="text-lg font-extrabold text-[#0f294a]">Sección II: Completación</h3>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#0f294a] border border-blue-200">
+            Valor: 3 Puntos (1 pto c/u)
+          </span>
+        </div>
+        <p class="text-sm text-slate-600 mb-6">Escriba el término técnico exacto que completa correctamente cada enunciado.</p>
 
-      <!-- =============================================================== -->
-      <!-- I PARTE: COMPLETACIÓN (VALOR: 4 PUNTOS)                         -->
-      <!-- =============================================================== -->
-      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 print-break-inside">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-4">
-          <h3 class="text-lg font-extrabold text-[#0f294a]">I PARTE: COMPLETACIÓN</h3>
-          <span class="px-3 py-1 rounded-full text-xs font-bol
+        <div class="space-y-5">
+          <!-- Completación 1 -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <label for="comp_1" class="block text-sm font-medium text-slate-800 mb-2 leading-relaxed">
+              <span class="font-bold text-[#0f294a]">1.</span> El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina:
+            </label>
+            <input type="text" id="comp_1" oninput="handleInputSave()" placeholder="Escriba el concepto técnico..."
+              class="w-full sm:w-96 px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+            <div id="comp_1_feedback" class="hidden mt-2 text-xs font-semibold"></div>
+          </div>
+
+          <!-- Completación 2 -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <label for="comp_2" class="block text-sm font-medium text-slate-800 mb-2 leading-relaxed">
+              <span class="font-bold text-[#0f294a]">2.</span> En la jerarquía de datos, la colección de registros homogéneos almacenados de forma secundaria que representa una tabla o entidad se denomina:
+            </label>
+            <input type="text" id="comp_2" oninput="handleInputSave()" placeholder="Escriba el concepto técnico..."
+              class="w-full sm:w-96 px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+            <div id="comp_2_feedback" class="hidden mt-2 text-xs font-semibold"></div>
+          </div>
+
+          <!-- Completación 3 -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <label for="comp_3" class="block text-sm font-medium text-slate-800 mb-2 leading-relaxed">
+              <span class="font-bold text-[#0f294a]">3.</span> La medida de seguridad obligatoria que se debe implementar al publicar bases de datos para la web con el fin de evitar que atacantes inserten código malicioso es el uso de:
+            </label>
+            <input type="text" id="comp_3" oninput="handleInputSave()" placeholder="Escriba el concepto técnico..."
+              class="w-full sm:w-96 px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition" />
+            <div id="comp_3_feedback" class="hidden mt-2 text-xs font-semibold"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- SECCIÓN III: DESARROLLO TEÓRICO (4 PUNTOS)                -->
+      <!-- ========================================================= -->
+      <section id="sec-3" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 print-break-inside">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Análisis y Argumentación</span>
+            <h3 class="text-lg font-extrabold text-[#0f294a]">Sección III: Desarrollo Teórico</h3>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#0f294a] border border-blue-200">
+            Valor: 4 Puntos (2 pts c/u)
+          </span>
+        </div>
+        <p class="text-sm text-slate-600 mb-6">Desarrolle sus respuestas con rigor técnico basándose estrictamente en los contenidos de la Unidad 3.</p>
+
+        <div class="space-y-6">
+          <!-- Desarrollo 1 -->
+          <div class="p-5 rounded-xl bg-slate-50 border border-slate-200">
+            <label for="dev_1" class="block text-sm font-semibold text-slate-800 mb-3 leading-relaxed">
+              <span class="font-bold text-[#0f294a]">1.</span> Explique la diferencia fundamental entre un sistema transaccional (OLTP) y un Almacén de Datos (<em>Data Warehouse</em> / OLAP), detallando por qué este último no utiliza esquemas estrictamente normalizados. <span class="text-amber-700 font-bold">(2 pts)</span>
+            </label>
+            <textarea id="dev_1" rows="4" oninput="handleInputSave()" placeholder="Redacte aquí su explicación técnica..."
+              class="w-full p-3.5 bg-white border border-slate-300 rounded-xl text-sm leading-relaxed focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition"></textarea>
+            <div class="flex justify-end mt-1">
+              <span id="dev_1_count" class="text-[11px] text-slate-400">0 caracteres</span>
+            </div>
+          </div>
+
+          <!-- Desarrollo 2 -->
+          <div class="p-5 rounded-xl bg-slate-50 border border-slate-200">
+            <label for="dev_2" class="block text-sm font-semibold text-slate-800 mb-3 leading-relaxed">
+              <span class="font-bold text-[#0f294a]">2.</span> Defina en qué consiste la Ingeniería Inversa de Bases de Datos y explique en qué e
