@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taller N° 1 (10%) - Diseño de Sistemas - UNEFA</title>
-    <!-- Tailwind CSS para diseño moderno -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- SDK de EmailJS para envío de correos -->
+    <!-- Carga segura de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SDK de EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
@@ -22,10 +22,10 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 md:p-6">
 
-    <!-- PANTALLA DE ACCESO Y CONFIGURACIÓN DE SALA -->
+    <!-- PANTALLA DE ACCESO -->
     <div id="pantalla-login" class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 mt-10">
         <div class="text-center mb-6">
-            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-500/25">UNEFA • Núcleo Guárico Sede Tucupido[span_0](start_span)[span_0](end_span)</span>
+            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">UNEFA • Núcleo Guárico Sede Tucupido[span_0](start_span)[span_0](end_span)</span>
             <h1 class="text-2xl font-black text-white mt-3">Taller N° 1: Diseño de Sistemas (10%)[span_1](start_span)[span_1](end_span)</h1>
             <p class="text-slate-400 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633[span_2](start_span)[span_2](end_span)</p>
         </div>
@@ -33,9 +33,9 @@
         <div class="space-y-5">
             <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
                 <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Datos del Estudiante / Grupo</h3>
-                <input type="text" id="input-nombre" placeholder="Nombre y Apellido (Ej. Juan Pérez)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                <input type="text" id="input-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                <input type="text" id="input-integrantes" placeholder="Integrantes adicionales (Opcional)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                <input type="text" id="input-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
+                <input type="text" id="input-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
+                <input type="text" id="input-integrantes" placeholder="Integrantes adicionales (Opcional)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
             </div>
 
             <button type="button" onclick="entrarEvaluacion()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
@@ -44,13 +44,12 @@
         </div>
     </div>
 
-    <!-- PANTALLA DE EVALUACIÓN (OCULTA HASTA INICIAR) -->
+    <!-- PANTALLA DE EVALUACIÓN -->
     <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 hidden">
         
-        <!-- Cabecera de Estado y Sala -->
         <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-6 mb-8 gap-4">
             <div>
-                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/25">Evaluación Activa</span>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Evaluación Activa</span>
                 <h2 class="text-xl md:text-2xl font-black text-white mt-2">Taller N° 1: Diseño de Sistemas</h2>
                 <p class="text-slate-400 text-xs mt-1">Estudiante / Grupo: <span id="lbl-estudiante" class="text-slate-200 font-semibold">---</span></p>
             </div>
@@ -63,16 +62,14 @@
             </div>
         </div>
 
-        <!-- Instrucciones Generales -->
         <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
             <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES[span_4](start_span)[span_4](end_span):</p>
             <p>1. Llene todos los datos en letra imprenta[span_5](start_span)[span_5](end_span) | 2. Tiempo límite: 90 minutos[span_6](start_span)[span_6](end_span) | 3. Valor total: 20 puntos (10% de la nota final)[span_7](start_span)[span_7](end_span).</p>
         </div>
 
-        <!-- FORMULARIO DE EVALUACIÓN -->
         <form id="formTaller" class="space-y-10" onsubmit="return false;">
 
-            <!-- I PARTE: COMPLETACIÓN (4 ptos) -->
+            <!-- I PARTE -->
             <div class="space-y-4">
                 <div class="border-l-4 border-emerald-500 pl-3">
                     <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN[span_8](start_span)[span_8](end_span)</h3>
@@ -87,7 +84,7 @@
                 </div>
             </div>
 
-            <!-- II PARTE: SELECCIÓN SIMPLE (2 ptos) -->
+            <!-- II PARTE -->
             <div class="space-y-4">
                 <div class="border-l-4 border-emerald-500 pl-3">
                     <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE[span_13](start_span)[span_13](end_span)</h3>
@@ -117,7 +114,7 @@
                 </div>
             </div>
 
-            <!-- III PARTE: DESARROLLO (4 ptos) -->
+            <!-- III PARTE -->
             <div class="space-y-4">
                 <div class="border-l-4 border-emerald-500 pl-3">
                     <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO[span_25](start_span)[span_25](end_span)</h3>
@@ -136,7 +133,7 @@
                 </div>
             </div>
 
-            <!-- IV PARTE: EJERCICIOS PRÁCTICOS (10 ptos) -->
+            <!-- IV PARTE -->
             <div class="space-y-4">
                 <div class="border-l-4 border-emerald-500 pl-3">
                     <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN[span_29](start_span)[span_29](end_span)</h3>
@@ -156,7 +153,7 @@
                 </div>
             </div>
 
-            <!-- Botón de Entrega -->
+            <!-- Botones -->
             <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
                 <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
                     📤 Enviar Evaluación al Correo
@@ -167,10 +164,9 @@
             </div>
 
         </form>
-
     </div>
 
-    <!-- SCRIPT DE CONTROL DIRECTO -->
+    <!-- SCRIPT -->
     <script>
         let tiempoRestante = 90 * 60; // 90 minutos[span_35](start_span)[span_35](end_span)
         let timerInterval = null;
@@ -239,4 +235,5 @@
         }
     </script>
 </body>
-</html>
+    </html>
+    
