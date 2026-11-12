@@ -62,7 +62,7 @@
             <div id="seccion-unirse" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-1">Código de Sala (Proporcionado por el Líder):</label>
-                    <input type="text" id="join-codigo" placeholder="Ej. SYS-4829" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono uppercase tracking-widest text-emerald-400 font-bold text-center focus:border-emerald-500 outline-none">
+                    <input type="text" id="join-codigo" placeholder="Ej. UNEFA-1234" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono uppercase tracking-widest text-emerald-400 font-bold text-center focus:border-emerald-500 outline-none">
                 </div>
 
                 <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
@@ -105,7 +105,7 @@
         <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
             <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES:</p>
             <p>1. Llene todos los datos en letra imprenta | 2. Tiempo límite: 90 minutos | 3. Valor total: 20 puntos (10% de la nota final).</p>
-            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA ANTI-FRAUDE: Si abandona la pantalla, cambia de pestaña o minimiza el navegador, la prueba finalizará automáticamente.</p>
+            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA: Mantenga la aplicación abierta y visible durante toda la evaluación.</p>
         </div>
 
         <!-- FORMULARIO DE EVALUACIÓN -->
@@ -209,7 +209,7 @@
 
     </div>
 
-    <!-- SCRIPT DE CONTROL LOCAL (SIN SERVIDOR / SIN DB) -->
+    <!-- SCRIPT DE CONTROL LOCAL (SIN BLOQUEOS DE PANTALLA FORZADA) -->
     <script>
         let salaActual = null;
         let integrantesGrupo = [];
@@ -249,7 +249,6 @@
                 { nombre: nombre1, ci: ci1, rol: 'Integrante 1 (Líder)' }
             ];
 
-            // Guardar estructura inicial en localStorage
             const datosSala = {
                 tamanoMaximo: tamano,
                 integrantes: integrantesGrupo,
@@ -258,152 +257,19 @@
             localStorage.setItem('unefa_sala_' + codigoSala, JSON.stringify(datosSala));
 
             iniciarInterfazEvaluacion(codigoSala, integrantesGrupo.map(i => `${i.nombre} (C.I: ${i.ci})`).join(' | '));
-            activarSeguridadAntifuga();
         }
 
-        // Unirse a Sala Local (Simulado en la misma PC o mediante código compartido)
+        // Unirse a Sala Local
         function unirseSalaGrupo() {
             const codigo = document.getElementById('join-codigo').value.trim().toUpperCase();
             const nombre = document.getElementById('join-nombre').value.trim();
             const ci = document.getElementById('join-ci').value.trim();
 
             if(!codigo || !nombre || !ci) {
-                alert("Por favor complete todos              </div>
-            </div>
-
-            <!-- II PARTE: SELECCIÓN SIMPLE (2 ptos) -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE</h3>
-                    <p class="text-xs text-slate-400">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
-                    <div>
-                        <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="a" onchange="sincronizarRadio('p_sel1', 'a')"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="b" onchange="sincronizarRadio('p_sel1', 'b')"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="c" onchange="sincronizarRadio('p_sel1', 'c')"> c) Conectar dos tablas mediante llaves foráneas.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="d" onchange="sincronizarRadio('p_sel1', 'd')"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-slate-800 pt-3">
-                        <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a" onchange="sincronizarRadio('p_sel2', 'a')"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="b" onchange="sincronizarRadio('p_sel2', 'b')"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="c" onchange="sincronizarRadio('p_sel2', 'c')"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="d" onchange="sincronizarRadio('p_sel2', 'd')"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- III PARTE: DESARROLLO (4 ptos) -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO</h3>
-                    <p class="text-xs text-slate-400">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
-                    <div>
-                        <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?</label>
-                        <textarea id="resp_d1" rows="3" oninput="sincronizarCampo('resp_d1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?</label>
-                        <textarea id="resp_d2" rows="3" oninput="sincronizarCampo('resp_d2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- IV PARTE: EJERCICIOS PRÁCTICOS (10 ptos) -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN</h3>
-                    <p class="text-xs text-slate-400">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</code></p>
-                    <textarea id="resp_e1" rows="4" oninput="sincronizarCampo('resp_e1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
-                </div>
-
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</code></p>
-                    <textarea id="resp_e2" rows="4" oninput="sincronizarCampo('resp_e2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
-                </div>
-            </div>
-
-            <!-- Botón de Entrega Grupal -->
-            <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
-                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
-                    📤 Enviar Evaluación Grupal Oficial
-                </button>
-                <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
-                    🖨️ Imprimir Acta PDF
-                </button>
-            </div>
-
-        </form>
-
-    </div>
-
-    <!-- SCRIPT DE CONTROL Y FIREBASE -->
-    <script>
-        // Configuración de Firebase
-        const firebaseConfig = {
-            databaseURL: "https://evaluaciones-unefa-default-rtdb.firebaseio.com/"
-        };
-        
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
-
-        let salaActual = null;
-        let esLider = false;
-        let maxDispositivos = 2;
-        let miIdDispositivo = 'dev_' + Math.random().toString(36.substring(2, 9));
-        let tiempoRestante = 90 * 60; // 90 minutos
-        let timerInterval = null;
-        let examenEntregado = false;
-
-        function cambiarModo(modo) {
-            if(modo === 'crear') {
-                document.getElementById('seccion-crear').classList.remove('hidden');
-                document.getElementById('seccion-unirse').classList.add('hidden');
-                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
-            } else {
-                document.getElementById('seccion-crear').classList.add('hidden');
-                document.getElementById('seccion-unirse').classList.remove('hidden');
-                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
-            }
-        }
-
-        // Crear Sala
-        async function crearSalaGrupo() {
-            const tamano = parseInt(document.getElementById('tamano-grupo').value);
-            const nombre1 = document.getElementById('crear-est1-nombre').value.trim();
-            const ci1 = document.getElementById('crear-est1-ci').value.trim();
-
-            if(!nombre1 || !ci1) {
-                alert("Por favor ingrese los datos del Líder (Integrante 1).");
+                alert("Por favor complete todos los campos de acceso.");
                 return;
             }
 
-            const codigoSala = 'UNEFA-' + Math.floor(1000 + Math.random() * 9000);
-            salaActual = codigoSala;
-            esLider = true;
-            maxDispositivos = tamano;
-
-            const datosSala = {
-                config: { tamanoGrupo: tamano },
-         
+            const salaGuardadaStr = localStorage.getItem('unefa_sala_' + codigo);
+            if(!salaGuardadaStr) {
+       
