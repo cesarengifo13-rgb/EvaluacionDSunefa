@@ -329,4 +329,896 @@
           <!-- Desarrollo 2 -->
           <div class="p-5 rounded-xl bg-slate-50 border border-slate-200">
             <label for="dev_2" class="block text-sm font-semibold text-slate-800 mb-3 leading-relaxed">
-              <span class="font-bold text-[#0f294a]">2.</span> Defina en qué consiste la Ingeniería Inversa de Bases de Datos y explique en qué e
+              <span class="font-bold text-[#0f294a]">2.</span> Defina en qué consiste la Ingeniería Inversa de Bases de Datos y explique en qué escenario real de una empresa resulta indispensable aplicarla. <span class="text-amber-700 font-bold">(2 pts)</span>
+            </label>
+            <textarea id="dev_2" rows="4" oninput="handleInputSave()" placeholder="Redacte aquí su definición y escenario de aplicación..."
+              class="w-full p-3.5 bg-white border border-slate-300 rounded-xl text-sm leading-relaxed focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition"></textarea>
+            <div class="flex justify-end mt-1">
+              <span id="dev_2_count" class="text-[11px] text-slate-400">0 caracteres</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- SECCIÓN IV: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (10 PTS)-->
+      <!-- ========================================================= -->
+      <section id="sec-4" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Taller de Modelado Relacional</span>
+            <h3 class="text-lg font-extrabold text-[#0f294a]">Sección IV: Ejercicios Prácticos de Normalización (Hasta 3FN)</h3>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            Valor: 10 Puntos (5 pts c/u)
+          </span>
+        </div>
+
+        <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-4 mb-8 text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <strong class="text-[#0f294a] block mb-1">Instrucciones del Constructor Relacional:</strong>
+          Para cada caso práctico, descomponga la tabla plana inicial creando las tablas independientes necesarias para cumplir hasta la <strong>Tercera Forma Normal (3FN)</strong>. Agregue los campos correspondientes en cada tabla y marque explícitamente si cada campo actúa como <strong>PK</strong> (Llave Primaria), <strong>FK</strong> (Llave Foránea) o <strong>ATR</strong> (Atributo normal).
+        </div>
+
+        <!-- EJERCICIO PRÁCTICO 1 -->
+        <div class="border border-slate-300 rounded-2xl p-5 sm:p-6 mb-8 bg-slate-50/50 print-break-inside">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h4 class="text-base font-extrabold text-[#0f294a]">Ejercicio 1: El Sistema de Préstamos Bibliotecarios</h4>
+            <span class="text-xs font-bold bg-[#0f294a] text-white px-3 py-1 rounded-lg">5 Puntos</span>
+          </div>
+          <p class="text-sm text-slate-600 mb-3">
+            Una biblioteca universitaria registra sus préstamos en una tabla plana no normalizada con los siguientes campos iniciales:
+          </p>
+
+          <!-- Chips de campos iniciales -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 mb-4">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Tabla Plana Original (Sin Normalizar):</span>
+            <div class="flex flex-wrap gap-1.5" id="ex1-chips"></div>
+          </div>
+
+          <!-- Constructor de Tablas Ejercicio 1 -->
+          <div class="flex items-center justify-between mb-3 no-print">
+            <span class="text-xs font-bold text-slate-700">Tablas Resultantes en 3FN:</span>
+            <button type="button" onclick="addNormTable(1)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0f294a] text-white hover:bg-blue-900 transition shadow-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Agregar Nueva Tabla
+            </button>
+          </div>
+
+          <div id="ex1-tables-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"></div>
+
+          <!-- Justificación técnica Ejercicio 1 -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Justificación de Normalización (1FN → 2FN → 3FN) - Ejercicio 1:</label>
+            <textarea id="ex1_notes" rows="2" oninput="handleInputSave()" placeholder="Explique brevemente cómo eliminó las dependencias parciales/transitivas y cómo relacionó las tablas..."
+              class="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none"></textarea>
+          </div>
+        </div>
+
+        <!-- EJERCICIO PRÁCTICO 2 -->
+        <div class="border border-slate-300 rounded-2xl p-5 sm:p-6 bg-slate-50/50 print-break-inside">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h4 class="text-base font-extrabold text-[#0f294a]">Ejercicio 2: El Sistema de Citas Médicas</h4>
+            <span class="text-xs font-bold bg-[#0f294a] text-white px-3 py-1 rounded-lg">5 Puntos</span>
+          </div>
+          <p class="text-sm text-slate-600 mb-3">
+            Un centro de salud almacena la información de sus consultas en una hoja de cálculo desordenada con redundancias:
+          </p>
+
+          <!-- Chips de campos iniciales -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 mb-4">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Tabla Plana Original (Sin Normalizar):</span>
+            <div class="flex flex-wrap gap-1.5" id="ex2-chips"></div>
+          </div>
+
+          <!-- Constructor de Tablas Ejercicio 2 -->
+          <div class="flex items-center justify-between mb-3 no-print">
+            <span class="text-xs font-bold text-slate-700">Tablas Resultantes en 3FN:</span>
+            <button type="button" onclick="addNormTable(2)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0f294a] text-white hover:bg-blue-900 transition shadow-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Agregar Nueva Tabla
+            </button>
+          </div>
+
+          <div id="ex2-tables-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"></div>
+
+          <!-- Justificación técnica Ejercicio 2 -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Justificación de Normalización (1FN → 2FN → 3FN) - Ejercicio 2:</label>
+            <textarea id="ex2_notes" rows="2" oninput="handleInputSave()" placeholder="Explique brevemente la separación de entidades (Pacientes, Médicos, Citas) y sus llaves..."
+              class="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- BOTONERA DE ACCIÓN FINAL                                  -->
+      <!-- ========================================================= -->
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 no-print">
+        <button type="button" onclick="confirmResetExam()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition">
+          Reiniciar Prueba en Blanco
+        </button>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="button" onclick="window.print()" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition inline-flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir / Guardar PDF
+          </button>
+
+          <button type="button" onclick="submitAndGradeExam()" class="px-6 py-3 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition inline-flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Finalizar y Calificar Evaluación
+          </button>
+        </div>
+      </div>
+       <!-- ========================================================= -->
+      <!-- PANEL DE ACTA DE CALIFICACIÓN Y REVISIÓN DOCENTE          -->
+      <!-- ========================================================= -->
+      <section id="results-panel" class="hidden bg-white rounded-2xl shadow-lg border-2 border-[#0f294a] p-6 sm:p-8 print-break-inside">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+              Acta Digital de Evaluación
+            </span>
+            <h3 class="text-xl font-extrabold text-[#0f294a] mt-2">Resultados y Rúbrica de Calificación (Sobre 20 Pts)</h3>
+            <p id="acta-students-summary" class="text-xs sm:text-sm text-slate-600 mt-1"></p>
+          </div>
+
+          <!-- Marcador Total -->
+          <div class="bg-[#0f294a] text-white px-6 py-4 rounded-2xl text-center shrink-0">
+            <span class="text-[11px] uppercase tracking-wider text-amber-300 block font-semibold">Calificación Final</span>
+            <div class="text-3xl font-extrabold mt-0.5">
+              <span id="final-score-display">0.0</span> <span class="text-base font-normal text-slate-300">/ 20</span>
+            </div>
+            <span id="final-status-badge" class="text-[11px] font-bold px-2 py-0.5 rounded bg-white/15 inline-block mt-1">Aprobado</span>
+          </div>
+        </div>
+
+        <!-- Desglose por Secciones y Ajuste Docente -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <!-- Puntaje Automático (Sec I y II) -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <h4 class="text-sm font-bold text-[#0f294a] mb-3">1. Evaluación Automática (Secciones I y II)</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-slate-600">Sección I: Selección Simple (3 pts):</span>
+                <span id="score-sec1" class="font-bold text-slate-900">0 / 3 pts</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-600">Sección II: Completación (3 pts):</span>
+                <span id="score-sec2" class="font-bold text-slate-900">0 / 3 pts</span>
+              </div>
+              <div class="border-t border-slate-200 pt-2 flex justify-between font-bold text-[#0f294a]">
+                <span>Subtotal Objetivo:</span>
+                <span id="score-auto-total">0 / 6 pts</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rúbrica Asistida / Ajuste Docente (Sec III y IV) -->
+          <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-sm font-bold text-[#0f294a]">2. Rúbrica Práctica y Desarrollo (Ajuste Docente)</h4>
+              <span class="text-[11px] font-semibold text-amber-800">Editable por el Profesor</span>
+            </div>
+            <div class="space-y-2.5 text-xs sm:text-sm">
+              <div class="flex items-center justify-between gap-2">
+                <label for="rubric_dev1" class="text-slate-700">Sec. III - Pregunta 1 (OLTP vs OLAP) [Max 2]:</label>
+                <input type="number" id="rubric_dev1" min="0" max="2" step="0.5" value="0" onchange="recalculateTotalScore()"
+                  class="w-20 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-right font-bold text-[#0f294a]" />
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <label for="rubric_dev2" class="text-slate-700">Sec. III - Pregunta 2 (Ing. Inversa) [Max 2]:</label>
+                <input type="number" id="rubric_dev2" min="0" max="2" step="0.5" value="0" onchange="recalculateTotalScore()"
+                  class="w-20 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-right font-bold text-[#0f294a]" />
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <label for="rubric_ex1" class="text-slate-700">Sec. IV - Ejercicio 1 (Biblioteca 3FN) [Max 5]:</label>
+                <input type="number" id="rubric_ex1" min="0" max="5" step="0.5" value="0" onchange="recalculateTotalScore()"
+                  class="w-20 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-right font-bold text-[#0f294a]" />
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <label for="rubric_ex2" class="text-slate-700">Sec. IV - Ejercicio 2 (Citas Médicas 3FN) [Max 5]:</label>
+                <input type="number" id="rubric_ex2" min="0" max="5" step="0.5" value="0" onchange="recalculateTotalScore()"
+                  class="w-20 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-right font-bold text-[#0f294a]" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnóstico Inteligente de Tablas Normalizadas -->
+        <div id="norm-diagnostics" class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm"></div>
+
+        <!-- Botón para Mostrar / Ocultar Clave Oficial de Respuestas -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200 no-print">
+          <button type="button" onclick="toggleOfficialKey()" id="toggle-key-btn"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#0f294a] text-white hover:bg-blue-900 transition">
+            Mostrar Clave Oficial y Solucionario (Profesor)
+          </button>
+          <button type="button" onclick="window.print()"
+            class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition">
+            Imprimir Acta Evaluada (PDF)
+          </button>
+        </div>
+        <!-- Solucionario Oficial (Oculto por defecto hasta que el profesor lo active) -->
+        <div id="official-answer-key" class="hidden mt-6 p-5 rounded-2xl bg-slate-900 text-slate-100 space-y-4 text-xs sm:text-sm">
+          <h4 class="text-base font-bold text-amber-400 border-b border-slate-700 pb-2">Clave Oficial de Respuestas — Unidad 3</h4>
+          <div>
+            <p class="font-bold text-emerald-400">Sección I (Selección Simple):</p>
+            <ul class="list-disc list-inside text-slate-300 mt-1 space-y-1">
+              <li><strong>1:</strong> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</li>
+              <li><strong>2:</strong> c) Conectar tablas y garantizar la integridad referencial evitando datos huérfanos.</li>
+              <li><strong>3:</strong> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-bold text-emerald-400">Sección II (Completación):</p>
+            <ul class="list-disc list-inside text-slate-300 mt-1 space-y-1">
+              <li><strong>1:</strong> Ingeniería inversa</li>
+              <li><strong>2:</strong> Archivo (o tabla)</li>
+              <li><strong>3:</strong> Consultas preparadas (<em>Prepared Statements</em> / parámetros ligados)</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-bold text-emerald-400">Sección III (Criterios de Desarrollo Teórico):</p>
+            <p class="text-slate-300 mt-1"><strong>1. OLTP vs Data Warehouse:</strong> OLTP opera transacciones diarias rápidas en tiempo real usando esquemas normalizados (3FN) para evitar anomalías. El Data Warehouse (OLAP) consolida datos históricos de solo lectura usando modelos dimensionales menos normalizados para acelerar consultas analíticas masivas.</p>
+            <p class="text-slate-300 mt-1"><strong>2. Ingeniería Inversa:</strong> Escaneo de una base de datos física existente para reconstruir su modelo lógico y relaciones. Es indispensable al heredar sistemas legados (<em>legacy</em>) sin documentación antes de migrar datos.</p>
+          </div>
+          <div>
+            <p class="font-bold text-emerald-400">Sección IV (Esquemas Esperados en 3FN):</p>
+            <p class="text-slate-300 mt-1"><strong>Ejercicio 1 (Biblioteca):</strong><br>
+              • <code>Estudiantes</code> (<strong>ID_Estudiante [PK]</strong>, Nombre_Estudiante, Carrera_Estudiante)<br>
+              • <code>Libros</code> (<strong>Codigo_Libro [PK]</strong>, Titulo_Libro, Autor_Libro)<br>
+              • <code>Prestamos</code> (<strong>ID_Prestamo [PK]</strong>, Fecha_Prestamo, <em>ID_Estudiante [FK]</em>, <em>Codigo_Libro [FK]</em>, Dias_Prestamo)
+            </p>
+            <p class="text-slate-300 mt-2"><strong>Ejercicio 2 (Citas Médicas):</strong><br>
+              • <code>Pacientes</code> (<strong>ID_Paciente [PK]</strong>, Nombre_Paciente, Telefono_Paciente)<br>
+              • <code>Medicos</code> (<strong>ID_Medico [PK]</strong>, Nombre_Medico, Especialidad_Medico, Consultorio_Medico)<br>
+              • <code>Citas</code> (<strong>ID_Cita [PK]</strong>, Fecha_Hora, <em>ID_Medico [FK]</em>, <em>ID_Paciente [FK]</em>, Diagnostico)
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Pie de Página -->
+  <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-xs text-slate-500 no-print mt-12">
+    UNEFA • Carrera: Ingeniería de Sistemas • Asignatura: Diseño de Sistemas (Unidad 3) — Entorno Digital de Evaluación
+  </footer>
+
+  <!-- Lógica JavaScript de la Aplicación -->
+  <script>
+    // =========================================================================
+    // 1. BANCO DE PREGUNTAS Y DATOS INICIALES
+    // =========================================================================
+    const STORAGE_KEY = 'unefa_ds_unidad3_eval_v1';
+
+    const mcQuestions = [
+      {
+        id: 'mc_1',
+        question: '1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?',
+        options: [
+          { key: 'a', text: 'a) Eliminar las dependencias transitivas entre atributos no clave.' },
+          { key: 'b', text: 'b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.' },
+          { key: 'c', text: 'c) Conectar dos tablas mediante llaves foráneas.' },
+          { key: 'd', text: 'd) Optimizar las consultas analíticas masivas (OLAP).' }
+        ],
+        correct: 'b'
+      },
+      {
+        id: 'mc_2',
+        question: '2. ¿Cuál es el objetivo principal de una Llave Foránea (Foreign Key - FK) en un modelo relacional?',
+        options: [
+          { key: 'a', text: 'a) Identificar de manera única e irrepetible cada registro de una tabla.' },
+          { key: 'b', text: 'b) Acelerar el procesamiento de gráficos en interfaces web.' },
+          { key: 'c', text: 'c) Conectar tablas y garantizar la integridad referencial evitando datos huérfanos.' },
+          { key: 'd', text: 'd) Sustituir por completo a los archivos maestros históricos.' }
+        ],
+        correct: 'c'
+      },
+      {
+        id: 'mc_3',
+        question: '3. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?',
+        options: [
+          { key: 'a', text: 'a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).' },
+          { key: 'b', text: 'b) Contiene datos altamente normalizados para inserciones masivas de cajeros.' },
+          { key: 'c', text: 'c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).' },
+          { key: 'd', text: 'd) Permite modificar los datos históricos libremente para corregir errores operativos diarios.' }
+        ],
+        correct: 'c'
+      }
+    ];
+
+    const ex1InitialFields = [
+      'ID_Prestamo', 'Fecha_Prestamo', 'ID_Estudiante', 'Nombre_Estudiante',
+      'Carrera_Estudiante', 'Codigo_Libro', 'Titulo_Libro', 'Autor_Libro', 'Dias_Prestamo'
+    ];
+
+    const ex2InitialFields = [
+      'ID_Cita', 'Fecha_Hora', 'ID_Medico', 'Nombre_Medico', 'Especialidad_Medico',
+      'Consultorio_Medico', 'ID_Paciente', 'Nombre_Paciente', 'Telefono_Paciente', 'Diagnostico'
+    ];
+// Estado de la evaluación
+    let examState = {
+      est1_nombre: '',
+      est1_ci: '',
+      est2_nombre: '',
+      est2_ci: '',
+      seccion: '',
+      turno: '',
+      mc_1: '',
+      mc_2: '',
+      mc_3: '',
+      comp_1: '',
+      comp_2: '',
+      comp_3: '',
+      dev_1: '',
+      dev_2: '',
+      ex1_notes: '',
+      ex2_notes: '',
+      ex1_tables: [
+        { id: 't1_1', name: 'Estudiantes', fields: [{ name: 'ID_Estudiante', role: 'PK' }] },
+        { id: 't1_2', name: 'Libros', fields: [{ name: 'Codigo_Libro', role: 'PK' }] },
+        { id: 't1_3', name: 'Prestamos', fields: [{ name: 'ID_Prestamo', role: 'PK' }] }
+      ],
+      ex2_tables: [
+        { id: 't2_1', name: 'Pacientes', fields: [{ name: 'ID_Paciente', role: 'PK' }] },
+        { id: 't2_2', name: 'Medicos', fields: [{ name: 'ID_Medico', role: 'PK' }] },
+        { id: 't2_3', name: 'Citas', fields: [{ name: 'ID_Cita', role: 'PK' }] }
+      ],
+      elapsedSeconds: 0,
+      submitted: false
+    };
+
+    let timerInterval = null;
+    let timerRunning = true;
+    let autoScoreSec1 = 0;
+    let autoScoreSec2 = 0;
+
+    // =========================================================================
+    // 2. INICIALIZACIÓN Y RENDERIZADO DE COMPONENTES
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromLocalStorage();
+      renderMCQuestions();
+      renderInitialChips('ex1-chips', ex1InitialFields, 1);
+      renderInitialChips('ex2-chips', ex2InitialFields, 2);
+      populateFormInputs();
+      renderNormTables(1);
+      renderNormTables(2);
+      updateProgress();
+      startTimer();
+
+      if (examState.submitted) {
+        submitAndGradeExam(true);
+      }
+    });
+
+    function renderMCQuestions() {
+      const container = document.getElementById('mc-container');
+      container.innerHTML = mcQuestions.map(q => `
+        <div class="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200" id="box_${q.id}">
+          <p class="text-sm font-bold text-[#0f294a] mb-3">${q.question}</p>
+          <div class="space-y-2">
+            ${q.options.map(opt => {
+              const checked = examState[q.id] === opt.key ? 'checked' : '';
+              return `
+                <label class="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-blue-400 cursor-pointer transition">
+                  <input type="radio" name="${q.id}" value="${opt.key}" ${checked}
+                    onchange="selectMCOption('${q.id}', '${opt.key}')"
+                    class="mt-0.5 w-4 h-4 text-[#0f294a] focus:ring-blue-600" />
+                  <span class="text-xs sm:text-sm text-slate-700 leading-snug">${opt.text}</span>
+                </label>
+              `;
+            }).join('')}
+          </div>
+          <div id="${q.id}_feedback" class="hidden mt-2 text-xs font-semibold"></div>
+        </div>
+      `).join('');
+    }
+
+    function renderInitialChips(containerId, fields, exNum) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = fields.map(f => `
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 text-slate-700 border border-slate-300">
+          ${f}
+        </span>
+      `).join('');
+    }
+
+    // =========================================================================
+    // 3. CONSTRUCTOR VISUAL DE TABLAS DE NORMALIZACIÓN (SECCIÓN IV)
+    // =========================================================================
+    function renderNormTables(exNum) {
+      const container = document.getElementById(`ex${exNum}-tables-container`);
+      const tables = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      const availableFields = exNum === 1 ? ex1InitialFields : ex2InitialFields;
+
+      container.innerHTML = tables.map((table, tIdx) => `
+        <div class="bg-white rounded-xl border-2 border-slate-300 shadow-sm flex flex-col overflow-hidden">
+          <!-- Cabecera de la Tabla -->
+          <div class="bg-[#0f294a] text-white px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 flex-1">
+              <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <input type="text" value="${escapeHtml(table.name)}"
+                onchange="updateTableName(${exNum}, ${tIdx}, this.value)"
+                placeholder="Nombre de Tabla"
+                class="bg-slate-800/80 text-white text-xs font-bold px-2 py-1 rounded border border-slate-600 focus:border-amber-400 outline-none w-full" />
+            </div>
+            ${tables.length > 1 ? `
+              <button type="button" onclick="removeNormTable(${exNum}, ${tIdx})" title="Eliminar tabla"
+                class="text-slate-300 hover:text-rose-400 p-1 rounded transition no-print">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Lista de Campos de la Tabla -->
+          <div class="p-3 space-y-2 flex-1">
+            ${table.fields.length === 0 ? `<p class="text-xs text-slate-400 italic text-center py-3">Sin campos asignados</p>` : ''}
+            ${table.fields.map((field, fIdx) => {
+              const roleBadgeClass =
+                field.role === 'PK' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                field.role === 'FK' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                'bg-slate-100 text-slate-600 border-slate-300';
+
+              return `
+                <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                  <input type="text" list="fields-list-${exNum}" value="${escapeHtml(field.name)}"
+                    onchange="updateFieldName(${exNum}, ${tIdx}, ${fIdx}, this.value)"
+                    placeholder="Campo..."
+                    class="text-xs font-mono font-medium bg-white border border-slate-200 rounded px-2 py-1 w-full min-w-0 focus:border-blue-500 outline-none" />
+
+                  <!-- Selector de Rol: PK / FK / ATR -->
+                  <select onchange="updateFieldRole(${exNum}, ${tIdx}, ${fIdx}, this.value)"
+                    class="text-[11px] font-bold px-1.5 py-1 rounded border ${roleBadgeClass} outline-none cursor-pointer shrink-0">
+                    <option value="PK" ${field.role === 'PK' ? 'selected' : ''}>PK</option>
+                    <option value="FK" ${field.role === 'FK' ? 'selected' : ''}>FK</option>
+                    <option value="ATR" ${field.role === 'ATR' ? 'selected' : ''}>ATR</option>
+                  </select>
+
+                  <button type="button" onclick="removeFieldFromTable(${exNum}, ${tIdx}, ${fIdx})" title="Quitar campo"
+                    class="text-slate-400 hover:text-rose-600 px-1 no-print">
+                    &times;
+                  </button>
+                </div>
+              `;
+            }).join('')}
+
+            <!-- Datalist de sugerencias de campos -->
+            <datalist id="fields-list-${exNum}">
+              ${availableFields.map(af => `<option value="${af}">`).join('')}
+            </datalist>
+          </div>
+
+          <!-- Pie de la Tabla: Agregar Campo -->
+          <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 no-print">
+            <button type="button" onclick="addFieldToTable(${exNum}, ${tIdx})"
+              class="w-full py-1.5 rounded-lg text-xs font-semibold text-[#0f294a] hover:bg-blue-50 border border-dashed border-slate-300 hover:border-blue-400 transition">
+              + Añadir Campo / Llave
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addNormTable(exNum) {
+      const target = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      target.push({
+        id: `t${exNum}_${Date.now()}`,
+        name: `Nueva_Tabla_${target.length + 1}`,
+        fields: [{ name: '', role: 'PK' }]
+      });
+      renderNormTables(exNum);
+      saveToLocalStorage();
+    }
+
+    function removeNormTable(exNum, tIdx) {
+      const target = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      target.splice(tIdx, 1);
+      renderNormTables(exNum);
+      saveToLocalStorage();
+    }
+
+    function updateTableName(exNum, tIdx, newName) {
+      const target = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      target[tIdx].name = newName;
+      saveToLocalStorage();
+    }
+
+    function addFieldToTable(exNum, tIdx) {
+      const target = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      target[tIdx].fields.push({ name: '', role: 'ATR' });
+      renderNormTables(exNum);
+      saveToLocalStorage();
+    }
+
+    function removeFieldFromTable(exNum, tIdx, fIdx) {
+      const target = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      target[tIdx].fields.splice(fIdx, 1);
+      renderNormTables(exNum);
+      saveToLocalStorage();
+    }
+
+    function updateFieldName(exNum, tIdx, fIdx, newName) {
+      const target = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      target[tIdx].fields[fIdx].name = newName.trim();
+      saveToLocalStorage();
+      updateProgress();
+    }
+
+    function updateFieldRole(exNum, tIdx, fIdx, newRole) {
+      const target = exNum === 1 ? examState.ex1_tables : examState.ex2_tables;
+      target[tIdx].fields[fIdx].role = newRole;
+      renderNormTables(exNum);
+      saveToLocalStorage();
+    }
+
+    // =========================================================================
+    // 4. GUARDADO AUTOMÁTICO, PROGRESO Y CRONÓMETRO
+    // =========================================================================
+    function selectMCOption(qId, val) {
+      examState[qId] = val;
+      saveToLocalStorage();
+      updateProgress();
+    }
+
+    function handleInputSave() {
+      const ids = [
+        'est1_nombre', 'est1_ci', 'est2_nombre', 'est2_ci', 'seccion', 'turno',
+        'comp_1', 'comp_2', 'comp_3', 'dev_1', 'dev_2', 'ex1_notes', 'ex2_notes'
+      ];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) examState[id] = el.value;
+      });
+
+      // Actualizar contadores de caracteres
+      document.getElementById('dev_1_count').textContent = `${examState.dev_1.length} caracteres`;
+      document.getElementById('dev_2_count').textContent = `${examState.dev_2.length} caracteres`;
+
+      saveToLocalStorage();
+      updateProgress();
+    }
+
+    function populateFormInputs() {
+      const ids = [
+        'est1_nombre', 'est1_ci', 'est2_nombre', 'est2_ci', 'seccion', 'turno',
+        'comp_1', 'comp_2', 'comp_3', 'dev_1', 'dev_2', 'ex1_notes', 'ex2_notes'
+      ];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && examState[id]) el.value = examState[id];
+      });
+      document.getElementById('dev_1_count').textContent = `${(examState.dev_1 || '').length} caracteres`;
+      document.getElementById('dev_2_count').textContent = `${(examState.dev_2 || '').length} caracteres`;
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(examState));
+      } catch (e) {
+        console.warn('No se pudo guardar en localStorage:', e);
+      }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          examState = { ...examState, ...parsed };
+        }
+      } catch (e) {
+        console.warn('Error cargando progreso previo:', e);
+      }
+    }
+
+    function updateProgress() {
+      let completed = 0;
+      const totalItems = 12;
+
+      if (examState.est1_nombre.trim() && examState.est1_ci.trim()) completed++;
+      if (examState.est2_nombre.trim() && examState.est2_ci.trim()) completed++;
+      if (examState.mc_1) completed++;
+      if (examState.mc_2) completed++;
+      if (examState.mc_3) completed++;
+      if (examState.comp_1.trim()) completed++;
+      if (examState.comp_2.trim()) completed++;
+      if (examState.comp_3.trim()) completed++;
+      if (examState.dev_1.trim().length >= 15) completed++;
+      if (examState.dev_2.trim().length >= 15) completed++;
+      if (examState.ex1_tables.some(t => t.fields.length >= 2)) completed++;
+      if (examState.ex2_tables.some(t => t.fields.length >= 2)) completed++;
+
+      const pct = Math.round((completed / totalItems) * 100);
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('completion-text').textContent = `Progreso: ${pct}%`;
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timerRunning) {
+          examState.elapsedSeconds++;
+          const mins = String(Math.floor(examState.elapsedSeconds / 60)).padStart(2, '0');
+          const secs = String(examState.elapsedSeconds % 60).padStart(2, '0');
+          document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+          if (examState.elapsedSeconds % 10 === 0) saveToLocalStorage();
+        }
+      }, 1000);
+    }
+
+    function toggleTimer() {
+      timerRunning = !timerRunning;
+      document.getElementById('toggle-timer-btn').textContent = timerRunning ? 'Pausar' : 'Reanudar';
+    }
+
+    // =========================================================================
+    // 5. EVALUACIÓN AUTOMÁTICA, DIAGNÓSTICO DE NORMALIZACIÓN Y ACTA
+    // =========================================================================
+    function normalizeText(str) {
+      return (str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    }
+
+    function submitAndGradeExam(silent = false) {
+      // Validar datos mínimos de los estudiantes
+      if (!silent) {
+        if (!examState.est1_nombre.trim() || !examState.est1_ci.trim() ||
+            !examState.est2_nombre.trim() || !examState.est2_ci.trim()) {
+          showToast('Por favor complete el Nombre y la Cédula de ambos integrantes de la pareja antes de finalizar.', 'error');
+          scrollToSection('est1_nombre');
+          return;
+        }
+      }
+
+      examState.submitted = true;
+      saveToLocalStorage();
+
+      // 1. Calificar Sección I (Selección Simple - 3 pts)
+      autoScoreSec1 = 0;
+      mcQuestions.forEach(q => {
+        const fb = document.getElementById(`${q.id}_feedback`);
+        fb.classList.remove('hidden', 'text-emerald-700', 'text-rose-600');
+        if (examState[q.id] === q.correct) {
+          autoScoreSec1 += 1;
+          fb.textContent = '✓ Respuesta correcta (+1.0 pto)';
+          fb.classList.add('text-emerald-700');
+        } else {
+          fb.textContent = `✗ Incorrecto (Opción correcta: ${q.correct.toUpperCase()})`;
+          fb.classList.add('text-rose-600');
+        }
+      });
+
+      // 2. Calificar Sección II (Completación - 3 pts)
+      autoScoreSec2 = 0;
+      const compRules = [
+        { id: 'comp_1', accepted: ['ingenieria inversa'], label: 'Ingeniería inversa' },
+        { id: 'comp_2', accepted: ['archivo', 'archivos', 'tabla', 'tablas'], label: 'Archivo / Tabla' },
+        { id: 'comp_3', accepted: ['consultas preparadas', 'prepared statements', 'parametros ligados', 'consultas parametrizadas'], label: 'Consultas preparadas' }
+      ];
+
+      compRules.forEach(rule => {
+        const userNorm = normalizeText(examState[rule.id]);
+        const fb = document.getElementById(`${rule.id}_feedback`);
+        fb.classList.remove('hidden', 'text-emerald-700', 'text-rose-600');
+
+        const isMatch = rule.accepted.some(ans => userNorm.includes(ans) || ans === userNorm);
+        if (isMatch && userNorm.length > 0) {
+          autoScoreSec2 += 1;
+          fb.textContent = '✓ Correcto (+1.0 pto)';
+          fb.classList.add('text-emerald-700');
+        } else {
+          fb.textContent = `✗ Respuesta esperada: ${rule.label}`;
+          fb.classList.add('text-rose-600');
+        }
+      });
+
+      // 3. Evaluación Estructural Inteligente de Sección IV (Sugerencia para rúbrica)
+      const diag1 = analyzeNormalizationExercise(examState.ex1_tables, ['id_estudiante', 'codigo_libro', 'id_prestamo']);
+      const diag2 = analyzeNormalizationExercise(examState.ex2_tables, ['id_paciente', 'id_medico', 'id_cita']);
+
+      // Sugerir puntuación inicial en la rúbrica si están en 0
+      const dev1Input = document.getElementById('rubric_dev1');
+      const dev2Input = document.getElementById('rubric_dev2');
+      const ex1Input = document.getElementById('rubric_ex1');
+      const ex2Input = document.getElementById('rubric_ex2');
+
+      if (parseFloat(dev1Input.value) === 0 && examState.dev_1.trim().length > 25) {
+        dev1Input.value = evaluateKeywords(examState.dev_1, ['oltp', 'olap', 'historico', 'dimensional', 'transaccional', 'normaliz']);
+      }
+      if (parseFloat(dev2Input.value) === 0 && examState.dev_2.trim().length > 25) {
+        dev2Input.value = evaluateKeywords(examState.dev_2, ['reconstruir', 'modelo', 'fisica', 'heredado', 'legacy', 'migrar', 'documentacion']);
+      }
+      if (parseFloat(ex1Input.value) === 0) ex1Input.value = diag1.suggestedScore;
+      if (parseFloat(ex2Input.value) === 0) ex2Input.value = diag2.suggestedScore;
+
+      // Mostrar diagnóstico de tablas en el acta
+      document.getElementById('norm-diagnostics').innerHTML = `
+        <h4 class="font-bold text-[#0f294a] mb-2">Análisis Estructural Automático (Sección IV - Normalización 3FN):</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 bg-white rounded-lg border border-slate-200">
+            <p class="font-bold text-slate-800">Ejercicio 1 (Biblioteca):</p>
+            <p class="text-slate-600 mt-1">${diag1.message}</p>
+          </div>
+          <div class="p-3 bg-white rounded-lg border border-slate-200">
+            <p class="font-bold text-slate-800">Ejercicio 2 (Citas Médicas):</p>
+            <p class="text-slate-600 mt-1">${diag2.message}</p>
+          </div>
+        </div>
+      `;
+
+    // Actualizar resumen de estudiantes en el acta
+      document.getElementById('acta-students-summary').innerHTML = `
+        <strong>Integrantes:</strong> ${escapeHtml(examState.est1_nombre)} (${escapeHtml(examState.est1_ci)}) y
+        ${escapeHtml(examState.est2_nombre)} (${escapeHtml(examState.est2_ci)}) &nbsp;|&nbsp;
+        <strong>Sección:</strong> ${escapeHtml(examState.seccion || 'N/A')}
+      `;
+
+      document.getElementById('score-sec1').textContent = `${autoScoreSec1} / 3 pts`;
+      document.getElementById('score-sec2').textContent = `${autoScoreSec2} / 3 pts`;
+      document.getElementById('score-auto-total').textContent = `${autoScoreSec1 + autoScoreSec2} / 6 pts`;
+
+      recalculateTotalScore();
+
+      const resultsPanel = document.getElementById('results-panel');
+      resultsPanel.classList.remove('hidden');
+      if (!silent) {
+        showToast('Evaluación procesada. Revise el Acta de Calificación al final de la página.', 'success');
+        resultsPanel.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function evaluateKeywords(text, keywords) {
+      const norm = normalizeText(text);
+      let hits = 0;
+      keywords.forEach(kw => {
+        if (norm.includes(kw)) hits++;
+      });
+      if (hits >= 3) return 2;
+      if (hits >= 1) return 1;
+      return 0.5;
+    }
+
+    function analyzeNormalizationExercise(tables, expectedPKs) {
+      const validTables = tables.filter(t => t.fields.some(f => f.name.trim() !== ''));
+      const pkCount = validTables.reduce((acc, t) => acc + t.fields.filter(f => f.role === 'PK' && f.name.trim()).length, 0);
+      const fkCount = validTables.reduce((acc, t) => acc + t.fields.filter(f => f.role === 'FK' && f.name.trim()).length, 0);
+      const totalFields = validTables.reduce((acc, t) => acc + t.fields.filter(f => f.name.trim()).length, 0);
+
+      let score = 0;
+      if (validTables.length >= 3) score += 2;
+      else if (validTables.length === 2) score += 1;
+
+      if (pkCount >= 3) score += 1.5;
+      else if (pkCount >= 1) score += 0.5;
+
+      if (fkCount >= 2) score += 1.5;
+      else if (fkCount === 1) score += 0.5;
+
+      if (totalFields < 6) score = Math.min(score, 1.5);
+
+      return {
+        suggestedScore: Math.min(5, score),
+        message: `Tablas creadas: <strong>${validTables.length}</strong> | Campos totales: <strong>${totalFields}</strong> | Llaves Primarias (PK): <strong>${pkCount}</strong> | Llaves Foráneas (FK): <strong>${fkCount}</strong>.`
+      };
+    }
+
+    function recalculateTotalScore() {
+      const d1 = clamp(parseFloat(document.getElementById('rubric_dev1').value) || 0, 0, 2);
+      const d2 = clamp(parseFloat(document.getElementById('rubric_dev2').value) || 0, 0, 2);
+      const e1 = clamp(parseFloat(document.getElementById('rubric_ex1').value) || 0, 0, 5);
+      const e2 = clamp(parseFloat(document.getElementById('rubric_ex2').value) || 0, 0, 5);
+
+      const total = autoScoreSec1 + autoScoreSec2 + d1 + d2 + e1 + e2;
+      document.getElementById('final-score-display').textContent = total.toFixed(1);
+
+      const badge = document.getElementById('final-status-badge');
+      if (total >= 10) {
+        badge.textContent = 'APROBADO';
+        badge.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded bg-emerald-500/25 text-emerald-300 inline-block mt-1';
+      } else {
+        badge.textContent = 'REPROBADO (< 10 pts)';
+        badge.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded bg-rose-500/25 text-rose-300 inline-block mt-1';
+      }
+    }
+
+    function toggleOfficialKey() {
+      const keyBox = document.getElementById('official-answer-key');
+      const btn = document.getElementById('toggle-key-btn');
+      const isHidden = keyBox.classList.contains('hidden');
+      if (isHidden) {
+        keyBox.classList.remove('hidden');
+        btn.textContent = 'Ocultar Clave Oficial';
+      } else {
+        keyBox.classList.add('hidden');
+        btn.textContent = 'Mostrar Clave Oficial y Solucionario (Profesor)';
+      }
+    }
+
+    // =========================================================================
+    // 6. UTILIDADES UI (MODAL, TOASTS, REINICIO)
+    // =========================================================================
+    function confirmResetExam() {
+      openModal(
+        'Reiniciar Evaluación',
+        '¿Está seguro de que desea borrar todas las respuestas y reiniciar la prueba desde cero? Esta acción no se puede deshacer.',
+        () => {
+          localStorage.removeItem(STORAGE_KEY);
+          location.reload();
+        }
+      );
+    }
+
+    function openModal(title, message, onConfirm) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').textContent = message;
+      const modal = document.getElementById('confirm-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      confirmBtn.onclick = () => {
+        closeModal();
+        onConfirm();
+      };
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('confirm-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors =
+        type === 'error' ? 'bg-rose-600 text-white border-rose-700' :
+        type === 'success' ? 'bg-emerald-600 text-white border-emerald-700' :
+        'bg-[#0f294a] text-white border-slate-700';
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium transition-all duration-300 ${colors}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+  </script>
+</body>
+</html>
