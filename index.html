@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taller N° 1 (10%) - Diseño de Sistemas - UNEFA</title>
-    <!-- Carga segura de Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SDK de EmailJS -->
+    <!-- Tailwind CSS para diseño moderno -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SDK de EmailJS para envío de correos -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
@@ -20,220 +20,256 @@
         }
     </style>
 </head>
-<body class="bg-blue-950 text-slate-100 font-sans min-h-screen p-4 md:p-6">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 md:p-6 select-none">
 
-    <!-- PANTALLA DE ACCESO -->
-    <div id="pantalla-login" class="max-w-xl mx-auto bg-blue-900 border border-blue-700 rounded-2xl shadow-2xl p-8 mt-10">
+    <!-- PANTALLA DE ACCESO Y CONFIGURACIÓN DE SALA -->
+    <div id="pantalla-login" class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 mt-10">
         <div class="text-center mb-6">
-            <span class="bg-cyan-500/20 text-cyan-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-cyan-400/30">UNEFA • Núcleo Guárico Sede Tucupido[span_0](start_span)[span_0](end_span)</span>
-            <h1 class="text-2xl font-black text-white mt-3">Taller N° 1: Diseño de Sistemas (10%)[span_1](start_span)[span_1](end_span)</h1>
-            <p class="text-blue-200 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633[span_2](start_span)[span_2](end_span)</p>
+            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">UNEFA • Núcleo Guárico Sede Tucupido</span>
+            <h1 class="text-2xl font-black text-white mt-3">Taller N° 1: Diseño de Sistemas (10%)</h1>
+            <p class="text-slate-400 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633</p>
         </div>
 
         <div class="space-y-5">
-            <div class="p-4 bg-blue-950/80 rounded-xl border border-blue-800 space-y-3">
-                <h3 class="text-xs font-bold text-cyan-300 uppercase tracking-wide">Datos del Estudiante / Grupo</h3>
-                <input type="text" id="input-nombre" placeholder="Nombre y Apellido" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none">
-                <input type="text" id="input-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none">
-                <input type="text" id="input-integrantes" placeholder="Integrantes adicionales (Opcional)" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none">
+            <!-- Selección de Modo -->
+            <div class="grid grid-cols-2 gap-3 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                <button type="button" onclick="cambiarModo('crear')" id="btn-modo-crear" class="py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow">Crear Nueva Sala</button>
+                <button type="button" onclick="cambiarModo('unirse')" id="btn-modo-unirse" class="py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white">Unirse a Sala</button>
             </div>
 
-            <button type="button" onclick="entrarEvaluacion()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
-                🚀 Comenzar Evaluación (Versión Azul Activa)
-            </button>
+            <!-- Panel Crear Sala -->
+            <div id="seccion-crear" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Tamaño del Grupo:</label>
+                    <select id="tamano-grupo" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
+                        <option value="2">2 Integrantes (Máximo 2 Dispositivos)</option>
+                        <option value="3">3 Integrantes (Máximo 3 Dispositivos)</option>
+                    </select>
+                </div>
+
+                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Datos del Líder (Integrante 1)</h3>
+                    <input type="text" id="crear-est1-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                    <input type="text" id="crear-est1-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                </div>
+
+                <button type="button" onclick="crearSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
+                    🚀 Generar Código de Sala y Comenzar
+                </button>
+            </div>
+
+            <!-- Panel Unirse a Sala -->
+            <div id="seccion-unirse" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Código de Sala (Proporcionado por el Líder):</label>
+                    <input type="text" id="join-codigo" placeholder="Ej. UNEFA-1234" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono uppercase tracking-widest text-emerald-400 font-bold text-center focus:border-emerald-500 outline-none">
+                </div>
+
+                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Tus Datos (Integrante 2 o 3)</h3>
+                    <input type="text" id="join-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                    <input type="text" id="join-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                </div>
+
+                <button type="button" onclick="unirseSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
+                    🔗 Unirse a la Sesión Grupal
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- PANTALLA DE EVALUACIÓN -->
-    <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-blue-900 border border-blue-700 rounded-2xl shadow-2xl p-6 md:p-10 hidden">
+    <!-- PANTALLA DE EVALUACIÓN (OCULTA HASTA INICIAR) -->
+    <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 hidden">
         
-        <div class="flex flex-col md:flex-row justify-between items-center border-b border-blue-800 pb-6 mb-8 gap-4">
+        <!-- Cabecera de Estado y Sala -->
+        <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-6 mb-8 gap-4">
             <div>
-                <span class="text-xs font-mono text-cyan-300 bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-400/30">Evaluación Activa (Azul Institucional)</span>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Sala Activa: <strong id="lbl-codigo-sala" class="text-white">------</strong></span>
                 <h2 class="text-xl md:text-2xl font-black text-white mt-2">Taller N° 1: Diseño de Sistemas</h2>
-                <p class="text-blue-200 text-xs mt-1">Estudiante / Grupo: <span id="lbl-estudiante" class="text-cyan-200 font-semibold">---</span></p>
+                <p class="text-slate-400 text-xs mt-1">Grupo: <span id="lbl-integrantes-resumen" class="text-slate-200 font-semibold">Cargando...</span></p>
             </div>
             
             <div class="flex items-center gap-4">
-                <div class="bg-blue-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-red-300 uppercase block tracking-wider">Tiempo Restante</span>
-                    <span id="timer" class="text-sm font-mono font-bold text-white">90:00[span_3](start_span)[span_3](end_span)</span>
+                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <span class="text-[10px] text-slate-400 uppercase block tracking-wider">Modo Local</span>
+                    <span class="text-xs font-bold text-emerald-400">Sin Servidor</span>
+                </div>
+                <div class="bg-slate-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
+                    <span class="text-[10px] text-red-400 uppercase block tracking-wider">Tiempo Restante</span>
+                    <span id="timer" class="text-sm font-mono font-bold text-white">90:00</span>
                 </div>
             </div>
         </div>
 
-        <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-800 mb-8 text-xs text-blue-100 space-y-1">
-            <p class="font-bold text-cyan-300 mb-1">INSTRUCCIONES INSTITUCIONALES[span_4](start_span)[span_4](end_span):</p>
-            <p>1. Llene todos los datos en letra imprenta[span_5](start_span)[span_5](end_span) | 2. Tiempo límite: 90 minutos[span_6](start_span)[span_6](end_span) | 3. Valor total: 20 puntos (10% de la nota final)[span_7](start_span)[span_7](end_span).</p>
+        <!-- Instrucciones Generales -->
+        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
+            <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES:</p>
+            <p>1. Llene todos los datos en letra imprenta | 2. Tiempo límite: 90 minutos | 3. Valor total: 20 puntos (10% de la nota final).</p>
+            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA: Mantenga la aplicación abierta y visible durante toda la evaluación.</p>
         </div>
 
+        <!-- FORMULARIO DE EVALUACIÓN -->
         <form id="formTaller" class="space-y-10" onsubmit="return false;">
 
-            <!-- I PARTE -->
+            <!-- I PARTE: COMPLETACIÓN (4 ptos) -->
             <div class="space-y-4">
-                <div class="border-l-4 border-cyan-400 pl-3">
-                    <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN[span_8](start_span)[span_8](end_span)</h3>
-                    <p class="text-xs text-blue-200">Valor: 4 puntos (1 punto c/u). Complete con la palabra que le dé sentido lógico[span_9](start_span)[span_9](end_span).</p>
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN</h3>
+                    <p class="text-xs text-slate-400">Valor: 4 puntos (1 punto c/u). Complete con la palabra que le dé sentido lógico.</p>
                 </div>
                 
-                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-3 text-sm">
-                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta..."></p>
-                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta..."> en la red interna (Backend)[span_10](start_span)[span_10](end_span)</p>
-                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario[span_11](start_span)[span_11](end_span).</p>
-                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta...">[span_12](start_span)[span_12](end_span).</p>
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
+                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
+                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> en la red interna (Backend)</p>
+                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario.</p>
+                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" oninput="guardarEstadoLocal()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
                 </div>
             </div>
 
-            <!-- II PARTE -->
+            <!-- II PARTE: SELECCIÓN SIMPLE (2 ptos) -->
             <div class="space-y-4">
-                <div class="border-l-4 border-cyan-400 pl-3">
-                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE[span_13](start_span)[span_13](end_span)</h3>
-                    <p class="text-xs text-blue-200">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta[span_14](start_span)[span_14](end_span).</p>
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE</h3>
+                    <p class="text-xs text-slate-400">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta.</p>
                 </div>
                 
-                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-4">
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
                     <div>
-                        <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)[span_15](start_span)[span_15](end_span)?</p>
+                        <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
                         <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="a"> a) Eliminar las dependencias transitivas entre atributos no clave[span_16](start_span)[span_16](end_span).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="b"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda[span_17](start_span)[span_17](end_span).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="c"> c) Conectar dos tablas mediante llaves foráneas[span_18](start_span)[span_18](end_span).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="d"> d) Optimizar las consultas analíticas masivas (OLAP)[span_19](start_span)[span_19](end_span).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="a" onchange="guardarEstadoLocal()"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="b" onchange="guardarEstadoLocal()"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="c" onchange="guardarEstadoLocal()"> c) Conectar dos tablas mediante llaves foráneas.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="d" onchange="guardarEstadoLocal()"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
                         </div>
                     </div>
 
-                    <div class="border-t border-blue-800 pt-3">
-                        <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada[span_20](start_span)[span_20](end_span)?</p>
+                    <div class="border-t border-slate-800 pt-3">
+                        <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
                         <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP)[span_21](start_span)[span_21](end_span).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="b"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros[span_22](start_span)[span_22](end_span).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="c"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP)[span_23](start_span)[span_23](end_span).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="d"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios[span_24](start_span)[span_24](end_span).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a" onchange="guardarEstadoLocal()"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="b" onchange="guardarEstadoLocal()"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="c" onchange="guardarEstadoLocal()"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="d" onchange="guardarEstadoLocal()"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- III PARTE -->
+            <!-- III PARTE: DESARROLLO (4 ptos) -->
             <div class="space-y-4">
-                <div class="border-l-4 border-cyan-400 pl-3">
-                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO[span_25](start_span)[span_25](end_span)</h3>
-                    <p class="text-xs text-blue-200">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados[span_26](start_span)[span_26](end_span).</p>
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO</h3>
+                    <p class="text-xs text-slate-400">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados.</p>
                 </div>
                 
-                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-4">
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
                     <div>
-                        <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?[span_27](start_span)[span_27](end_span)</label>
-                        <textarea id="resp_d1" rows="3" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                        <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?</label>
+                        <textarea id="resp_d1" rows="3" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
                     </div>
                     <div>
-                        <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?[span_28](start_span)[span_28](end_span)</label>
-                        <textarea id="resp_d2" rows="3" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                        <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?</label>
+                        <textarea id="resp_d2" rows="3" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- IV PARTE -->
+            <!-- IV PARTE: EJERCICIOS PRÁCTICOS (10 ptos) -->
             <div class="space-y-4">
-                <div class="border-l-4 border-cyan-400 pl-3">
-                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN[span_29](start_span)[span_29](end_span)</h3>
-                    <p class="text-xs text-blue-200">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK[span_30](start_span)[span_30](end_span).</p>
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN</h3>
+                    <p class="text-xs text-slate-400">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK.</p>
                 </div>
                 
-                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-3">
-                    <p class="font-bold text-sm text-cyan-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)[span_31](start_span)[span_31](end_span)</p>
-                    <p class="text-xs text-blue-200">Campos originales: <code class="text-cyan-300">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo[span_32](start_span)[span_32](end_span)</code></p>
-                    <textarea id="resp_e1" rows="4" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <p class="font-bold text-sm text-emerald-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</p>
+                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</code></p>
+                    <textarea id="resp_e1" rows="4" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
                 </div>
 
-                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-3">
-                    <p class="font-bold text-sm text-cyan-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)[span_33](start_span)[span_33](end_span)</p>
-                    <p class="text-xs text-blue-200">Campos originales: <code class="text-cyan-300">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico[span_34](start_span)[span_34](end_span)</code></p>
-                    <textarea id="resp_e2" rows="4" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <p class="font-bold text-sm text-emerald-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</p>
+                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</code></p>
+                    <textarea id="resp_e2" rows="4" oninput="guardarEstadoLocal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
                 </div>
             </div>
 
-            <!-- Botones -->
-            <div class="pt-4 border-t border-blue-800 flex flex-col md:flex-row gap-4">
-                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
-                    📤 Enviar Evaluación al Correo
+            <!-- Botón de Entrega Grupal -->
+            <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
+                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
+                    📤 Enviar Evaluación Grupal al Correo
                 </button>
-                <button type="button" onclick="window.print()" class="bg-blue-800 hover:bg-blue-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
+                <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
                     🖨️ Imprimir Acta PDF
                 </button>
             </div>
 
         </form>
+
     </div>
 
-    <!-- SCRIPT -->
+    <!-- SCRIPT DE CONTROL LOCAL (SIN BLOQUEOS DE PANTALLA FORZADA) -->
     <script>
-        let tiempoRestante = 90 * 60; // 90 minutos[span_35](start_span)[span_35](end_span)
+        let salaActual = null;
+        let integrantesGrupo = [];
+        let tiempoRestante = 90 * 60; // 90 minutos
         let timerInterval = null;
-        let datosEstudianteGlobal = "";
+        let examenEntregado = false;
 
-        function entrarEvaluacion() {
-            const nombre = document.getElementById('input-nombre').value.trim();
-            const ci = document.getElementById('input-ci').value.trim();
-            const adicionales = document.getElementById('input-integrantes').value.trim();
+        function cambiarModo(modo) {
+            if(modo === 'crear') {
+                document.getElementById('seccion-crear').classList.remove('hidden');
+                document.getElementById('seccion-unirse').classList.add('hidden');
+                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+            } else {
+                document.getElementById('seccion-crear').classList.add('hidden');
+                document.getElementById('seccion-unirse').classList.remove('hidden');
+                document.getElementById('btn-modo-unirse').className = "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+                document.getElementById('btn-modo-crear').className = "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+            }
+        }
 
-            if(!nombre || !ci) {
-                alert("Por favor ingrese su Nombre, Apellido y Cédula de Identidad.");
+        // Crear Sala Local
+        function crearSalaGrupo() {
+            const tamano = parseInt(document.getElementById('tamano-grupo').value);
+            const nombre1 = document.getElementById('crear-est1-nombre').value.trim();
+            const ci1 = document.getElementById('crear-est1-ci').value.trim();
+
+            if(!nombre1 || !ci1) {
+                alert("Por favor ingrese los datos del Líder (Integrante 1).");
                 return;
             }
 
-            datosEstudianteGlobal = `${nombre} (C.I: ${ci})` + (adicionales ? ` | Integrantes extras: ${adicionales}` : '');
-
-            document.getElementById('pantalla-login').classList.add('hidden');
-            document.getElementById('pantalla-evaluacion').classList.remove('hidden');
-            document.getElementById('lbl-estudiante').textContent = datosEstudianteGlobal;
-
-            iniciarCronometro();
-        }
-
-        function iniciarCronometro() {
-            timerInterval = setInterval(() => {
-                if(tiempoRestante > 0) {
-                    tiempoRestante--;
-                    let m = Math.floor(tiempoRestante / 60);
-                    let s = tiempoRestante % 60;
-                    document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                } else {
-                    clearInterval(timerInterval);
-                    entregarEvaluacion();
-                }
-            }, 1000);
-        }
-
-        function entregarEvaluacion() {
-            if(!confirm("¿Está seguro de finalizar y enviar la evaluación?")) return;
+            const codigoSala = 'UNEFA-' + Math.floor(1000 + Math.random() * 9000);
+            salaActual = codigoSala;
             
-            clearInterval(timerInterval);
+            integrantesGrupo = [
+                { nombre: nombre1, ci: ci1, rol: 'Integrante 1 (Líder)' }
+            ];
 
-            const templateParams = {
-                integrantes: datosEstudianteGlobal,
-                c1: document.getElementById('resp_c1').value || 'Sin responder',
-                c2: document.getElementById('resp_c2').value || 'Sin responder',
-                c3: document.getElementById('resp_c3').value || 'Sin responder',
-                c4: document.getElementById('resp_c4').value || 'Sin responder',
-                sel1: document.querySelector('input[name="p_sel1"]:checked')?.value || 'Sin responder',
-                sel2: document.querySelector('input[name="p_sel2"]:checked')?.value || 'Sin responder',
-                d1: document.getElementById('resp_d1').value || 'Sin responder',
-                d2: document.getElementById('resp_d2').value || 'Sin responder',
-                e1: document.getElementById('resp_e1').value || 'Sin responder',
-                e2: document.getElementById('resp_e2').value || 'Sin responder'
+            const datosSala = {
+                tamanoMaximo: tamano,
+                integrantes: integrantesGrupo,
+                respuestas: {}
             };
+            localStorage.setItem('unefa_sala_' + codigoSala, JSON.stringify(datosSala));
 
-            emailjs.send('service_uiz1wpi', 'Template_sw2of9p', templateParams)
-                .then(function(response) {
-                    alert('¡Evaluación entregada y enviada con éxito al correo del profesor!');
-                    window.print();
-                }, function(error) {
-                    alert('Evaluación finalizada. Imprima su acta en PDF como comprobante.');
-                    window.print();
-                });
+            iniciarInterfazEvaluacion(codigoSala, integrantesGrupo.map(i => `${i.nombre} (C.I: ${i.ci})`).join(' | '));
         }
-    </script>
-</body>
-    </html>
-    
+
+        // Unirse a Sala Local
+        function unirseSalaGrupo() {
+            const codigo = document.getElementById('join-codigo').value.trim().toUpperCase();
+            const nombre = document.getElementById('join-nombre').value.trim();
+            const ci = document.getElementById('join-ci').value.trim();
+
+            if(!codigo || !nombre || !ci) {
+                alert("Por favor complete todos los campos de acceso.");
+                return;
+            }
+
+            const salaGuardadaStr = localStorage.getItem('unefa_sala_' + codigo);
+            if(!salaGuardadaStr) {
+       
