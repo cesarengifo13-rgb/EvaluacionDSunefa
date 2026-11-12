@@ -20,50 +20,50 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 md:p-6">
+<body class="bg-blue-950 text-slate-100 font-sans min-h-screen p-4 md:p-6">
 
     <!-- PANTALLA DE ACCESO -->
-    <div id="pantalla-login" class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 mt-10">
+    <div id="pantalla-login" class="max-w-xl mx-auto bg-blue-900 border border-blue-700 rounded-2xl shadow-2xl p-8 mt-10">
         <div class="text-center mb-6">
-            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">UNEFA • Núcleo Guárico Sede Tucupido[span_0](start_span)[span_0](end_span)</span>
+            <span class="bg-cyan-500/20 text-cyan-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-cyan-400/30">UNEFA • Núcleo Guárico Sede Tucupido[span_0](start_span)[span_0](end_span)</span>
             <h1 class="text-2xl font-black text-white mt-3">Taller N° 1: Diseño de Sistemas (10%)[span_1](start_span)[span_1](end_span)</h1>
-            <p class="text-slate-400 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633[span_2](start_span)[span_2](end_span)</p>
+            <p class="text-blue-200 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633[span_2](start_span)[span_2](end_span)</p>
         </div>
 
         <div class="space-y-5">
-            <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
-                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Datos del Estudiante / Grupo</h3>
-                <input type="text" id="input-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
-                <input type="text" id="input-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
-                <input type="text" id="input-integrantes" placeholder="Integrantes adicionales (Opcional)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
+            <div class="p-4 bg-blue-950/80 rounded-xl border border-blue-800 space-y-3">
+                <h3 class="text-xs font-bold text-cyan-300 uppercase tracking-wide">Datos del Estudiante / Grupo</h3>
+                <input type="text" id="input-nombre" placeholder="Nombre y Apellido" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none">
+                <input type="text" id="input-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none">
+                <input type="text" id="input-integrantes" placeholder="Integrantes adicionales (Opcional)" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none">
             </div>
 
-            <button type="button" onclick="entrarEvaluacion()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
-                🚀 Comenzar Evaluación
+            <button type="button" onclick="entrarEvaluacion()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
+                🚀 Comenzar Evaluación (Versión Azul Activa)
             </button>
         </div>
     </div>
 
     <!-- PANTALLA DE EVALUACIÓN -->
-    <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 hidden">
+    <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-blue-900 border border-blue-700 rounded-2xl shadow-2xl p-6 md:p-10 hidden">
         
-        <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-6 mb-8 gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-center border-b border-blue-800 pb-6 mb-8 gap-4">
             <div>
-                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Evaluación Activa</span>
+                <span class="text-xs font-mono text-cyan-300 bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-400/30">Evaluación Activa (Azul Institucional)</span>
                 <h2 class="text-xl md:text-2xl font-black text-white mt-2">Taller N° 1: Diseño de Sistemas</h2>
-                <p class="text-slate-400 text-xs mt-1">Estudiante / Grupo: <span id="lbl-estudiante" class="text-slate-200 font-semibold">---</span></p>
+                <p class="text-blue-200 text-xs mt-1">Estudiante / Grupo: <span id="lbl-estudiante" class="text-cyan-200 font-semibold">---</span></p>
             </div>
             
             <div class="flex items-center gap-4">
-                <div class="bg-slate-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-red-400 uppercase block tracking-wider">Tiempo Restante</span>
+                <div class="bg-blue-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
+                    <span class="text-[10px] text-red-300 uppercase block tracking-wider">Tiempo Restante</span>
                     <span id="timer" class="text-sm font-mono font-bold text-white">90:00[span_3](start_span)[span_3](end_span)</span>
                 </div>
             </div>
         </div>
 
-        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
-            <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES[span_4](start_span)[span_4](end_span):</p>
+        <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-800 mb-8 text-xs text-blue-100 space-y-1">
+            <p class="font-bold text-cyan-300 mb-1">INSTRUCCIONES INSTITUCIONALES[span_4](start_span)[span_4](end_span):</p>
             <p>1. Llene todos los datos en letra imprenta[span_5](start_span)[span_5](end_span) | 2. Tiempo límite: 90 minutos[span_6](start_span)[span_6](end_span) | 3. Valor total: 20 puntos (10% de la nota final)[span_7](start_span)[span_7](end_span).</p>
         </div>
 
@@ -71,27 +71,27 @@
 
             <!-- I PARTE -->
             <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
+                <div class="border-l-4 border-cyan-400 pl-3">
                     <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN[span_8](start_span)[span_8](end_span)</h3>
-                    <p class="text-xs text-slate-400">Valor: 4 puntos (1 punto c/u). Complete con la palabra que le dé sentido lógico[span_9](start_span)[span_9](end_span).</p>
+                    <p class="text-xs text-blue-200">Valor: 4 puntos (1 punto c/u). Complete con la palabra que le dé sentido lógico[span_9](start_span)[span_9](end_span).</p>
                 </div>
                 
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
-                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
-                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> en la red interna (Backend)[span_10](start_span)[span_10](end_span)</p>
-                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario[span_11](start_span)[span_11](end_span).</p>
-                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta...">[span_12](start_span)[span_12](end_span).</p>
+                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-3 text-sm">
+                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta..."></p>
+                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta..."> en la red interna (Backend)[span_10](start_span)[span_10](end_span)</p>
+                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario[span_11](start_span)[span_11](end_span).</p>
+                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white inline-block w-48 focus:border-cyan-400 outline-none" placeholder="Respuesta...">[span_12](start_span)[span_12](end_span).</p>
                 </div>
             </div>
 
             <!-- II PARTE -->
             <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
+                <div class="border-l-4 border-cyan-400 pl-3">
                     <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE[span_13](start_span)[span_13](end_span)</h3>
-                    <p class="text-xs text-slate-400">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta[span_14](start_span)[span_14](end_span).</p>
+                    <p class="text-xs text-blue-200">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta[span_14](start_span)[span_14](end_span).</p>
                 </div>
                 
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-4">
                     <div>
                         <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)[span_15](start_span)[span_15](end_span)?</p>
                         <div class="space-y-2 text-xs">
@@ -102,7 +102,7 @@
                         </div>
                     </div>
 
-                    <div class="border-t border-slate-800 pt-3">
+                    <div class="border-t border-blue-800 pt-3">
                         <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada[span_20](start_span)[span_20](end_span)?</p>
                         <div class="space-y-2 text-xs">
                             <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP)[span_21](start_span)[span_21](end_span).</label>
@@ -116,49 +116,49 @@
 
             <!-- III PARTE -->
             <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
+                <div class="border-l-4 border-cyan-400 pl-3">
                     <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO[span_25](start_span)[span_25](end_span)</h3>
-                    <p class="text-xs text-slate-400">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados[span_26](start_span)[span_26](end_span).</p>
+                    <p class="text-xs text-blue-200">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados[span_26](start_span)[span_26](end_span).</p>
                 </div>
                 
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-4">
                     <div>
                         <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?[span_27](start_span)[span_27](end_span)</label>
-                        <textarea id="resp_d1" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                        <textarea id="resp_d1" rows="3" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
                     </div>
                     <div>
                         <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?[span_28](start_span)[span_28](end_span)</label>
-                        <textarea id="resp_d2" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                        <textarea id="resp_d2" rows="3" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- IV PARTE -->
             <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
+                <div class="border-l-4 border-cyan-400 pl-3">
                     <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN[span_29](start_span)[span_29](end_span)</h3>
-                    <p class="text-xs text-slate-400">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK[span_30](start_span)[span_30](end_span).</p>
+                    <p class="text-xs text-blue-200">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK[span_30](start_span)[span_30](end_span).</p>
                 </div>
                 
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)[span_31](start_span)[span_31](end_span)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo[span_32](start_span)[span_32](end_span)</code></p>
-                    <textarea id="resp_e1" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-3">
+                    <p class="font-bold text-sm text-cyan-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)[span_31](start_span)[span_31](end_span)</p>
+                    <p class="text-xs text-blue-200">Campos originales: <code class="text-cyan-300">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo[span_32](start_span)[span_32](end_span)</code></p>
+                    <textarea id="resp_e1" rows="4" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
                 </div>
 
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)[span_33](start_span)[span_33](end_span)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico[span_34](start_span)[span_34](end_span)</code></p>
-                    <textarea id="resp_e2" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800 space-y-3">
+                    <p class="font-bold text-sm text-cyan-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)[span_33](start_span)[span_33](end_span)</p>
+                    <p class="text-xs text-blue-200">Campos originales: <code class="text-cyan-300">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico[span_34](start_span)[span_34](end_span)</code></p>
+                    <textarea id="resp_e2" rows="4" class="w-full bg-blue-900 border border-blue-600 rounded-lg p-3 text-sm text-white focus:border-cyan-400 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
                 </div>
             </div>
 
             <!-- Botones -->
-            <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
-                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
+            <div class="pt-4 border-t border-blue-800 flex flex-col md:flex-row gap-4">
+                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
                     📤 Enviar Evaluación al Correo
                 </button>
-                <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
+                <button type="button" onclick="window.print()" class="bg-blue-800 hover:bg-blue-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
                     🖨️ Imprimir Acta PDF
                 </button>
             </div>
