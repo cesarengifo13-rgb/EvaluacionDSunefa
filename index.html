@@ -75,7 +75,7 @@
 
             <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs text-slate-700 space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="font-semibold text-emerald-600 flex items-center gap-1.5">🟢 Envío Automático por Correo Activo</span>
+                    <span class="font-semibold text-emerald-600 flex items-center gap-1.5">🟢 Envío Automático con PDF Adjunto</span>
                     <span class="text-slate-500 font-mono">Destino: cesarengifo13@gmail.com</span>
                 </div>
                 <div>
@@ -230,8 +230,8 @@
         <!-- VISTA 3: RESULTADOS Y DESCARGA DE PDF -->
         <section id="view-results" class="hidden bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl text-center space-y-6">
             <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">✓</div>
-            <h2 class="text-2xl font-bold text-slate-900">¡Evaluación Entregada y Enviada por Correo!</h2>
-            <p class="text-sm text-slate-600">Los resultados han sido procesados, guardados en Firebase y enviados automáticamente a <strong>cesarengifo13@gmail.com</strong>.</p>
+            <h2 class="text-2xl font-bold text-slate-900">¡Evaluación Entregada y Enviada por Correo con PDF Adjunto!</h2>
+            <p class="text-sm text-slate-600">Los resultados han sido procesados, guardados en Firebase y enviados con el archivo PDF adjunto a <strong>cesarengifo13@gmail.com</strong>.</p>
             
             <div class="bg-slate-50 p-6 rounded-xl max-w-md mx-auto border border-slate-200 text-left space-y-3 shadow-sm">
                 <p class="text-xs text-slate-500 uppercase tracking-wider">Grupo: <span id="res-group" class="text-slate-900 font-bold font-mono"></span></p>
@@ -245,10 +245,13 @@
                 </div>
             </div>
 
-            <div class="flex justify-center pt-2">
-                <button type="button" id="btn-download-pdf" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg text-sm">
-                    Descargar Planilla PDF Formato Prueba
+            <div class="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+                <button type="button" id="btn-download-pdf" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-6 py-3.5 rounded-xl transition shadow-lg text-sm">
+                    Descargar Planilla PDF
                 </button>
+                <a id="btn-whatsapp" href="#" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
+                    💬 Enviar Reporte por WhatsApp
+                </a>
             </div>
         </section>
 
@@ -492,227 +495,39 @@
             }
         });
 
-        function finishExam() {
-            clearInterval(examData.timerInterval);
+        // Evaluación Proporcional Flexible basada en el Solucionario Oficial (5 pts máximo por ejercicio)
+        // Se espera idealmente: 3 tablas, un total de ~9 campos distribuidos, 3 PKs y 2 FKs correctamente enlazadas.
+        function evaluateNormalizationProportional(tablesList) {
+            if (!tablesList || tablesList.length === 0) return 0.0;
 
-            const p1_1 = document.querySelector('input[data-part="1"][data-q="1"]').value.trim();
-            const p1_2 = document.querySelector('input[data-part="1"][data-q="2"]').value.trim();
-            const p1_3 = document.querySelector('input[data-part="1"][data-q="3"]').value.trim();
-            const p1_4 = document.querySelector('input[data-part="1"][data-q="4"]').value.trim();
+            let totalTables = tablesList.length;
+            let totalFields = 0;
+            let totalPKs = 0;
+            let totalFKs = 0;
 
-            let scorePart1 = 0;
-            let c1 = p1_1.toLowerCase().includes('protegida');
-            let c2 = p1_2.toLowerCase().includes('homogeneos') || p1_2.toLowerCase().includes('homogéneos');
-            let c3 = p1_3.toLowerCase().includes('ingeniería inversa') || p1_3.toLowerCase().includes('ingenieria inversa');
-            let c4 = p1_4.toLowerCase().includes('logico') || p1_4.toLowerCase().includes('lógico');
-
-            if (c1) scorePart1 += 1;
-            if (c2) scorePart1 += 1;
-            if (c3) scorePart1 += 1;
-            if (c4) scorePart1 += 1;
-
-            const p2_1_el = document.querySelector('input[name="p2_q1"]:checked');
-            const p2_2_el = document.querySelector('input[name="p2_q2"]:checked');
-            const p2_1 = p2_1_el ? p2_1_el.value : '';
-            const p2_2 = p2_2_el ? p2_2_el.value : '';
-
-            let scorePart2 = 0;
-            let cc1 = p2_1 === 'b';
-            let cc2 = p2_2 === 'c';
-            if (cc1) scorePart2 += 1;
-            if (cc2) scorePart2 += 1;
-
-            const p3_1 = document.querySelector('textarea[data-part="3"][data-q="1"]').value.trim();
-            const p3_2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
-            let scorePart3 = (p3_1.length > 15 ? 2 : 0) + (p3_2.length > 15 ? 2 : 0);
-
-            // Recopilar tablas detalladas del Ejercicio 1
-            const ex1Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
-            let ex1TablesData = [];
-            ex1Cards.forEach(card => {
-                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
-                let fields = [];
-                card.querySelectorAll('.field-row').forEach(row => {
-                    let fName = row.querySelector('.f-name').value.trim();
-                    let fDatatype = row.querySelector('.f-datatype').value;
-                    let fLength = row.querySelector('.f-length').value.trim();
-                    let fType = row.querySelector('.f-type').value;
-                    let refSel = row.querySelector('.f-ref');
-                    let fRef = refSel ? refSel.value.trim() : '';
-                    if (fName) {
-                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
-                    }
-                });
-                ex1TablesData.push({ name: tName, fields: fields });
-            });
-
-            // Recopilar tablas detalladas del Ejercicio 2
-            const ex2Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex2"] .table-card');
-            let ex2TablesData = [];
-            ex2Cards.forEach(card => {
-                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
-                let fields = [];
-                card.querySelectorAll('.field-row').forEach(row => {
-                    let fName = row.querySelector('.f-name').value.trim();
-                    let fDatatype = row.querySelector('.f-datatype').value;
-                    let fLength = row.querySelector('.f-length').value.trim();
-                    let fType = row.querySelector('.f-type').value;
-                    let refSel = row.querySelector('.f-ref');
-                    let fRef = refSel ? refSel.value.trim() : '';
-                    if (fName) {
-                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
-                    }
-                });
-                ex2TablesData.push({ name: tName, fields: fields });
-            });
-
-            // Evaluación estricta de 3FN (Requiere 3 tablas independientes por ejercicio)
-            function calcNormalizationScore(tablesList) {
-                if (tablesList.length >= 3) return 5.0;
-                if (tablesList.length === 2) return 3.0;
-                if (tablesList.length === 1) return 1.5;
-                return 0.0;
-            }
-
-            let ex1Score = calcNormalizationScore(ex1TablesData);
-            let ex2Score = calcNormalizationScore(ex2TablesData);
-            let scorePart4 = ex1Score + ex2Score;
-
-            examData.score = scorePart1 + scorePart2 + scorePart3 + scorePart4;
-            
-            examData.details = {
-                p1: [
-                    {
-                        q: 1,
-                        question: "1. Un campo es la unidad mínima de datos con significado _____________________. Representa una característica o propiedad de una entidad.",
-                        resp: p1_4 || 'Vacía',
-                        expected: 'Lógico',
-                        correct: c4,
-                        pts: c4 ? 1 : 0
-                    },
-                    {
-                        q: 2,
-                        question: "2. La capa de datos es una Base de datos _______________________ en la red interna (Backend).",
-                        resp: p1_1 || 'Vacía',
-                        expected: 'Protegida',
-                        correct: c1,
-                        pts: c1 ? 1 : 0
-                    }, 
-                    {
-                        q: 3,
-                        question: "3. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.",
-                        resp: p1_2 || 'Vacía',
-                        expected: 'Homogéneos',
-                        correct: c2,
-                        pts: c2 ? 1 : 0
-                    }, 
-                    {
-                        q: 4,
-                        question: "4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.",
-                        resp: p1_3 || 'Vacía',
-                        expected: 'Ingeniería Inversa',
-                        correct: c3,
-                        pts: c3 ? 1 : 0
-                    }
-                ],
-                p2: [
-                    {
-                        q: 1,
-                        question: "1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?\n   Opciones: a) Eliminar dependencias transitivas | b) Asegurar atomicidad de los datos, eliminando grupos repetitivos | c) Conectar tablas mediante FK | d) Optimizar consultas OLAP",
-                        resp: p2_1 ? p2_1.toUpperCase() : 'Ninguna',
-                        expected: 'B',
-                        correct: cc1,
-                        pts: cc1 ? 1 : 0
-                    }, 
-                    {
-                        q: 2,
-                        question: "2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?\n   Opciones: a) Optimizado para OLTP | b) Datos normalizados para inserciones masivas | c) Repositorio centralizado, histórico y de solo lectura optimizado para OLAP | d) Permite modificar datos históricos libremente",
-                        resp: p2_2 ? p2_2.toUpperCase() : 'Ninguna',
-                        expected: 'C',
-                        correct: cc2,
-                        pts: cc2 ? 1 : 0
-                    }
-                ],
-                p3: [
-                    {
-                        q: 1,
-                        question: "1. ¿Qué es una Base de Datos?",
-                        resp: p3_1 || 'Vacía',
-                        expectedText: 'Es un sistema estructurado e integrado de archivos y datos persistentes relacionados entre sí, administrados por un SGBD (DBMS). Su objetivo principal es reducir la redundancia, garantizar la independencia de los datos y permitir múltiples vistas de la información a diferentes usuarios de forma simultánea.',
-                        pts: p3_1.length > 15 ? 2 : 0
-                    }, 
-                    {
-                        q: 2,
-                        question: "2. ¿Qué es un registro?",
-                        resp: p3_2 || 'Vacía',
-                        expectedText: 'Es una colección de campos lógicamente relacionados que describen las características de una entidad específica.',
-                        pts: p3_2.length > 15 ? 2 : 0
-                    }
-                ],
-                p4: {
-                    ex1Tables: ex1TablesData,
-                    ex1Pts: ex1Score,
-                    ex2Tables: ex2TablesData,
-                    ex2Pts: ex2Score
-                }
-            };
-
-            // Guardar en Firebase
-            if (window.firebaseAvailable && window.db) {
-                try {
-                    addDoc(collection(window.db, "evaluaciones_taller1"), {
-                        groupName: examData.groupName,
-                        students: examData.students,
-                        score: examData.score,
-                        details: examData.details,
-                        timestamp: new Date()
+            tablesList.forEach(tbl => {
+                if (tbl.fields) {
+                    totalFields += tbl.fields.length;
+                    tbl.fields.forEach(f => {
+                        if (f.type === 'PK' || f.type === 'PK-FK') totalPKs++;
+                        if ((f.type === 'FK' || f.type === 'PK-FK') && f.ref) totalFKs++;
                     });
-                } catch (e) {
-                    console.error("Error guardando en Firebase:", e);
                 }
-            }
-
-            // ENVÍO AUTOMÁTICO VÍA EMAILJS
-            let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
-            let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN TOTAL: ${examData.score.toFixed(2)} / 20 pts\n\nESTRUCTURA Y RESPUESTAS DEL ESTUDIANTE:\n` +
-                `- Parte I (Completación): ${scorePart1}/4 pts\n` +
-                `- Parte II (Selección Simple): ${scorePart2}/2 pts\n` +
-                `- Parte III (Desarrollo): ${scorePart3}/4 pts\n` +
-                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${ex1TablesData.length} tablas [${ex1Score} pts], Ej2: ${ex2TablesData.length} tablas [${ex2Score} pts])`;
-
-            emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
-                to_email: examData.profEmail,
-                group_name: examData.groupName,
-                students: studentsStr,
-                score: examData.score.toFixed(2),
-                report_details: reportDetails
-            }).then(() => {
-                console.log("Correo enviado automáticamente con éxito.");
-            }, (err) => {
-                console.error("Error al enviar correo automático:", err);
             });
 
-            document.getElementById('view-exam').classList.add('hidden');
-            document.getElementById('header-timer-container').classList.add('hidden');
-            document.getElementById('view-results').classList.remove('hidden');
+            // Criterios ideales esperados por el solucionario oficial: 3 tablas, 9 campos, 3 PKs, 2 FKs
+            let scoreTables = Math.min(totalTables / 3, 1.0) * 1.25;  // Hasta 1.25 pts por las tablas
+            let scoreFields = Math.min(totalFields / 9, 1.0) * 1.25;  // Hasta 1.25 pts por los campos
+            let scorePKs = Math.min(totalPKs / 3, 1.0) * 1.00;        // Hasta 1.00 pt por las PKs
+            let scoreFKs = Math.min(totalFKs / 2, 1.0) * 1.50;        // Hasta 1.50 pts por las FKs
 
-            document.getElementById('res-group').textContent = examData.groupName;
-            document.getElementById('res-score').textContent = examData.score.toFixed(2) + " / 20 pts";
-            
-            const membersList = document.getElementById('res-members');
-            membersList.innerHTML = '';
-            examData.students.forEach(st => {
-                const li = document.createElement('li');
-                li.textContent = `${st.nombre} (C.I: ${st.cedula})`;
-                membersList.appendChild(li);
-            });
+            let finalExerciseScore = scoreTables + scoreFields + scorePKs + scoreFKs;
+            return Number(Math.min(finalExerciseScore, 5.0).toFixed(2));
         }
 
-        // Descarga de PDF con todas las preguntas incluidas y texto ajustado al ancho
-        document.getElementById('btn-download-pdf').addEventListener('click', () => {
+        function generatePDFDocument() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
             let y = 15;
 
             function checkPageSpace(needed) {
@@ -722,7 +537,6 @@
                 }
             }
 
-            // Función auxiliar para imprimir texto multilínea sin que se corte en los bordes
             function printWrappedText(text, x, maxWidth, lineHeight = 4.5, isBold = false) {
                 doc.setFont("helvetica", isBold ? "bold" : "normal");
                 let lines = doc.splitTextToSize(text, maxWidth);
@@ -737,7 +551,6 @@
                 let requiredHeight = 15 + (fields.length > 0 ? fields.length * 6 : 6);
                 checkPageSpace(requiredHeight);
 
-                // Cabecera MySQL Schema
                 doc.setFillColor(30, 41, 59);
                 doc.rect(20, y, 170, 7, 'F');
                 doc.setTextColor(255, 255, 255);
@@ -746,7 +559,6 @@
                 doc.text(`TABLE: ${tableName.toUpperCase()}`, 24, y + 4.5);
                 y += 7;
 
-                // Sub-cabecera de columnas
                 doc.setFillColor(226, 232, 240);
                 doc.rect(20, y, 170, 6, 'F');
                 doc.setTextColor(15, 23, 42);
@@ -781,7 +593,6 @@
                 y += 8;
             }
 
-            // Encabezado institucional
             doc.setFillColor(30, 58, 138);
             doc.rect(0, 0, 210, 25, 'F');
             doc.setTextColor(255, 255, 255);
@@ -811,7 +622,7 @@
             doc.text("PLANILLA DE EVALUACIÓN - TALLER N° 1 (ESTRUCTURA DE PRUEBA)", 20, y);
             y += 8;
 
-            // Parte I con enunciados completos
+            // Parte I
             checkPageSpace(45);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
@@ -824,7 +635,7 @@
             });
 
             y += 4;
-            // Parte II con enunciados completos
+            // Parte II
             checkPageSpace(35);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
@@ -837,7 +648,7 @@
             });
 
             y += 4;
-            // Parte III con enunciados y respuestas ajustadas
+            // Parte III
             checkPageSpace(45);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
@@ -850,7 +661,7 @@
                 y += 4;
             });
 
-            // Parte IV: Normalización (Tablas del Estudiante)
+            // Parte IV: Normalización
             checkPageSpace(35);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
@@ -858,32 +669,29 @@
 
             doc.setFontSize(9);
             doc.setFont("helvetica", "bold");
-            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Tablas creadas: ${examData.details.p4.ex1Tables.length}/3 - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 6;
+            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex1Tables.length === 0) {
                 doc.setFont("helvetica", "normal");
                 doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
             } else {
-                examData.details.p4.ex1Tables.forEach((tbl, tIdx) => {
+                examData.details.p4.ex1Tables.forEach((tbl) => {
                     drawMySQLTable(`Estudiante [Ej 1] - ${tbl.name}`, tbl.fields);
                 });
             }
 
             y += 4;
             checkPageSpace(25);
-            doc.setFont("helvetica", "bold");
-            doc.text(`• Ejercicio 2 (Citas Médicas) - Tablas creadas: ${examData.details.p4.ex2Tables.length}/3 - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 6;
+            doc.text(`• Ejercicio 2 (Citas Médicas) - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex2Tables.length === 0) {
                 doc.setFont("helvetica", "normal");
                 doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
             } else {
-                examData.details.p4.ex2Tables.forEach((tbl, tIdx) => {
+                examData.details.p4.ex2Tables.forEach((tbl) => {
                     drawMySQLTable(`Estudiante [Ej 2] - ${tbl.name}`, tbl.fields);
                 });
             }
 
-            // ==========================================
-            // CLAVE DE CORRECCIÓN OFICIAL - MODELO 3FN
-            // ==========================================
+            // Clave de Corrección Oficial
             checkPageSpace(70);
             y += 10;
             doc.setFillColor(20, 30, 80);
@@ -897,21 +705,17 @@
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(9);
 
-            // Solucionario Ejercicio 1
             doc.text("Solución Ejercicio 1: Sistema de Préstamos Bibliotecarios (3 Tablas en 3FN):", 20, y); y += 6;
-            
             drawMySQLTable("ESTUDIANTES", [
                 { name: "ID_Estudiante", datatype: "INT", length: "11", type: "PK" },
                 { name: "Nombre_Estudiante", datatype: "VARCHAR", length: "100", type: "Normal" },
                 { name: "Carrera_Estudiante", datatype: "VARCHAR", length: "50", type: "Normal" }
             ]);
-
             drawMySQLTable("LIBROS", [
                 { name: "Codigo_Libro", datatype: "VARCHAR", length: "20", type: "PK" },
                 { name: "Titulo_Libro", datatype: "VARCHAR", length: "150", type: "Normal" },
                 { name: "Autor_Libro", datatype: "VARCHAR", length: "100", type: "Normal" }
             ]);
-
             drawMySQLTable("PRESTAMOS", [
                 { name: "ID_Prestamo", datatype: "INT", length: "11", type: "PK" },
                 { name: "Fecha_Prestamo", datatype: "DATE", length: "", type: "Normal" },
@@ -920,23 +724,19 @@
                 { name: "Codigo_Libro", datatype: "VARCHAR", length: "20", type: "FK", ref: "LIBROS.Codigo_Libro" }
             ]);
 
-            // Solucionario Ejercicio 2
             checkPageSpace(60);
             doc.text("Solución Ejercicio 2: Sistema de Citas Médicas (3 Tablas en 3FN):", 20, y); y += 6;
-
             drawMySQLTable("MEDICOS", [
                 { name: "ID_Medico", datatype: "INT", length: "11", type: "PK" },
                 { name: "Nombre_Medico", datatype: "VARCHAR", length: "100", type: "Normal" },
                 { name: "Especialidad_Medico", datatype: "VARCHAR", length: "50", type: "Normal" },
                 { name: "Consultorio_Medico", datatype: "VARCHAR", length: "30", type: "Normal" }
             ]);
-
             drawMySQLTable("PACIENTES", [
                 { name: "ID_Paciente", datatype: "INT", length: "11", type: "PK" },
                 { name: "Nombre_Paciente", datatype: "VARCHAR", length: "100", type: "Normal" },
                 { name: "Telefono_Paciente", datatype: "VARCHAR", length: "20", type: "Normal" }
             ]);
-
             drawMySQLTable("CITAS", [
                 { name: "ID_Cita", datatype: "INT", length: "11", type: "PK" },
                 { name: "Fecha_Hora", datatype: "DATE", length: "", type: "Normal" },
@@ -945,7 +745,170 @@
                 { name: "ID_Paciente", datatype: "INT", length: "11", type: "FK", ref: "PACIENTES.ID_Paciente" }
             ]);
 
-            doc.save(`Planilla_Prueba_Taller1_${examData.groupName}.pdf`);
+            return doc;
+        }
+
+        function finishExam() {
+            clearInterval(examData.timerInterval);
+
+            const p1_1 = document.querySelector('input[data-part="1"][data-q="1"]').value.trim();
+            const p1_2 = document.querySelector('input[data-part="1"][data-q="2"]').value.trim();
+            const p1_3 = document.querySelector('input[data-part="1"][data-q="3"]').value.trim();
+            const p1_4 = document.querySelector('input[data-part="1"][data-q="4"]').value.trim();
+
+            let scorePart1 = 0;
+            let c1 = p1_1.toLowerCase().includes('protegida');
+            let c2 = p1_2.toLowerCase().includes('homogeneos') || p1_2.toLowerCase().includes('homogéneos');
+            let c3 = p1_3.toLowerCase().includes('ingeniería inversa') || p1_3.toLowerCase().includes('ingenieria inversa');
+            let c4 = p1_4.toLowerCase().includes('logico') || p1_4.toLowerCase().includes('lógico');
+
+            if (c1) scorePart1 += 1;
+            if (c2) scorePart1 += 1;
+            if (c3) scorePart1 += 1;
+            if (c4) scorePart1 += 1;
+
+            const p2_1_el = document.querySelector('input[name="p2_q1"]:checked');
+            const p2_2_el = document.querySelector('input[name="p2_q2"]:checked');
+            const p2_1 = p2_1_el ? p2_1_el.value : '';
+            const p2_2 = p2_2_el ? p2_2_el.value : '';
+
+            let scorePart2 = 0;
+            let cc1 = p2_1 === 'b';
+            let cc2 = p2_2 === 'c';
+            if (cc1) scorePart2 += 1;
+            if (cc2) scorePart2 += 1;
+
+            const p3_1 = document.querySelector('textarea[data-part="3"][data-q="1"]').value.trim();
+            const p3_2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
+            let scorePart3 = (p3_1.length > 15 ? 2 : 0) + (p3_2.length > 15 ? 2 : 0);
+
+            const ex1Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
+            let ex1TablesData = [];
+            ex1Cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
+                let fields = [];
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
+                    let fType = row.querySelector('.f-type').value;
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
+                    if (fName) {
+                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
+                    }
+                });
+                ex1TablesData.push({ name: tName, fields: fields });
+            });
+
+            const ex2Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex2"] .table-card');
+            let ex2TablesData = [];
+            ex2Cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
+                let fields = [];
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
+                    let fType = row.querySelector('.f-type').value;
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
+                    if (fName) {
+                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
+                    }
+                });
+                ex2TablesData.push({ name: tName, fields: fields });
+            });
+
+            // Evaluación Proporcional Flexible contra el Solucionario Oficial
+            let ex1Score = evaluateNormalizationProportional(ex1TablesData);
+            let ex2Score = evaluateNormalizationProportional(ex2TablesData);
+            let scorePart4 = ex1Score + ex2Score;
+
+            examData.score = scorePart1 + scorePart2 + scorePart3 + scorePart4;
+            
+            examData.details = {
+                p1: [
+                    { q: 1, question: "1. Un campo es la unidad mínima de datos con significado _____________________. Representa una característica o propiedad de una entidad.", resp: p1_4 || 'Vacía', expected: 'Lógico', correct: c4, pts: c4 ? 1 : 0 },
+                    { q: 2, question: "2. La capa de datos es una Base de datos _______________________ en la red interna (Backend).", resp: p1_1 || 'Vacía', expected: 'Protegida', correct: c1, pts: c1 ? 1 : 0 }, 
+                    { q: 3, question: "3. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.", resp: p1_2 || 'Vacía', expected: 'Homogéneos', correct: c2, pts: c2 ? 1 : 0 }, 
+                    { q: 4, question: "4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.", resp: p1_3 || 'Vacía', expected: 'Ingeniería Inversa', correct: c3, pts: c3 ? 1 : 0 }
+                ],
+                p2: [
+                    { q: 1, question: "1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?", resp: p2_1 ? p2_1.toUpperCase() : 'Ninguna', expected: 'B', correct: cc1, pts: cc1 ? 1 : 0 }, 
+                    { q: 2, question: "2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse)?", resp: p2_2 ? p2_2.toUpperCase() : 'Ninguna', expected: 'C', correct: cc2, pts: cc2 ? 1 : 0 }
+                ],
+                p3: [
+                    { q: 1, question: "1. ¿Qué es una Base de Datos?", resp: p3_1 || 'Vacía', expectedText: 'Es un sistema estructurado e integrado de archivos y datos persistentes relacionados entre sí, administrados por un SGBD (DBMS).', pts: p3_1.length > 15 ? 2 : 0 }, 
+                    { q: 2, question: "2. ¿Qué es un registro?", resp: p3_2 || 'Vacía', expectedText: 'Es una colección de campos lógicamente relacionados que describen las características de una entidad específica.', pts: p3_2.length > 15 ? 2 : 0 }
+                ],
+                p4: {
+                    ex1Tables: ex1TablesData,
+                    ex1Pts: ex1Score,
+                    ex2Tables: ex2TablesData,
+                    ex2Pts: ex2Score
+                }
+            };
+
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    addDoc(collection(window.db, "evaluaciones_taller1"), {
+                        groupName: examData.groupName,
+                        students: examData.students,
+                        score: examData.score,
+                        details: examData.details,
+                        timestamp: new Date()
+                    });
+                } catch (e) {
+                    console.error("Error guardando en Firebase:", e);
+                }
+            }
+
+            const pdfDoc = generatePDFDocument();
+            const pdfBase64 = pdfDoc.output('datauristring');
+
+            let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
+            let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN TOTAL: ${examData.score.toFixed(2)} / 20 pts\n\nDETALLE DE EVALUACIÓN:\n` +
+                `- Parte I (Completación): ${scorePart1}/4 pts\n` +
+                `- Parte II (Selección Simple): ${scorePart2}/2 pts\n` +
+                `- Parte III (Desarrollo): ${scorePart3}/4 pts\n` +
+                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${ex1Score}/5 pts, Ej2: ${ex2Score}/5 pts)`;
+
+            emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
+                to_email: examData.profEmail,
+                group_name: examData.groupName,
+                students: studentsStr,
+                score: examData.score.toFixed(2),
+                report_details: reportDetails,
+                content: pdfBase64
+            }).then(() => {
+                console.log("Correo y PDF adjunto enviados con éxito.");
+            }, (err) => {
+                console.error("Error al enviar correo:", err);
+            });
+
+            document.getElementById('view-exam').classList.add('hidden');
+            document.getElementById('header-timer-container').classList.add('hidden');
+            document.getElementById('view-results').classList.remove('hidden');
+
+            document.getElementById('res-group').textContent = examData.groupName;
+            document.getElementById('res-score').textContent = examData.score.toFixed(2) + " / 20 pts";
+            
+            const membersList = document.getElementById('res-members');
+            membersList.innerHTML = '';
+            examData.students.forEach(st => {
+                const li = document.createElement('li');
+                li.textContent = `${st.nombre} (C.I: ${st.cedula})`;
+                membersList.appendChild(li);
+            });
+
+            const waMsg = `*Evaluación Taller N° 1 - Diseño de Sistemas*\n*Grupo:* ${examData.groupName}\n*Integrantes:* ${studentsStr}\n*Calificación:* ${examData.score.toFixed(2)} / 20 pts`;
+            document.getElementById('btn-whatsapp').href = `https://api.whatsapp.com/send?phone=&text=${encodeURIComponent(waMsg)}`;
+        }
+
+        document.getElementById('btn-download-pdf').addEventListener('click', () => {
+            const pdfDoc = generatePDFDocument();
+            pdfDoc.save(`Planilla_Prueba_Taller1_${examData.groupName}.pdf`);
         });
     </script>
 </body>
