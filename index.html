@@ -43,7 +43,7 @@
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
-                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S..</p>
                 </div>
             </div>
             <div id="header-timer-container" class="hidden flex items-center gap-4 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl shadow-inner text-white">
@@ -439,6 +439,7 @@
                         students: [selectedStudent],
                         status: "en_proceso",
                         examAnswers: {},
+                        normalizationTables: { ex1: [], ex2: [] },
                         closedBy: "",
                         timestamp: new Date()
                     });
@@ -536,7 +537,7 @@
             setupLiveInputsSync();
         }
 
-        // Sincronización en tiempo real
+        // Sincronización en tiempo real avanzada (incluyendo desarrollo y tablas)
         function startRealtimeSync() {
             if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
             
@@ -545,13 +546,12 @@
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
 
-                        // Si se finalizó la prueba (por tiempo, botón o salida de pantalla)
                         if (data.status === "finalizado" && document.getElementById('view-results').classList.contains('hidden')) {
                             finishExamRemotely(data);
                             return;
                         }
 
-                        // Sincronizar respuestas en vivo
+                        // Sincronizar inputs, textareas y radios en vivo
                         if (data.examAnswers && !isRemoteUpdating) {
                             isRemoteUpdating = true;
                             Object.keys(data.examAnswers).forEach(key => {
@@ -566,6 +566,14 @@
                                     if (radioEl && !radioEl.checked) radioEl.checked = true;
                                 }
                             });
+                            isRemoteUpdating = false;
+                        }
+
+                        // Sincronizar Tablas de Normalización en tiempo real
+                        if (data.normalizationTables && !isRemoteUpdating) {
+                            isRemoteUpdating = true;
+                            renderTablesFromCloud('ex1', data.normalizationTables.ex1 || []);
+                            renderTablesFromCloud('ex2', data.normalizationTables.ex2 || []);
                             isRemoteUpdating = false;
                         }
                     }
@@ -607,6 +615,111 @@
             } catch (e) {
                 console.error("Error sincronizando respuesta:", e);
             }
+        }
+
+        // Recolectar y guardar la estructura actual de tablas en Firebase
+        async function saveNormalizationTablesToCloud() {
+            if (isRemoteUpdating || !window.firebaseAvailable || !window.db || !currentGroupDocId) return;
+            
+            let ex1Tables = extractTablesDataFromDOM('ex1');
+            let ex2Tables = extractTablesDataFromDOM('ex2');
+
+            try {
+                const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await updateDoc(doc(window.db, "evaluacion_taller1", currentGroupDocId), {
+                    normalizationTables: { ex1: ex1Tables, ex2: ex2Tables }
+                });
+            } catch (e) {
+                console.error("Error sincronizando tablas de normalización:", e);
+            }
+        }
+
+        function extractTablesDataFromDOM(exerciseId) {
+            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
+            let tablesData = [];
+            cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim();
+                let fields = [];
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
+                    let fType = row.querySelector('.f-type').value;
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
+                    fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
+                });
+                tablesData.push({ name: tName, fields: fields });
+            });
+            return tablesData;
+        }
+
+        // Renderizar tablas recibidas desde la nube sin perder el foco si es posible
+        function renderTablesFromCloud(exerciseId, tablesArray) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            if (!wrapper) return;
+
+            wrapper.innerHTML = '';
+
+            tablesArray.forEach((tblData, tIdx) => {
+                const tableId = `t_${exerciseId}_${tIdx}`;
+                const tableDiv = document.createElement('div');
+                tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+                tableDiv.id = tableId;
+
+                let fieldsHTML = '';
+                (tblData.fields || []).forEach((f, fIdx) => {
+                    let fieldId = `f_${tableId}_${fIdx}`;
+                    fieldsHTML += `
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200" id="${fieldId}">
+                            <div class="sm:col-span-3">
+                                <input type="text" value="${f.name || ''}" placeholder="Nombre del campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveNormalizationTablesToCloud()">
+                                    <option value="INT" ${f.datatype === 'INT' ? 'selected' : ''}>INT</option>
+                                    <option value="VARCHAR" ${f.datatype === 'VARCHAR' ? 'selected' : ''}>VARCHAR</option>
+                                    <option value="DATE" ${f.datatype === 'DATE' ? 'selected' : ''}>DATE</option>
+                                    <option value="DECIMAL" ${f.datatype === 'DECIMAL' ? 'selected' : ''}>DECIMAL</option>
+                                    <option value="TEXT" ${f.datatype === 'TEXT' ? 'selected' : ''}>TEXT</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <input type="text" value="${f.length || ''}" placeholder="Límite (Ej. 50)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud()">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                                    <option value="Normal" ${f.type === 'Normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="PK" ${f.type === 'PK' ? 'selected' : ''}>PK</option>
+                                    <option value="FK" ${f.type === 'FK' ? 'selected' : ''}>FK</option>
+                                    <option value="PK-FK" ${f.type === 'PK-FK' ? 'selected' : ''}>PK + FK</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2 f-ref-container" data-selected-ref="${f.ref || ''}">
+                                <span class="text-slate-400 text-xs italic">N/A</span>
+                            </div>
+                            <div class="sm:col-span-1 text-right">
+                                <button type="button" onclick="this.closest('.field-row').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                tableDiv.innerHTML = `
+                    <div class="flex justify-between items-center gap-2">
+                        <input type="text" value="${tblData.name || ''}" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                        <button type="button" onclick="this.closest('.table-card').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                    </div>
+                    <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
+                        <p class="text-xs text-slate-500">Atributos / Campos:</p>
+                        ${fieldsHTML}
+                    </div>
+                    <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Campo</button>
+                `;
+                wrapper.appendChild(tableDiv);
+            });
+
+            updateAllFKDropdowns(exerciseId);
         }
 
         // Detección estricta de salida de pantalla con nombre del infractor
@@ -699,7 +812,7 @@
             wrapper.querySelectorAll('.field-row').forEach(row => {
                 let typeSelect = row.querySelector('.f-type');
                 let refContainer = row.querySelector('.f-ref-container');
-                let currentVal = row.getAttribute('data-selected-ref') || '';
+                let currentVal = refContainer.getAttribute('data-selected-ref') || '';
 
                 if (typeSelect.value === 'FK' || typeSelect.value === 'PK-FK') {
                     refContainer.innerHTML = '';
@@ -721,13 +834,14 @@
                     });
 
                     selectRef.onchange = function() {
-                        row.setAttribute('data-selected-ref', this.value);
+                        refContainer.setAttribute('data-selected-ref', this.value);
+                        saveNormalizationTablesToCloud();
                     };
 
                     refContainer.appendChild(selectRef);
                 } else {
                     refContainer.innerHTML = '<span class="text-slate-400 text-xs italic">N/A</span>';
-                    row.removeAttribute('data-selected-ref');
+                    refContainer.removeAttribute('data-selected-ref');
                 }
             });
         };
@@ -739,8 +853,8 @@
             tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
             tableDiv.innerHTML = `
                 <div class="flex justify-between items-center gap-2">
-                    <input type="text" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name focus:ring-2 focus:ring-blue-500 outline-none" oninput="updateAllFKDropdowns('${exerciseId}')">
-                    <button type="button" onclick="this.closest('.table-card').remove(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                    <input type="text" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                    <button type="button" onclick="this.closest('.table-card').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
                 </div>
                 <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
                     <p class="text-xs text-slate-500">Atributos / Campos:</p>
@@ -749,6 +863,7 @@
             `;
             tableDiv.id = tableId;
             wrapper.appendChild(tableDiv);
+            saveNormalizationTablesToCloud();
             updateAllFKDropdowns(exerciseId);
         };
 
@@ -759,10 +874,10 @@
             fieldRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200';
             fieldRow.innerHTML = `
                 <div class="sm:col-span-3">
-                    <input type="text" placeholder="Nombre del campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="updateAllFKDropdowns('${exerciseId}')">
+                    <input type="text" placeholder="Nombre del campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
                 </div>
                 <div class="sm:col-span-2">
-                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveNormalizationTablesToCloud()">
                         <option value="INT">INT</option>
                         <option value="VARCHAR">VARCHAR</option>
                         <option value="DATE">DATE</option>
@@ -771,10 +886,10 @@
                     </select>
                 </div>
                 <div class="sm:col-span-2">
-                    <input type="text" placeholder="Límite (Ej. 50)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none">
+                    <input type="text" placeholder="Límite (Ej. 50)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud()">
                 </div>
                 <div class="sm:col-span-2">
-                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="updateAllFKDropdowns('${exerciseId}')">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
                         <option value="Normal">Normal</option>
                         <option value="PK">PK</option>
                         <option value="FK">FK</option>
@@ -785,10 +900,11 @@
                     <span class="text-slate-400 text-xs italic">N/A</span>
                 </div>
                 <div class="sm:col-span-1 text-right">
-                    <button type="button" onclick="this.closest('.field-row').remove(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                    <button type="button" onclick="this.closest('.field-row').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
                 </div>
             `;
             container.appendChild(fieldRow);
+            saveNormalizationTablesToCloud();
             updateAllFKDropdowns(exerciseId);
         };
 
@@ -1084,43 +1200,8 @@
             const p3_2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
             let scorePart3 = (p3_1.length > 15 ? 2 : 0) + (p3_2.length > 15 ? 2 : 0);
 
-            const ex1Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
-            let ex1TablesData = [];
-            ex1Cards.forEach(card => {
-                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
-                let fields = [];
-                card.querySelectorAll('.field-row').forEach(row => {
-                    let fName = row.querySelector('.f-name').value.trim();
-                    let fDatatype = row.querySelector('.f-datatype').value;
-                    let fLength = row.querySelector('.f-length').value.trim();
-                    let fType = row.querySelector('.f-type').value;
-                    let refSel = row.querySelector('.f-ref');
-                    let fRef = refSel ? refSel.value.trim() : '';
-                    if (fName) {
-                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
-                    }
-                });
-                ex1TablesData.push({ name: tName, fields: fields });
-            });
-
-            const ex2Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex2"] .table-card');
-            let ex2TablesData = [];
-            ex2Cards.forEach(card => {
-                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
-                let fields = [];
-                card.querySelectorAll('.field-row').forEach(row => {
-                    let fName = row.querySelector('.f-name').value.trim();
-                    let fDatatype = row.querySelector('.f-datatype').value;
-                    let fLength = row.querySelector('.f-length').value.trim();
-                    let fType = row.querySelector('.f-type').value;
-                    let refSel = row.querySelector('.f-ref');
-                    let fRef = refSel ? refSel.value.trim() : '';
-                    if (fName) {
-                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
-                    }
-                });
-                ex2TablesData.push({ name: tName, fields: fields });
-            });
+            let ex1TablesData = extractTablesDataFromDOM('ex1');
+            let ex2TablesData = extractTablesDataFromDOM('ex2');
 
             let ex1Score = evaluateNormalizationProportional(ex1TablesData);
             let ex2Score = evaluateNormalizationProportional(ex2TablesData);
