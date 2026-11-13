@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNEFA - Evaluación de Diseño de Sistemas (Taller N° 1)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("WN1xWLVSZhHOF9qTv");
+        })();
+    </script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getFirestore, collection, addDoc } from "firebase/firestore";
+        import { getAnalytics } from "firebase/analytics";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQzRYL2PhgAFtcZlgsX69ooVmcuP-7bqM",
+            authDomain: "evaluaciondsunefa.firebaseapp.com",
+            projectId: "evaluaciondsunefa",
+            storageBucket: "evaluaciondsunefa.firebasestorage.app",
+            messagingSenderId: "901181829694",
+            appId: "1:901181829694:web:3eea56237de2dc81c2d76f",
+            measurementId: "G-ZPMJF8NVQ4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.analytics = getAnalytics(app);
+        window.firebaseAvailable = true;
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header Institucional -->
+    <header class="bg-blue-900 border-b border-blue-800 py-4 px-6 shadow-md text-white">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
+                <div>
+                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
+                </div>
+            </div>
+            <div id="header-timer-container" class="hidden flex items-center gap-4 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl shadow-inner text-white">
+                <div class="text-right">
+                    <p class="text-xs text-blue-300 uppercase tracking-wider font-semibold">Tiempo Restante</p>
+                    <p id="timer-display" class="text-xl font-mono font-bold text-amber-400">01:30:00</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-4xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
+
+        <!-- VISTA 1: CONFIGURACIÓN Y SELECCIÓN DE ESTUDIANTES -->
+        <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
+            <div class="text-center">
+                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Evaluación Grupal (2 o 3 Estudiantes)</span>
+                <h2 class="text-2xl font-bold mt-3 text-slate-900">Selección de Integrantes y Sala</h2>
+                <p class="text-sm text-slate-600 mt-1">Marque con casillas (checkbox) a los integrantes de su grupo (2 obligatorios, 1 opcional).</p>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs text-slate-700 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-emerald-600 flex items-center gap-1.5">🟢 Envío Automático por Correo Activo</span>
+                    <span class="text-slate-500 font-mono">Destino: cesarengifo13@gmail.com</span>
+                </div>
+                <div>
+                    <label class="block text-slate-700 mb-1 font-medium">Código o Nombre del Grupo:</label>
+                    <input type="text" id="group-code" placeholder="Ej. Grupo_Sistemas_01" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500 outline-none" required>
+                </div>
+            </div>
+
+            <!-- SELECCIÓN DE ESTUDIANTES -->
+            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-4">
+                <h3 class="text-sm font-bold text-blue-900 uppercase tracking-wider">Nómina Oficial - Curso S6-2633 (Ing. de Sistemas)</h3>
+                <p class="text-xs text-slate-600">Seleccione de 2 a 3 estudiantes marcando las casillas correspondientes:</p>
+                
+                <div id="students-checklist" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 bg-white border border-slate-200 rounded-lg">
+                    <!-- Generado dinámicamente -->
+                </div>
+
+                <div class="pt-2 border-t border-slate-200">
+                    <p class="text-xs font-semibold text-slate-700 mb-2">Integrantes Seleccionados:</p>
+                    <div id="selected-team-preview" class="text-xs text-blue-600 italic">Ningún estudiante seleccionado todavía (Seleccione mínimo 2).</div>
+                </div>
+            </div>
+
+            <div class="pt-2 text-center">
+                <button type="button" id="btn-start-exam" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg w-full md:w-auto text-sm tracking-wide">
+                    Continuar e Iniciar Evaluación
+                </button>
+            </div>
+        </section>
+
+        <!-- VISTA 2: EXAMEN EN CURSO -->
+        <section id="view-exam" class="hidden space-y-6">
+            <div class="bg-amber-50 border border-amber-300 p-4 rounded-xl text-amber-900 text-xs md:text-sm flex flex-col md:flex-row items-center justify-between gap-2 shadow-sm">
+                <span>⚠️ <strong>Aviso de Seguridad:</strong> Si algún miembro sale de la pantalla o minimiza la ventana, la prueba se finalizará y entregará automáticamente para todo el grupo.</span>
+                <span id="tab-warnings" class="font-bold bg-amber-200 px-3 py-1 rounded-lg text-xs whitespace-nowrap text-amber-900">Advertencias: 0/2</span>
+            </div>
+
+            <!-- PARTE I: COMPLETACIÓN -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="border-b border-slate-200 pb-2">
+                    <h3 class="text-base font-bold text-slate-900">I PARTE: COMPLETACIÓN (Valor: 4 Puntos)</h3>
+                    <p class="text-xs text-slate-600 mt-1">A continuación se le presenta una serie de proposiciones con un espacio en blanco que debe completar con la palabra que le dé sentido lógico a la oración. (1 punto c/u)</p>
+                </div>
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-2 font-medium">1. Un campo es la unidad mínima de datos con significado _____________________. Representa una característica o propiedad de una entidad.</label>
+                        <input type="text" data-part="1" data-q="4" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-2 font-medium">2. La capa de datos es una Base de datos _______________________ en la red interna (Backend).</label>
+                        <input type="text" data-part="1" data-q="1" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-2 font-medium">3. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.</label>
+                        <input type="text" data-part="1" data-q="2" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-2 font-medium">4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.</label>
+                        <input type="text" data-part="1" data-q="3" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTE II: SELECCIÓN SIMPLE -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="border-b border-slate-200 pb-2">
+                    <h3 class="text-base font-bold text-slate-900">II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos)</h3>
+                    <p class="text-xs text-slate-600 mt-1">A continuación se le presentan proposiciones con varias alternativas de solución; seleccione la respuesta correcta. (1 punto c/u)</p>
+                </div>
+                <div class="space-y-4 pt-2">
+                    <div class="space-y-2">
+                        <p class="text-sm font-medium text-slate-800">1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
+                        <div class="space-y-1.5 pl-2">
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="a"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="b"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="c"> c) Conectar dos tablas mediante llaves foráneas.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="d"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-3 border-t border-slate-200">
+                        <p class="text-sm font-medium text-slate-800">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
+                        <div class="space-y-1.5 pl-2">
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="a"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="b"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="c"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="d"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTE III: DESARROLLO -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="border-b border-slate-200 pb-2">
+                    <h3 class="text-base font-bold text-slate-900">III PARTE: DESARROLLO (Valor: 4 Puntos)</h3>
+                    <p class="text-xs text-slate-600 mt-1">Defina los siguientes conceptos, basado en la teoría desarrollada en clase. (2 puntos c/u)</p>
+                </div>
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-2 font-medium">1. ¿Qué es una Base de Datos?</label>
+                        <textarea data-part="3" data-q="1" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-2 font-medium">2. ¿Qué es un registro?</label>
+                        <textarea data-part="3" data-q="2" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTE IV: EJERCICIOS PRÁCTICOS -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 pb-2">
+                    <h3 class="text-base font-bold text-slate-900">IV PARTE: EJERCICIOS PRÁCTICOS (Valor: 10 Puntos)</h3>
+                    <p class="text-xs text-slate-600 mt-1">Aplique el proceso de normalización paso a paso y entregue el diseño final estructurado en tablas independientes hasta la Tercera Forma Normal (3FN). Identifique claramente las (PK) y las (FK) en cada tabla resultante.</p>
+                </div>
+
+                <!-- Ejercicio 1 -->
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3" id="ex1-container">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-blue-900 text-sm">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</h4>
+                        <button type="button" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
+                    </div>
+                    <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-200 space-y-1">
+                        <p class="text-xs font-bold text-blue-900">Estructura Base Original (Tabla Plana Inicial):</p>
+                        <p class="text-xs text-blue-800 font-mono">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</p>
+                    </div>
+                    <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex1"></div>
+                </div>
+
+                <!-- Ejercicio 2 -->
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3" id="ex2-container">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-blue-900 text-sm">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</h4>
+                        <button type="button" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
+                    </div>
+                    <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-200 space-y-1">
+                        <p class="text-xs font-bold text-blue-900">Estructura Base Original (Tabla Plana Inicial):</p>
+                        <p class="text-xs text-blue-800 font-mono">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</p>
+                    </div>
+                    <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex2"></div>
+                </div>
+            </div>
+
+            <!-- BOTÓN FINALIZAR -->
+            <div class="text-center pt-4 pb-12">
+                <button type="button" id="btn-finish-exam" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-10 py-4 rounded-xl transition shadow-xl text-base tracking-wide">
+                    Finalizar y Enviar Evaluación Automáticamente
+                </button>
+            </div>
+        </section>
+
+        <!-- VISTA 3: RESULTADOS Y DESCARGA DE PDF -->
+        <section id="view-results" class="hidden bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl text-center space-y-6">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">✓</div>
+            <h2 class="text-2xl font-bold text-slate-900">¡Evaluación Entregada y Enviada por Correo!</h2>
+            <p class="text-sm text-slate-600">Los resultados han sido procesados, guardados en Firebase y enviados automáticamente a <strong>cesarengifo13@gmail.com</strong>.</p>
+            
+            <div class="bg-slate-50 p-6 rounded-xl max-w-md mx-auto border border-slate-200 text-left space-y-3 shadow-sm">
+                <p class="text-xs text-slate-500 uppercase tracking-wider">Grupo: <span id="res-group" class="text-slate-900 font-bold font-mono"></span></p>
+                <div>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Integrantes:</p>
+                    <ul id="res-members" class="list-disc pl-5 text-sm text-slate-700 space-y-1"></ul>
+                </div>
+                <div class="border-t border-slate-200 pt-3 mt-3 flex justify-between items-center">
+                    <span class="text-sm text-slate-800 font-bold">PUNTUACIÓN FINAL:</span>
+                    <span id="res-score" class="text-2xl font-bold text-emerald-600 font-mono">0.00 / 20 pts</span>
+                </div>
+            </div>
+
+            <div class="flex justify-center pt-2">
+                <button type="button" id="btn-download-pdf" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg text-sm">
+                    Descargar Planilla PDF Formato Prueba
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-950 border-t border-blue-900 py-4 text-center text-xs text-blue-300">
+        Universidad Nacional Experimental Politécnica de la Fuerza Armada Nacional Bolivariana (UNEFA) - Núcleo Guárico Sede Tucupido
+    </footer>
+
+    <!-- Script de Lógica -->
+    <script>
+        const estudiantesSeccion = [
+            { nombre: "MOTARPON VICTOR MANUEL", cedula: "26.166.763" },
+            { nombre: "JIMÉNEZ SIFONTES JOSÉ LEONARDO", cedula: "27.664.252" },
+            { nombre: "OJEDA GONZÁLEZ JUAN DE JESÚS", cedula: "31.464.928" },
+            { nombre: "JIMÉNEZ JIMÉNEZ REYMARI", cedula: "31.537.865" },
+            { nombre: "SIFONTES CAMPOS EDUARDO ANDRÉS", cedula: "31.781.439" },
+            { nombre: "MOTA SEGOVIA JORVIN ANDRÉS", cedula: "31.791.315" },
+            { nombre: "ITRIAGO LEON ESTEFANI ALEXANDRA", cedula: "31.791.350" },
+            { nombre: "HERNÁNDEZ HERNÁNDEZ YEAN MANUEL", cedula: "32.679.937" }
+        ];
+
+        let examData = {
+            groupName: '',
+            profEmail: 'cesarengifo13@gmail.com',
+            students: [],
+            startTime: null,
+            timerInterval: null,
+            warnings: 0,
+            score: 0,
+            details: {}
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('students-checklist');
+            estudiantesSeccion.forEach((est, index) => {
+                const div = document.createElement('label');
+                div.className = 'flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded cursor-pointer text-xs text-slate-700';
+                div.innerHTML = `
+                    <input type="checkbox" name="estudiante_chk" value="${index}" class="rounded bg-white border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4" onchange="updateSelectedTeam()">
+                    <span class="font-medium">${est.nombre}</span> <span class="text-slate-500 font-mono">(C.I: ${est.cedula})</span>
+                `;
+                container.appendChild(div);
+            });
+        });
+
+        window.updateSelectedTeam = function() {
+            const checkboxes = document.querySelectorAll('input[name="estudiante_chk"]:checked');
+            const preview = document.getElementById('selected-team-preview');
+            if (checkboxes.length === 0) {
+                preview.textContent = "Ningún estudiante seleccionado todavía (Seleccione mínimo 2).";
+                preview.className = "text-xs text-slate-400 italic";
+                return;
+            }
+            let html = '<ul class="list-disc pl-4 space-y-1">';
+            checkboxes.forEach(chk => {
+                const est = estudiantesSeccion[chk.value];
+                html += `<li><strong class="text-slate-900">${est.nombre}</strong> - C.I: ${est.cedula}</li>`;
+            });
+            html += '</ul>';
+            preview.innerHTML = html;
+            preview.className = "text-xs text-slate-700";
+        };
+
+        document.getElementById('btn-start-exam').addEventListener('click', () => {
+            const groupCode = document.getElementById('group-code').value.trim();
+            const checkboxes = document.querySelectorAll('input[name="estudiante_chk"]:checked');
+
+            if (!groupCode) {
+                alert('Por favor ingrese el código o nombre del grupo.');
+                return;
+            }
+            if (checkboxes.length < 2 || checkboxes.length > 3) {
+                alert('Debe seleccionar obligatoriamente un grupo de 2 o 3 estudiantes de la lista.');
+                return;
+            }
+
+            examData.groupName = groupCode;
+            examData.students = [];
+            checkboxes.forEach(chk => {
+                examData.students.push(estudiantesSeccion[chk.value]);
+            });
+
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-exam').classList.remove('hidden');
+            document.getElementById('header-timer-container').classList.remove('hidden');
+
+            startTimer(90 * 60);
+            initTabSwitchDetection();
+        });
+
+        function startTimer(duration) {
+            let timer = duration;
+            const display = document.getElementById('timer-display');
+            examData.startTime = new Date();
+
+            examData.timerInterval = setInterval(() => {
+                let hours = Math.floor(timer / 3600);
+                let minutes = Math.floor((timer % 3600) / 60);
+                let seconds = timer % 60;
+                display.textContent = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+                if (--timer < 0) {
+                    clearInterval(examData.timerInterval);
+                    alert('¡El tiempo de los 90 minutos ha expirado! La prueba se enviará automáticamente.');
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        function initTabSwitchDetection() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    examData.warnings++;
+                    document.getElementById('tab-warnings').textContent = `Advertencias: ${examData.warnings}/2`;
+                    if (examData.warnings >= 2) {
+                        alert('Se ha detectado múltiples salidas de la pantalla de evaluación. La prueba se finalizará automáticamente.');
+                        finishExam();
+                    } else {
+                        alert('¡ADVERTENCIA! Ha salido de la pantalla de evaluación. A la segunda advertencia se entregará la prueba.');
+                    }
+                }
+            });
+        }
+
+        window.updateAllFKDropdowns = function(exerciseId) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            if (!wrapper) return;
+
+            let availablePKs = [];
+            wrapper.querySelectorAll('.table-card').forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fType = row.querySelector('.f-type').value;
+                    let fName = row.querySelector('.f-name').value.trim();
+                    if ((fType === 'PK' || fType === 'PK-FK') && fName) {
+                        availablePKs.push({ table: tName, field: fName });
+                    }
+                });
+            });
+
+            wrapper.querySelectorAll('.field-row').forEach(row => {
+                let typeSelect = row.querySelector('.f-type');
+                let refContainer = row.querySelector('.f-ref-container');
+                let currentVal = row.getAttribute('data-selected-ref') || '';
+
+                if (typeSelect.value === 'FK' || typeSelect.value === 'PK-FK') {
+                    refContainer.innerHTML = '';
+                    let selectRef = document.createElement('select');
+                    selectRef.className = 'bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 f-ref w-full focus:ring-1 focus:ring-blue-500 outline-none';
+                    
+                    let defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = '-- Seleccionar FK --';
+                    selectRef.appendChild(defaultOpt);
+
+                    availablePKs.forEach(pk => {
+                        let valStr = `${pk.table}.${pk.field}`;
+                        let opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = `${pk.table} (${pk.field})`;
+                        if (valStr === currentVal) opt.selected = true;
+                        selectRef.appendChild(opt);
+                    });
+
+                    selectRef.onchange = function() {
+                        row.setAttribute('data-selected-ref', this.value);
+                    };
+
+                    refContainer.appendChild(selectRef);
+                } else {
+                    refContainer.innerHTML = '<span class="text-slate-400 text-xs italic">N/A</span>';
+                    row.removeAttribute('data-selected-ref');
+                }
+            });
+        };
+
+        window.addTable = function(exerciseId) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            const tableId = 't_' + Math.random().toString(36).substring(2, 9);
+            const tableDiv = document.createElement('div');
+            tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+            tableDiv.innerHTML = `
+                <div class="flex justify-between items-center gap-2">
+                    <input type="text" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name focus:ring-2 focus:ring-blue-500 outline-none" oninput="updateAllFKDropdowns('${exerciseId}')">
+                    <button type="button" onclick="this.closest('.table-card').remove(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                </div>
+                <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
+                    <p class="text-xs text-slate-500">Atributos / Campos:</p>
+                </div>
+                <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Campo</button>
+            `;
+            tableDiv.id = tableId;
+            wrapper.appendChild(tableDiv);
+            updateAllFKDropdowns(exerciseId);
+        };
+
+        window.addField = function(tableId, exerciseId) {
+            const tableCard = document.getElementById(tableId);
+            const container = tableCard.querySelector('.fields-container');
+            const fieldRow = document.createElement('div');
+            fieldRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200';
+            fieldRow.innerHTML = `
+                <div class="sm:col-span-3">
+                    <input type="text" placeholder="Nombre del campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="updateAllFKDropdowns('${exerciseId}')">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype">
+                        <option value="INT">INT</option>
+                        <option value="VARCHAR">VARCHAR</option>
+                        <option value="DATE">DATE</option>
+                        <option value="DECIMAL">DECIMAL</option>
+                        <option value="TEXT">TEXT</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <input type="text" placeholder="Límite (Ej. 50)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="updateAllFKDropdowns('${exerciseId}')">
+                        <option value="Normal">Normal</option>
+                        <option value="PK">PK</option>
+                        <option value="FK">FK</option>
+                        <option value="PK-FK">PK + FK</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2 f-ref-container">
+                    <span class="text-slate-400 text-xs italic">N/A</span>
+                </div>
+                <div class="sm:col-span-1 text-right">
+                    <button type="button" onclick="this.closest('.field-row').remove(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                </div>
+            `;
+            container.appendChild(fieldRow);
+            updateAllFKDropdowns(exerciseId);
+        };
+
+        document.getElementById('btn-finish-exam').addEventListener('click', () => {
+            if (confirm('¿Está seguro de finalizar y enviar la prueba? No podrá modificar las respuestas después.')) {
+                finishExam();
+            }
+        });
+
+        function finishExam() {
+            clearInterval(examData.timerInterval);
+
+            const p1_1 = document.querySelector('input[data-part="1"][data-q="1"]').value.trim();
+            const p1_2 = document.querySelector('input[data-part="1"][data-q="2"]').value.trim();
+            const p1_3 = document.querySelector('input[data-part="1"][data-q="3"]').value.trim();
+            const p1_4 = document.querySelector('input[data-part="1"][data-q="4"]').value.trim();
+
+            let scorePart1 = 0;
+            let c1 = p1_1.toLowerCase().includes('protegida');
+            let c2 = p1_2.toLowerCase().includes('homogeneos') || p1_2.toLowerCase().includes('homogéneos');
+            let c3 = p1_3.toLowerCase().includes('ingeniería inversa') || p1_3.toLowerCase().includes('ingenieria inversa');
+            let c4 = p1_4.toLowerCase().includes('logico') || p1_4.toLowerCase().includes('lógico');
+
+            if (c1) scorePart1 += 1;
+            if (c2) scorePart1 += 1;
+            if (c3) scorePart1 += 1;
+            if (c4) scorePart1 += 1;
+
+            const p2_1_el = document.querySelector('input[name="p2_q1"]:checked');
+            const p2_2_el = document.querySelector('input[name="p2_q2"]:checked');
+            const p2_1 = p2_1_el ? p2_1_el.value : '';
+            const p2_2 = p2_2_el ? p2_2_el.value : '';
+
+            let scorePart2 = 0;
+            let cc1 = p2_1 === 'b';
+            let cc2 = p2_2 === 'c';
+            if (cc1) scorePart2 += 1;
+            if (cc2) scorePart2 += 1;
+
+            const p3_1 = document.querySelector('textarea[data-part="3"][data-q="1"]').value.trim();
+            const p3_2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
+            let scorePart3 = (p3_1.length > 15 ? 2 : 0) + (p3_2.length > 15 ? 2 : 0);
+
+            // Recopilar tablas detalladas del Ejercicio 1
+            const ex1Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
+            let ex1TablesData = [];
+            ex1Cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
+                let fields = [];
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
+                    let fType = row.querySelector('.f-type').value;
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
+                    if (fName) {
+                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
+                    }
+                });
+                ex1TablesData.push({ name: tName, fields: fields });
+            });
+
+            // Recopilar tablas detalladas del Ejercicio 2
+            const ex2Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex2"] .table-card');
+            let ex2TablesData = [];
+            ex2Cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
+                let fields = [];
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
+                    let fType = row.querySelector('.f-type').value;
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
+                    if (fName) {
+                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
+                    }
+                });
+                ex2TablesData.push({ name: tName, fields: fields });
+            });
+
+            // Evaluación estricta de 3FN (Requiere 3 tablas independientes por ejercicio)
+            function calcNormalizationScore(tablesList) {
+                if (tablesList.length >= 3) return 5.0;
+                if (tablesList.length === 2) return 3.0;
+                if (tablesList.length === 1) return 1.5;
+                return 0.0;
+            }
+
+            let ex1Score = calcNormalizationScore(ex1TablesData);
+            let ex2Score = calcNormalizationScore(ex2TablesData);
+            let scorePart4 = ex1Score + ex2Score;
+
+            examData.score = scorePart1 + scorePart2 + scorePart3 + scorePart4;
+            
+            examData.details = {
+                p1: [
+                    {
+                        q: 1,
+                        question: "1. Un campo es la unidad mínima de datos con significado _____________________. Representa una característica o propiedad de una entidad.",
+                        resp: p1_4 || 'Vacía',
+                        expected: 'Lógico',
+                        correct: c4,
+                        pts: c4 ? 1 : 0
+                    },
+                    {
+                        q: 2,
+                        question: "2. La capa de datos es una Base de datos _______________________ en la red interna (Backend).",
+                        resp: p1_1 || 'Vacía',
+                        expected: 'Protegida',
+                        correct: c1,
+                        pts: c1 ? 1 : 0
+                    }, 
+                    {
+                        q: 3,
+                        question: "3. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.",
+                        resp: p1_2 || 'Vacía',
+                        expected: 'Homogéneos',
+                        correct: c2,
+                        pts: c2 ? 1 : 0
+                    }, 
+                    {
+                        q: 4,
+                        question: "4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.",
+                        resp: p1_3 || 'Vacía',
+                        expected: 'Ingeniería Inversa',
+                        correct: c3,
+                        pts: c3 ? 1 : 0
+                    }
+                ],
+                p2: [
+                    {
+                        q: 1,
+                        question: "1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?\n   Opciones: a) Eliminar dependencias transitivas | b) Asegurar atomicidad de los datos, eliminando grupos repetitivos | c) Conectar tablas mediante FK | d) Optimizar consultas OLAP",
+                        resp: p2_1 ? p2_1.toUpperCase() : 'Ninguna',
+                        expected: 'B',
+                        correct: cc1,
+                        pts: cc1 ? 1 : 0
+                    }, 
+                    {
+                        q: 2,
+                        question: "2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?\n   Opciones: a) Optimizado para OLTP | b) Datos normalizados para inserciones masivas | c) Repositorio centralizado, histórico y de solo lectura optimizado para OLAP | d) Permite modificar datos históricos libremente",
+                        resp: p2_2 ? p2_2.toUpperCase() : 'Ninguna',
+                        expected: 'C',
+                        correct: cc2,
+                        pts: cc2 ? 1 : 0
+                    }
+                ],
+                p3: [
+                    {
+                        q: 1,
+                        question: "1. ¿Qué es una Base de Datos?",
+                        resp: p3_1 || 'Vacía',
+                        expectedText: 'Es un sistema estructurado e integrado de archivos y datos persistentes relacionados entre sí, administrados por un SGBD (DBMS). Su objetivo principal es reducir la redundancia, garantizar la independencia de los datos y permitir múltiples vistas de la información a diferentes usuarios de forma simultánea.',
+                        pts: p3_1.length > 15 ? 2 : 0
+                    }, 
+                    {
+                        q: 2,
+                        question: "2. ¿Qué es un registro?",
+                        resp: p3_2 || 'Vacía',
+                        expectedText: 'Es una colección de campos lógicamente relacionados que describen las características de una entidad específica.',
+                        pts: p3_2.length > 15 ? 2 : 0
+                    }
+                ],
+                p4: {
+                    ex1Tables: ex1TablesData,
+                    ex1Pts: ex1Score,
+                    ex2Tables: ex2TablesData,
+                    ex2Pts: ex2Score
+                }
+            };
+
+            // Guardar en Firebase
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    addDoc(collection(window.db, "evaluaciones_taller1"), {
+                        groupName: examData.groupName,
+                        students: examData.students,
+                        score: examData.score,
+                        details: examData.details,
+                        timestamp: new Date()
+                    });
+                } catch (e) {
+                    console.error("Error guardando en Firebase:", e);
+                }
+            }
+
+            // ENVÍO AUTOMÁTICO VÍA EMAILJS
+            let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
+            let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN TOTAL: ${examData.score.toFixed(2)} / 20 pts\n\nESTRUCTURA Y RESPUESTAS DEL ESTUDIANTE:\n` +
+                `- Parte I (Completación): ${scorePart1}/4 pts\n` +
+                `- Parte II (Selección Simple): ${scorePart2}/2 pts\n` +
+                `- Parte III (Desarrollo): ${scorePart3}/4 pts\n` +
+                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${ex1TablesData.length} tablas [${ex1Score} pts], Ej2: ${ex2TablesData.length} tablas [${ex2Score} pts])`;
+
+            emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
+                to_email: examData.profEmail,
+                group_name: examData.groupName,
+                students: studentsStr,
+                score: examData.score.toFixed(2),
+                report_details: reportDetails
+            }).then(() => {
+                console.log("Correo enviado automáticamente con éxito.");
+            }, (err) => {
+                console.error("Error al enviar correo automático:", err);
+            });
+
+            document.getElementById('view-exam').classList.add('hidden');
+            document.getElementById('header-timer-container').classList.add('hidden');
+            document.getElementById('view-results').classList.remove('hidden');
+
+            document.getElementById('res-group').textContent = examData.groupName;
+            document.getElementById('res-score').textContent = examData.score.toFixed(2) + " / 20 pts";
+            
+            const membersList = document.getElementById('res-members');
+            membersList.innerHTML = '';
+            examData.students.forEach(st => {
+                const li = document.createElement('li');
+                li.textContent = `${st.nombre} (C.I: ${st.cedula})`;
+                membersList.appendChild(li);
+            });
+        }
+
+        // Descarga de PDF con todas las preguntas incluidas y texto ajustado al ancho
+        document.getElementById('btn-download-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            let y = 15;
+
+            function checkPageSpace(needed) {
+                if (y + needed > 275) {
+                    doc.addPage();
+                    y = 20;
+                }
+            }
+
+            // Función auxiliar para imprimir texto multilínea sin que se corte en los bordes
+            function printWrappedText(text, x, maxWidth, lineHeight = 4.5, isBold = false) {
+                doc.setFont("helvetica", isBold ? "bold" : "normal");
+                let lines = doc.splitTextToSize(text, maxWidth);
+                checkPageSpace(lines.length * lineHeight + 2);
+                lines.forEach(line => {
+                    doc.text(line, x, y);
+                    y += lineHeight;
+                });
+            }
+
+            function drawMySQLTable(tableName, fields) {
+                let requiredHeight = 15 + (fields.length > 0 ? fields.length * 6 : 6);
+                checkPageSpace(requiredHeight);
+
+                // Cabecera MySQL Schema
+                doc.setFillColor(30, 41, 59);
+                doc.rect(20, y, 170, 7, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.text(`TABLE: ${tableName.toUpperCase()}`, 24, y + 4.5);
+                y += 7;
+
+                // Sub-cabecera de columnas
+                doc.setFillColor(226, 232, 240);
+                doc.rect(20, y, 170, 6, 'F');
+                doc.setTextColor(15, 23, 42);
+                doc.setFontSize(8);
+                doc.text("CAMPO (COLUMN)", 24, y + 4);
+                doc.text("TIPO(LÍMITE)", 85, y + 4);
+                doc.text("ATRIBUTO / RELACIÓN (FK)", 125, y + 4);
+                y += 6;
+
+                doc.setFont("helvetica", "normal");
+                if (!fields || fields.length === 0) {
+                    doc.rect(20, y, 170, 6);
+                    doc.text("(Sin atributos definidos)", 24, y + 4);
+                    y += 6;
+                } else {
+                    fields.forEach(f => {
+                        checkPageSpace(6);
+                        doc.rect(20, y, 170, 6);
+                        doc.text(f.name || '-', 24, y + 4);
+                        
+                        let typeStr = f.datatype || 'VARCHAR';
+                        if (f.length) typeStr += `(${f.length})`;
+                        doc.text(typeStr, 85, y + 4);
+                        
+                        let attrText = f.type || 'Normal';
+                        if (f.type === 'FK' && f.ref) attrText = `FK -> ${f.ref}`;
+                        else if (f.type === 'PK-FK' && f.ref) attrText = `PK+FK -> ${f.ref}`;
+                        doc.text(attrText, 125, y + 4);
+                        y += 6;
+                    });
+                }
+                y += 8;
+            }
+
+            // Encabezado institucional
+            doc.setFillColor(30, 58, 138);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(11);
+            doc.text("UNIVERSIDAD NACIONAL EXPERIMENTAL POLITÉCNICA", 105, 9, { align: "center" });
+            doc.text("DE LA FUERZA ARMADA NACIONAL BOLIVARIANA (UNEFA)", 105, 14, { align: "center" });
+            doc.setFontSize(8);
+            doc.text("NÚCLEO GUÁRICO - SEDE TUCUPIDO | DISEÑO DE SISTEMAS", 105, 20, { align: "center" });
+
+            y = 33;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`GRUPO / SALA: ${examData.groupName}`, 20, y); y += 6;
+            doc.text(`CALIFICACIÓN TOTAL OBTENIDA: ${examData.score.toFixed(2)} / 20 PUNTOS`, 20, y); y += 8;
+
+            doc.setFontSize(10);
+            doc.text("INTEGRANTES DEL GRUPO:", 20, y); y += 5;
+            doc.setFontSize(9);
+            examData.students.forEach((st, idx) => {
+                doc.text(`${idx + 1}. ${st.nombre} - C.I: ${st.cedula}`, 25, y);
+                y += 5;
+            });
+
+            y += 6;
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("PLANILLA DE EVALUACIÓN - TALLER N° 1 (ESTRUCTURA DE PRUEBA)", 20, y);
+            y += 8;
+
+            // Parte I con enunciados completos
+            checkPageSpace(45);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("I PARTE: COMPLETACIÓN (Valor: 4 Puntos)", 20, y); y += 6;
+            doc.setFontSize(8.5);
+            examData.details.p1.forEach(item => {
+                printWrappedText(item.question, 22, 168, 4.2, true);
+                printWrappedText(`   Respuesta Estudiante: [ ${item.resp} ] | Nota: ${item.pts} pt | Clave esperada: ${item.expected}`, 24, 166, 4.2, false);
+                y += 3;
+            });
+
+            y += 4;
+            // Parte II con enunciados completos
+            checkPageSpace(35);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos)", 20, y); y += 6;
+            doc.setFontSize(8.5);
+            examData.details.p2.forEach(item => {
+                printWrappedText(item.question, 22, 168, 4.2, true);
+                printWrappedText(`   Opción marcada: [ ${item.resp} ] | Nota: ${item.pts} pt | Clave correcta: [${item.expected}]`, 24, 166, 4.2, false);
+                y += 3;
+            });
+
+            y += 4;
+            // Parte III con enunciados y respuestas ajustadas
+            checkPageSpace(45);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("III PARTE: DESARROLLO (Valor: 4 Puntos)", 20, y); y += 6;
+            doc.setFontSize(8.5);
+            examData.details.p3.forEach(item => {
+                printWrappedText(`${item.question} (Nota: ${item.pts}/2 pts)`, 22, 168, 4.2, true);
+                printWrappedText(`   R/ Estudiante: ${item.resp}`, 24, 166, 4.2, false);
+                printWrappedText(`   Solución modelo: ${item.expectedText}`, 24, 166, 4.2, false);
+                y += 4;
+            });
+
+            // Parte IV: Normalización (Tablas del Estudiante)
+            checkPageSpace(35);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 Puntos)", 20, y); y += 8;
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Tablas creadas: ${examData.details.p4.ex1Tables.length}/3 - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 6;
+            if (examData.details.p4.ex1Tables.length === 0) {
+                doc.setFont("helvetica", "normal");
+                doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
+            } else {
+                examData.details.p4.ex1Tables.forEach((tbl, tIdx) => {
+                    drawMySQLTable(`Estudiante [Ej 1] - ${tbl.name}`, tbl.fields);
+                });
+            }
+
+            y += 4;
+            checkPageSpace(25);
+            doc.setFont("helvetica", "bold");
+            doc.text(`• Ejercicio 2 (Citas Médicas) - Tablas creadas: ${examData.details.p4.ex2Tables.length}/3 - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 6;
+            if (examData.details.p4.ex2Tables.length === 0) {
+                doc.setFont("helvetica", "normal");
+                doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
+            } else {
+                examData.details.p4.ex2Tables.forEach((tbl, tIdx) => {
+                    drawMySQLTable(`Estudiante [Ej 2] - ${tbl.name}`, tbl.fields);
+                });
+            }
+
+            // ==========================================
+            // CLAVE DE CORRECCIÓN OFICIAL - MODELO 3FN
+            // ==========================================
+            checkPageSpace(70);
+            y += 10;
+            doc.setFillColor(20, 30, 80);
+            doc.rect(20, y, 170, 7, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.text("CLAVE DE CORRECCIÓN OFICIAL - MODELO 3FN (ESQUEMA RELACIONAL)", 105, y + 5, { align: "center" });
+            y += 14;
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9);
+
+            // Solucionario Ejercicio 1
+            doc.text("Solución Ejercicio 1: Sistema de Préstamos Bibliotecarios (3 Tablas en 3FN):", 20, y); y += 6;
+            
+            drawMySQLTable("ESTUDIANTES", [
+                { name: "ID_Estudiante", datatype: "INT", length: "11", type: "PK" },
+                { name: "Nombre_Estudiante", datatype: "VARCHAR", length: "100", type: "Normal" },
+                { name: "Carrera_Estudiante", datatype: "VARCHAR", length: "50", type: "Normal" }
+            ]);
+
+            drawMySQLTable("LIBROS", [
+                { name: "Codigo_Libro", datatype: "VARCHAR", length: "20", type: "PK" },
+                { name: "Titulo_Libro", datatype: "VARCHAR", length: "150", type: "Normal" },
+                { name: "Autor_Libro", datatype: "VARCHAR", length: "100", type: "Normal" }
+            ]);
+
+            drawMySQLTable("PRESTAMOS", [
+                { name: "ID_Prestamo", datatype: "INT", length: "11", type: "PK" },
+                { name: "Fecha_Prestamo", datatype: "DATE", length: "", type: "Normal" },
+                { name: "Dias_Prestamo", datatype: "INT", length: "3", type: "Normal" },
+                { name: "ID_Estudiante", datatype: "INT", length: "11", type: "FK", ref: "ESTUDIANTES.ID_Estudiante" },
+                { name: "Codigo_Libro", datatype: "VARCHAR", length: "20", type: "FK", ref: "LIBROS.Codigo_Libro" }
+            ]);
+
+            // Solucionario Ejercicio 2
+            checkPageSpace(60);
+            doc.text("Solución Ejercicio 2: Sistema de Citas Médicas (3 Tablas en 3FN):", 20, y); y += 6;
+
+            drawMySQLTable("MEDICOS", [
+                { name: "ID_Medico", datatype: "INT", length: "11", type: "PK" },
+                { name: "Nombre_Medico", datatype: "VARCHAR", length: "100", type: "Normal" },
+                { name: "Especialidad_Medico", datatype: "VARCHAR", length: "50", type: "Normal" },
+                { name: "Consultorio_Medico", datatype: "VARCHAR", length: "30", type: "Normal" }
+            ]);
+
+            drawMySQLTable("PACIENTES", [
+                { name: "ID_Paciente", datatype: "INT", length: "11", type: "PK" },
+                { name: "Nombre_Paciente", datatype: "VARCHAR", length: "100", type: "Normal" },
+                { name: "Telefono_Paciente", datatype: "VARCHAR", length: "20", type: "Normal" }
+            ]);
+
+            drawMySQLTable("CITAS", [
+                { name: "ID_Cita", datatype: "INT", length: "11", type: "PK" },
+                { name: "Fecha_Hora", datatype: "DATE", length: "", type: "Normal" },
+                { name: "Diagnostico", datatype: "TEXT", length: "", type: "Normal" },
+                { name: "ID_Medico", datatype: "INT", length: "11", type: "FK", ref: "MEDICOS.ID_Medico" },
+                { name: "ID_Paciente", datatype: "INT", length: "11", type: "FK", ref: "PACIENTES.ID_Paciente" }
+            ]);
+
+            doc.save(`Planilla_Prueba_Taller1_${examData.groupName}.pdf`);
+        });
+    </script>
+</body>
+</html>
