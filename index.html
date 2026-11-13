@@ -43,7 +43,7 @@
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
-                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S..</p>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
                 </div>
             </div>
             <div id="header-timer-container" class="hidden flex items-center gap-4 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl shadow-inner text-white">
@@ -190,11 +190,11 @@
                 <div class="space-y-4 pt-2">
                     <div>
                         <label class="block text-sm text-slate-700 mb-2 font-medium">1. ¿Qué es una Base de Datos?</label>
-                        <textarea data-part="3" data-q="1" rows="3" class="sync-input sync-textarea w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
+                        <textarea data-part="3" data-q="1" rows="3" class="sync-textarea w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
                     </div>
                     <div>
                         <label class="block text-sm text-slate-700 mb-2 font-medium">2. ¿Qué es un registro?</label>
-                        <textarea data-part="3" data-q="2" rows="3" class="sync-input sync-textarea w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
+                        <textarea data-part="3" data-q="2" rows="3" class="sync-textarea w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
                     </div>
                 </div>
             </div>
@@ -539,7 +539,7 @@
             setupLiveInputsSync();
         }
 
-        // Sincronización en tiempo real avanzada (incluyendo respuestas, tablas y advertencias)
+        // Sincronización en tiempo real completa (Partes I, II, III, IV y advertencias)
         function startRealtimeSync() {
             if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
             
@@ -553,13 +553,11 @@
                             return;
                         }
 
-                        // Sincronizar contador de advertencias del grupo en tiempo real
+                        // Sincronizar advertencias del grupo
                         if (data.groupWarnings !== undefined) {
                             document.getElementById('tab-warnings').textContent = `Advertencias Grupo: ${data.groupWarnings}/2`;
                             
-                            // Si hubo una advertencia reciente de otro integrante, mostrar aviso
                             if (data.lastWarningBy && data.lastWarningBy !== (examData.currentStudent ? examData.currentStudent.nombre : '')) {
-                                // Evitar repetir la misma alerta si ya se mostró
                                 if (window.lastNotifiedWarning !== data.groupWarnings) {
                                     window.lastNotifiedWarning = data.groupWarnings;
                                     alert(`⚠️ ¡ATENCIÓN EQUIPO! Su compañero(a) ${data.lastWarningBy} acaba de abandonar la pantalla (Advertencia ${data.groupWarnings}/2).`);
@@ -567,19 +565,24 @@
                             }
                         }
 
-                        // Sincronizar inputs y textareas en vivo
+                        // Sincronizar respuestas de texto, textareas y radios en tiempo real
                         if (data.examAnswers && !isRemoteUpdating) {
                             isRemoteUpdating = true;
                             Object.keys(data.examAnswers).forEach(key => {
                                 let val = data.examAnswers[key];
-                                if (key.startsWith('input_')) {
-                                    let fieldId = key.replace('input_', '');
-                                    let el = document.querySelector(`[data-part][data-q="${fieldId}"]`) || document.querySelector(`textarea[data-part][data-q="${fieldId}"]`);
-                                    if (el && el.value !== val) el.value = val;
+                                if (key.startsWith('input_') || key.startsWith('textarea_')) {
+                                    let fieldId = key.replace('input_', '').replace('textarea_', '');
+                                    // Buscar tanto input como textarea usando data-q
+                                    let el = document.querySelector(`[data-part][data-q="${fieldId}"]`) || document.querySelector(`textarea[data-q="${fieldId}"]`);
+                                    if (el && el.value !== val) {
+                                        el.value = val;
+                                    }
                                 } else if (key.startsWith('radio_')) {
                                     let radioName = key.replace('radio_', '');
                                     let radioEl = document.querySelector(`input[name="${radioName}"][value="${val}"]`);
-                                    if (radioEl && !radioEl.checked) radioEl.checked = true;
+                                    if (radioEl && !radioEl.checked) {
+                                        radioEl.checked = true;
+                                    }
                                 }
                             });
                             isRemoteUpdating = false;
@@ -598,6 +601,7 @@
         }
 
         function setupLiveInputsSync() {
+            // Inputs normales (Parte I)
             const inputs = document.querySelectorAll('.sync-input');
             inputs.forEach(input => {
                 input.addEventListener('input', () => {
@@ -607,15 +611,17 @@
                 });
             });
 
+            // Textareas de Desarrollo (Parte III)
             const textareas = document.querySelectorAll('.sync-textarea');
             textareas.forEach(textarea => {
                 textarea.addEventListener('input', () => {
                     if (isRemoteUpdating) return;
                     let qId = textarea.getAttribute('data-q');
-                    saveAnswerToCloud(`input_${qId}`, textarea.value);
+                    saveAnswerToCloud(`textarea_${qId}`, textarea.value);
                 });
             });
 
+            // Radios (Parte II)
             const radios = document.querySelectorAll('.sync-radio');
             radios.forEach(radio => {
                 radio.addEventListener('change', () => {
