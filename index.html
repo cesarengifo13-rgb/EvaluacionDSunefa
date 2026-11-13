@@ -86,8 +86,8 @@
 
             <!-- SELECCIÓN DE ESTUDIANTES -->
             <div class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl space-y-4">
-                <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider">Nómina Oficial - Curso S6-D01 Diurno (Ing. de Sistemas)[span_0](start_span)[span_0](end_span)</h3>
-                <p class="text-xs text-slate-400">Seleccione de 2 a 3 estudiantes marcando las casillas correspondientes[span_1](start_span)[span_1](end_span):</p>
+                <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider">Nómina Oficial - Curso S6-D01 Diurno (Ing. de Sistemas)</h3>
+                <p class="text-xs text-slate-400">Seleccione de 2 a 3 estudiantes marcando las casillas correspondientes:</p>
                 
                 <div id="students-checklist" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 bg-slate-950 border border-slate-800 rounded-lg">
                     <!-- Generado dinámicamente -->
@@ -464,11 +464,11 @@
                 }
             }
 
-            // ENVÍO AUTOMÁTICO VÍA EMAILJS
+            // ENVÍO AUTOMÁTICO VÍA EMAILJS CON template_spoqjhb
             let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
             let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN FINAL: ${examData.score.toFixed(2)} / 20\n\nDETALLE DE RESPUESTAS:\n- Parte I (Completación): ${scorePart1}/4 pts\n- Parte II (Selección): ${scorePart2}/2 pts\n- Parte III (Desarrollo): ${scorePart3}/4 pts\n- Parte IV (Normalización): ${scorePart4}/10 pts`;
 
-            emailjs.send("Service_uiz1wpi", "template_9xoeupl", {
+            emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
                 to_email: examData.profEmail,
                 group_name: examData.groupName,
                 students: studentsStr,
