@@ -43,7 +43,7 @@
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
-                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S..</p>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
                 </div>
             </div>
             <div id="header-timer-container" class="hidden flex items-center gap-4 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl shadow-inner text-white">
@@ -442,7 +442,7 @@
                         groupWarnings: 0,
                         lastWarningBy: "",
                         closedBy: "",
-                        examStartTime: Date.now(), // <-- Tiempo sincronizado global para el grupo
+                        examStartTime: Date.now(),
                         timestamp: new Date()
                     });
                     currentGroupDocId = docRef.id;
@@ -538,7 +538,7 @@
             setupLiveInputsSync();
         }
 
-        // Sincronización en tiempo real completa (Partes I, II, III, IV, advertencias y temporizador grupal)
+        // Sincronización en tiempo real
         function startRealtimeSync() {
             if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
             
@@ -552,12 +552,10 @@
                             return;
                         }
 
-                        // Iniciar temporizador grupal sincronizado si aún no está activo
                         if (data.examStartTime && !examData.timerInterval) {
                             startSyncedTimer(data.examStartTime, 90 * 60);
                         }
 
-                        // Sincronizar advertencias del grupo
                         if (data.groupWarnings !== undefined) {
                             document.getElementById('tab-warnings').textContent = `Advertencias Grupo: ${data.groupWarnings}/2`;
                             
@@ -569,29 +567,30 @@
                             }
                         }
 
-                        // Sincronizar respuestas de texto, textareas y radios en tiempo real
                         if (data.examAnswers && !isRemoteUpdating) {
                             isRemoteUpdating = true;
                             Object.keys(data.examAnswers).forEach(key => {
                                 let val = data.examAnswers[key];
-                                if (key.startsWith('input_') || key.startsWith('textarea_')) {
-                                    let fieldId = key.replace('input_', '').replace('textarea_', '');
-                                    let el = document.querySelector(`[data-part][data-q="${fieldId}"]`) || document.querySelector(`textarea[data-q="${fieldId}"]`);
-                                    if (el && el.value !== val) {
-                                        el.value = val;
-                                    }
-                                } else if (key.startsWith('radio_')) {
+                                
+                                if (key.startsWith('input_')) {
+                                    let qId = key.replace('input_', '');
+                                    let el = document.querySelector(`input[data-part="1"][data-q="${qId}"]`);
+                                    if (el && el.value !== val) el.value = val;
+                                } 
+                                else if (key.startsWith('textarea_')) {
+                                    let qId = key.replace('textarea_', '');
+                                    let el = document.querySelector(`textarea[data-part="3"][data-q="${qId}"]`);
+                                    if (el && el.value !== val) el.value = val;
+                                } 
+                                else if (key.startsWith('radio_')) {
                                     let radioName = key.replace('radio_', '');
                                     let radioEl = document.querySelector(`input[name="${radioName}"][value="${val}"]`);
-                                    if (radioEl && !radioEl.checked) {
-                                        radioEl.checked = true;
-                                    }
+                                    if (radioEl && !radioEl.checked) radioEl.checked = true;
                                 }
                             });
                             isRemoteUpdating = false;
                         }
 
-                        // Sincronizar Tablas de Normalización en tiempo real
                         if (data.normalizationTables && !isRemoteUpdating) {
                             isRemoteUpdating = true;
                             renderTablesFromCloud('ex1', data.normalizationTables.ex1 || []);
@@ -604,8 +603,7 @@
         }
 
         function setupLiveInputsSync() {
-            const inputs = document.querySelectorAll('.sync-input');
-            inputs.forEach(input => {
+            document.querySelectorAll('.sync-input').forEach(input => {
                 input.addEventListener('input', () => {
                     if (isRemoteUpdating) return;
                     let qId = input.getAttribute('data-q');
@@ -613,9 +611,7 @@
                 });
             });
 
-            // Sincronización robusta para Textareas de Desarrollo (Parte III)
-            const textareas = document.querySelectorAll('.sync-textarea');
-            textareas.forEach(textarea => {
+            document.querySelectorAll('.sync-textarea').forEach(textarea => {
                 textarea.addEventListener('input', () => {
                     if (isRemoteUpdating) return;
                     let qId = textarea.getAttribute('data-q');
@@ -623,8 +619,7 @@
                 });
             });
 
-            const radios = document.querySelectorAll('.sync-radio');
-            radios.forEach(radio => {
+            document.querySelectorAll('.sync-radio').forEach(radio => {
                 radio.addEventListener('change', () => {
                     if (isRemoteUpdating) return;
                     let rName = radio.getAttribute('name');
@@ -814,9 +809,8 @@
             });
         }
 
-        // Temporizador sincronizado globalmente para todo el grupo basado en Firebase
         function startSyncedTimer(startTime, durationSeconds) {
-            if (examData.timerInterval) return; // Ya está corriendo
+            if (examData.timerInterval) return;
 
             const display = document.getElementById('timer-display');
 
@@ -1086,15 +1080,17 @@
             doc.text("PLANILLA DE EVALUACIÓN - TALLER N° 1 (ESTRUCTURA DE PRUEBA)", 20, y);
             y += 8;
 
-            // Parte I
+            // Parte I: Completación con respuesta del estudiante sobre la raya
             checkPageSpace(45);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
             doc.text("I PARTE: COMPLETACIÓN (Valor: 4 Puntos)", 20, y); y += 6;
             doc.setFontSize(8.5);
             examData.details.p1.forEach(item => {
-                printWrappedText(item.question, 22, 168, 4.2, true);
-                printWrappedText(`   Respuesta Estudiante: [ ${item.resp} ] | Nota: ${item.pts} pt | Clave esperada: ${item.expected}`, 24, 166, 4.2, false);
+                let studentAns = item.resp && item.resp !== 'Vacía' ? item.resp.toUpperCase() : 'SIN RESPUESTA';
+                let completedQuestion = item.question.replace(/_+/g, `__ ${studentAns} __`);
+                printWrappedText(completedQuestion, 22, 168, 4.2, true);
+                printWrappedText(`   Nota: ${item.pts} pt | Respuesta correcta: ${item.expected}`, 24, 166, 4.2, false);
                 y += 3;
             });
 
@@ -1107,7 +1103,7 @@
             doc.setFontSize(8.5);
             examData.details.p2.forEach(item => {
                 printWrappedText(item.question, 22, 168, 4.2, true);
-                printWrappedText(`   Opción marcada: [ ${item.resp} ] | Nota: ${item.pts} pt | Clave correcta: [${item.expected}]`, 24, 166, 4.2, false);
+                printWrappedText(`   Opción marcada: [ ${item.resp} ] | Nota: ${item.pts} pt | Respuesta correcta: [${item.expected}]`, 24, 166, 4.2, false);
                 y += 3;
             });
 
@@ -1121,7 +1117,7 @@
             examData.details.p3.forEach(item => {
                 printWrappedText(`${item.question} (Nota: ${item.pts}/2 pts)`, 22, 168, 4.2, true);
                 printWrappedText(`   R/ Estudiante: ${item.resp}`, 24, 166, 4.2, false);
-                printWrappedText(`   Solución modelo: ${item.expectedText}`, 24, 166, 4.2, false);
+                printWrappedText(`   Respuesta correcta: ${item.expectedText}`, 24, 166, 4.2, false);
                 y += 4;
             });
 
