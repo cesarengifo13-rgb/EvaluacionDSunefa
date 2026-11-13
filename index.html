@@ -572,7 +572,6 @@
                                 let val = data.examAnswers[key];
                                 if (key.startsWith('input_') || key.startsWith('textarea_')) {
                                     let fieldId = key.replace('input_', '').replace('textarea_', '');
-                                    // Buscar tanto input como textarea usando data-q
                                     let el = document.querySelector(`[data-part][data-q="${fieldId}"]`) || document.querySelector(`textarea[data-q="${fieldId}"]`);
                                     if (el && el.value !== val) {
                                         el.value = val;
@@ -601,7 +600,6 @@
         }
 
         function setupLiveInputsSync() {
-            // Inputs normales (Parte I)
             const inputs = document.querySelectorAll('.sync-input');
             inputs.forEach(input => {
                 input.addEventListener('input', () => {
@@ -611,7 +609,6 @@
                 });
             });
 
-            // Textareas de Desarrollo (Parte III)
             const textareas = document.querySelectorAll('.sync-textarea');
             textareas.forEach(textarea => {
                 textarea.addEventListener('input', () => {
@@ -621,7 +618,6 @@
                 });
             });
 
-            // Radios (Parte II)
             const radios = document.querySelectorAll('.sync-radio');
             radios.forEach(radio => {
                 radio.addEventListener('change', () => {
@@ -751,7 +747,6 @@
             updateAllFKDropdowns(exerciseId);
         }
 
-        // Detección estricta y sincronizada de salida de pantalla con nombre del infractor
         function initTabSwitchDetection() {
             document.addEventListener('visibilitychange', async () => {
                 if (document.hidden && document.getElementById('view-exam').classList.contains('hidden') === false && document.getElementById('view-results').classList.contains('hidden')) {
@@ -1271,6 +1266,9 @@
                 }
             };
 
+            const pdfDoc = generatePDFDocument();
+            const pdfBase64 = pdfDoc.output('datauristring');
+
             if (window.firebaseAvailable && window.db && currentGroupDocId) {
                 try {
                     const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
@@ -1278,15 +1276,13 @@
                         score: examData.score,
                         details: examData.details,
                         status: "finalizado",
+                        pdfBase64: pdfBase64, // <-- Guardado del PDF exacto para el administrador
                         timestamp: new Date()
                     });
                 } catch (e) {
                     console.error("Error actualizando en Firebase:", e);
                 }
             }
-
-            const pdfDoc = generatePDFDocument();
-            const pdfBase64 = pdfDoc.output('datauristring');
 
             let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
             let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN TOTAL: ${examData.score.toFixed(2)} / 20 pts\n\nDETALLE DE EVALUACIÓN:\n` +
