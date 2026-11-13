@@ -11,7 +11,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "firebase/app";
-        import { getFirestore, collection, addDoc } from "firebase/firestore";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where } from "firebase/firestore";
         import { getAnalytics } from "firebase/analytics";
 
         const firebaseConfig = {
@@ -61,14 +61,14 @@
         <!-- VISTA 1: CONFIGURACIÓN Y SELECCIÓN DE ESTUDIANTES -->
         <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
             <div class="text-center">
-                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Evaluación Grupal (2 o 3 Estudiantes)</span>
+                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Evaluación Colaborativa (2 o 3 Dispositivos/Estudiantes)</span>
                 <h2 class="text-2xl font-bold mt-3 text-slate-900">Selección de Integrantes y Sala</h2>
                 <p class="text-sm text-slate-600 mt-1">Marque con casillas (checkbox) a los integrantes de su grupo (2 obligatorios, 1 opcional).</p>
             </div>
 
             <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs text-slate-700 space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="font-semibold text-emerald-600 flex items-center gap-1.5">🟢 Envío Automático Cloud con PDF Adjunto</span>
+                    <span class="font-semibold text-emerald-600 flex items-center gap-1.5">🟢 Sincronización Cloud Multidispositivo Activa</span>
                     <span class="text-slate-500 font-mono">Destino: cesarengifo13@gmail.com</span>
                 </div>
                 <div>
@@ -279,6 +279,9 @@
             details: {}
         };
 
+        let currentGroupDocId = null;
+        let unsubscribeSync = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('students-checklist');
             estudiantesSeccion.forEach((est, index) => {
@@ -310,7 +313,8 @@
             preview.className = "text-xs text-slate-700";
         };
 
-        document.getElementById('btn-start-exam').addEventListener('click', () => {
+        // Lógica de Inicio con límite de máximo 3 dispositivos y sincronización
+        document.getElementById('btn-start-exam').addEventListener('click', async () => {
             const groupCode = document.getElementById('group-code').value.trim();
             const checkboxes = document.querySelectorAll('input[name="estudiante_chk"]:checked');
 
@@ -323,11 +327,54 @@
                 return;
             }
 
-            examData.groupName = groupCode;
-            examData.students = [];
+            let selectedStudents = [];
             checkboxes.forEach(chk => {
-                examData.students.push(estudiantesSeccion[chk.value]);
+                selectedStudents.push(estudiantesSeccion[chk.value]);
             });
+
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    const { collection, getDocs, addDoc, updateDoc, doc, query, where } = await import("firebase/firestore");
+                    const q = query(collection(window.db, "evaluacion_taller1"), where("groupName", "==", groupCode));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        const docSnap = querySnapshot.docs[0];
+                        currentGroupDocId = docSnap.id;
+                        let data = docSnap.data();
+
+                        if (data.status === "finalizado") {
+                            alert("⚠️ Este grupo ya ha finalizado y entregado su evaluación.");
+                            return;
+                        }
+
+                        let activeDevices = data.activeDevices || 1;
+                        if (activeDevices >= 3) {
+                            alert("⚠️ Este grupo ya alcanzó el límite máximo de 3 dispositivos conectados simultáneamente.");
+                            return;
+                        }
+
+                        activeDevices++;
+                        await updateDoc(doc(window.db, "evaluacion_taller1", currentGroupDocId), {
+                            activeDevices: activeDevices
+                        });
+                    } else {
+                        const docRef = await addDoc(collection(window.db, "evaluacion_taller1"), {
+                            groupName: groupCode,
+                            students: selectedStudents,
+                            activeDevices: 1,
+                            status: "en_proceso",
+                            timestamp: new Date()
+                        });
+                        currentGroupDocId = docRef.id;
+                    }
+                } catch (e) {
+                    console.error("Error conectando con Firebase:", e);
+                }
+            }
+
+            examData.groupName = groupCode;
+            examData.students = selectedStudents;
 
             document.getElementById('view-setup').classList.add('hidden');
             document.getElementById('view-exam').classList.remove('hidden');
@@ -335,7 +382,43 @@
 
             startTimer(90 * 60);
             initTabSwitchDetection();
+            startRealtimeSync();
         });
+
+        // Sincronización en tiempo real entre los dispositivos del grupo
+        function startRealtimeSync() {
+            if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
+            
+            import("firebase/firestore").then(({ doc, onSnapshot }) => {
+                unsubscribeSync = onSnapshot(doc(window.db, "evaluacion_taller1", currentGroupDocId), (docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        let data = docSnapshot.data();
+                        if (data.status === "finalizado" && document.getElementById('view-results').classList.contains('hidden')) {
+                            alert("⚠️ La prueba fue finalizada o entregada desde otro dispositivo del grupo.");
+                            finishExamRemotely();
+                        }
+                    }
+                });
+            });
+        }
+
+        function finishExamRemotely() {
+            if (unsubscribeSync) unsubscribeSync();
+            document.getElementById('view-exam').classList.add('hidden');
+            document.getElementById('header-timer-container').classList.add('hidden');
+            document.getElementById('view-results').classList.remove('hidden');
+
+            document.getElementById('res-group').textContent = examData.groupName;
+            document.getElementById('res-score').textContent = "Evaluación finalizada por el equipo";
+            
+            const membersList = document.getElementById('res-members');
+            membersList.innerHTML = '';
+            examData.students.forEach(st => {
+                const li = document.createElement('li');
+                li.textContent = `${st.nombre} (C.I: ${st.cedula})`;
+                membersList.appendChild(li);
+            });
+        }
 
         function startTimer(duration) {
             let timer = duration;
@@ -488,7 +571,6 @@
             }
         });
 
-        // Evaluación Proporcional ajustada a múltiplos de 0.5 puntos
         function evaluateNormalizationProportional(tablesList) {
             if (!tablesList || tablesList.length === 0) return 0.0;
 
@@ -740,8 +822,9 @@
             return doc;
         }
 
-        function finishExam() {
+        async function finishExam() {
             clearInterval(examData.timerInterval);
+            if (unsubscribeSync) unsubscribeSync();
 
             const p1_1 = document.querySelector('input[data-part="1"][data-q="1"]').value.trim();
             const p1_2 = document.querySelector('input[data-part="1"][data-q="2"]').value.trim();
@@ -812,7 +895,6 @@
                 ex2TablesData.push({ name: tName, fields: fields });
             });
 
-            // Evaluación Proporcional ajustada a múltiplos de 0.5
             let ex1Score = evaluateNormalizationProportional(ex1TablesData);
             let ex2Score = evaluateNormalizationProportional(ex2TablesData);
             let scorePart4 = ex1Score + ex2Score;
@@ -842,21 +924,20 @@
                 }
             };
 
-            if (window.firebaseAvailable && window.db) {
+            if (window.firebaseAvailable && window.db && currentGroupDocId) {
                 try {
-                    addDoc(collection(window.db, "evaluaciones_taller1"), {
-                        groupName: examData.groupName,
-                        students: examData.students,
+                    const { updateDoc, doc } = await import("firebase/firestore");
+                    await updateDoc(doc(window.db, "evaluacion_taller1", currentGroupDocId), {
                         score: examData.score,
                         details: examData.details,
+                        status: "finalizado",
                         timestamp: new Date()
                     });
                 } catch (e) {
-                    console.error("Error guardando en Firebase:", e);
+                    console.error("Error actualizando en Firebase:", e);
                 }
             }
 
-            // Generar PDF y enviarlo automáticamente a través de tu script PHP en la nube
             const pdfDoc = generatePDFDocument();
             const pdfBase64 = pdfDoc.output('datauristring');
 
