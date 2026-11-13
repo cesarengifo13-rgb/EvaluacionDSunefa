@@ -456,19 +456,29 @@
                              (ex2Tables.length >= 2 ? 5 : (ex2Tables.length === 1 ? 2.5 : 0));
 
             examData.score = scorePart1 + scorePart2 + scorePart3 + scorePart4;
+            
+            // Estructura detallada con respuestas del estudiante, respuestas correctas y notas por pregunta
             examData.details = {
                 p1: [
-                    {q: 1, resp: p1_1 || 'Vacía', correct: c1}, 
-                    {q: 2, resp: p1_2 || 'Vacía', correct: c2}, 
-                    {q: 3, resp: p1_3 || 'Vacía', correct: c3}, 
-                    {q: 4, resp: p1_4 || 'Vacía', correct: c4}
+                    {q: 1, resp: p1_1 || 'Vacía', expected: 'Distribuida / Relacional', correct: c1, pts: c1 ? 1 : 0}, 
+                    {q: 2, resp: p1_2 || 'Vacía', expected: 'Físicos / Lógicos', correct: c2, pts: c2 ? 1 : 0}, 
+                    {q: 3, resp: p1_3 || 'Vacía', expected: 'Ingeniería Inversa', correct: c3, pts: c3 ? 1 : 0}, 
+                    {q: 4, resp: p1_4 || 'Vacía', expected: 'Único / Elemental', correct: c4, pts: c4 ? 1 : 0}
                 ],
                 p2: [
-                    {q: 1, resp: p2_1 ? `Opción (${p2_1})` : 'No seleccionada', correct: cc1}, 
-                    {q: 2, resp: p2_2 ? `Opción (${p2_2})` : 'No seleccionada', correct: cc2}
+                    {q: 1, resp: p2_1 ? p2_1.toUpperCase() : 'Ninguna', expected: 'B', correct: cc1, pts: cc1 ? 1 : 0}, 
+                    {q: 2, resp: p2_2 ? p2_2.toUpperCase() : 'Ninguna', expected: 'C', correct: cc2, pts: cc2 ? 1 : 0}
                 ],
-                p3: [{q: 1, resp: p3_1 || 'Vacía'}, {q: 2, resp: p3_2 || 'Vacía'}],
-                p4: {ex1TablesCount: ex1Tables.length, ex2TablesCount: ex2Tables.length}
+                p3: [
+                    {q: 1, resp: p3_1 || 'Vacía', pts: p3_1.length > 15 ? 2 : 0}, 
+                    {q: 2, resp: p3_2 || 'Vacía', pts: p3_2.length > 15 ? 2 : 0}
+                ],
+                p4: {
+                    ex1TablesCount: ex1Tables.length, 
+                    ex1Pts: ex1Tables.length >= 2 ? 5 : (ex1Tables.length === 1 ? 2.5 : 0),
+                    ex2TablesCount: ex2Tables.length,
+                    ex2Pts: ex2Tables.length >= 2 ? 5 : (ex2Tables.length === 1 ? 2.5 : 0)
+                }
             };
 
             // Guardar en Firebase
@@ -488,7 +498,17 @@
 
             // ENVÍO AUTOMÁTICO VÍA EMAILJS
             let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
-            let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN FINAL: ${examData.score.toFixed(2)} / 20\n\nDETALLE DE RESPUESTAS:\n- Parte I (Completación):\n  P1: "${examData.details.p1[0].resp}" [${examData.details.p1[0].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P2: "${examData.details.p1[1].resp}" [${examData.details.p1[1].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P3: "${examData.details.p1[2].resp}" [${examData.details.p1[2].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P4: "${examData.details.p1[3].resp}" [${examData.details.p1[3].correct ? 'CORRECTA' : 'INCORRECTA'}]\n- Parte II (Selección Simple):\n  P1: ${examData.details.p2[0].resp} [${examData.details.p2[0].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P2: ${examData.details.p2[1].resp} [${examData.details.p2[1].correct ? 'CORRECTA' : 'INCORRECTA'}]\n- Parte III (Desarrollo): Revisión teórica\n- Parte IV (Normalización): Ej1 (${examData.details.p4.ex1TablesCount} tablas), Ej2 (${examData.details.p4.ex2TablesCount} tablas)`;
+            let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN TOTAL: ${examData.score.toFixed(2)} / 20 pts\n\nDETALLE DE RESPUESTAS Y CALIFICACIONES:\n` +
+                `- Parte I (Completación): ${scorePart1}/4 pts\n` +
+                `  • P1 R: "${examData.details.p1[0].resp}" | Correcta: ${examData.details.p1[0].expected} | ${examData.details.p1[0].pts} pt\n` +
+                `  • P2 R: "${examData.details.p1[1].resp}" | Correcta: ${examData.details.p1[1].expected} | ${examData.details.p1[1].pts} pt\n` +
+                `  • P3 R: "${examData.details.p1[2].resp}" | Correcta: ${examData.details.p1[2].expected} | ${examData.details.p1[2].pts} pt\n` +
+                `  • P4 R: "${examData.details.p1[3].resp}" | Correcta: ${examData.details.p1[3].expected} | ${examData.details.p1[3].pts} pt\n\n` +
+                `- Parte II (Selección Simple): ${scorePart2}/2 pts\n` +
+                `  • P1 Opción marcada: [${examData.details.p2[0].resp}] | Correcta: [${examData.details.p2[0].expected}] | ${examData.details.p2[0].pts} pt\n` +
+                `  • P2 Opción marcada: [${examData.details.p2[1].resp}] | Correcta: [${examData.details.p2[1].expected}] | ${examData.details.p2[1].pts} pt\n\n` +
+                `- Parte III (Desarrollo): ${scorePart3}/4 pts\n` +
+                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${examData.details.p4.ex1Pts} pts, Ej2: ${examData.details.p4.ex2Pts} pts)`;
 
             emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
                 to_email: examData.profEmail,
@@ -518,7 +538,7 @@
             });
         }
 
-        // Descarga de PDF detallada con las opciones exactas seleccionadas
+        // Descarga de PDF con respuestas del estudiante, respuestas correctas y calificaciones detalladas
         document.getElementById('btn-download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -534,7 +554,7 @@
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.text(`Grupo: ${examData.groupName}`, 20, 33);
-            doc.text(`Puntuación Obtenida: ${examData.score.toFixed(2)} / 20 puntos`, 20, 40);
+            doc.text(`Puntuación Total Obtenida: ${examData.score.toFixed(2)} / 20 puntos`, 20, 40);
 
             let y = 48;
             doc.setFontSize(11);
@@ -548,34 +568,38 @@
 
             y += 6;
             doc.setFontSize(11);
-            doc.text("Detalle de Respuestas y Calificación:", 20, y);
+            doc.text("Detalle de Respuestas, Clave y Calificación:", 20, y);
             y += 6;
             doc.setFontSize(9);
 
+            // Parte I
             doc.text("I. COMPLETACIÓN (Valor: 4 pts):", 20, y); y += 5;
             examData.details.p1.forEach(item => {
-                doc.text(` - P${item.q}: Resp: "${item.resp}" -> ${item.correct ? 'CORRECTA' : 'INCORRECTA'}`, 25, y);
+                doc.text(` - P${item.q}: Estudiante: "${item.resp}" | Clave: (${item.expected}) -> ${item.pts} pt (${item.correct ? 'CORRECTA' : 'INCORRECTA'})`, 25, y);
                 y += 5;
             });
 
             y += 3;
+            // Parte II
             doc.text("II. SELECCIÓN SIMPLE (Valor: 2 pts):", 20, y); y += 5;
             examData.details.p2.forEach(item => {
-                doc.text(` - P${item.q}: Seleccionaron [ ${item.resp} ] -> ${item.correct ? 'CORRECTA' : 'INCORRECTA'}`, 25, y);
+                doc.text(` - P${item.q}: Estudiante: [${item.resp}] | Clave: [${item.expected}] -> ${item.pts} pt (${item.correct ? 'CORRECTA' : 'INCORRECTA'})`, 25, y);
                 y += 5;
             });
 
             y += 3;
+            // Parte III
             doc.text("III. DESARROLLO (Valor: 4 pts):", 20, y); y += 5;
             examData.details.p3.forEach(item => {
-                doc.text(` - P${item.q}: Definición teórica entregada`, 25, y);
+                doc.text(` - P${item.q}: Respuesta entregada (Asignado: ${item.pts} / 2 pts)`, 25, y);
                 y += 5;
             });
 
             y += 3;
+            // Parte IV
             doc.text("IV. EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 pts):", 20, y); y += 5;
-            doc.text(` - Ejercicio 1 (Préstamos Bibliotecarios): ${examData.details.p4.ex1TablesCount} tablas creadas`, 25, y); y += 5;
-            doc.text(` - Ejercicio 2 (Citas Médicas): ${examData.details.p4.ex2TablesCount} tablas creadas`, 25, y);
+            doc.text(` - Ejercicio 1 (Préstamos Bibliotecarios): ${examData.details.p4.ex1TablesCount} tablas -> Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 25, y); y += 5;
+            doc.text(` - Ejercicio 2 (Citas Médicas): ${examData.details.p4.ex2TablesCount} tablas -> Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 25, y);
 
             doc.save(`Planilla_Taller1_${examData.groupName}.pdf`);
         });
