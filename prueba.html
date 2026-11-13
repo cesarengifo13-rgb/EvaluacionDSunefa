@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Conexión Firebase - UNEFA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs con URLs de CDN oficiales -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -19,8 +27,10 @@
         statusDiv.textContent = "¡Conectado a Firebase correctamente!";
         statusDiv.className = "p-3 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-semibold text-center";
 
+        // Referencia a un documento de prueba fijo
         const testDocRef = doc(db, "test_conexion", "prueba_grupo");
 
+        // 1. Escuchar cambios en tiempo real desde Firestore
         onSnapshot(testDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
@@ -31,6 +41,7 @@
             }
         });
 
+        // 2. Botón para actualizar el dato en la nube
         window.enviarPrueba = async function() {
             const textoInput = document.getElementById('input-mensaje').value;
             const horaActual = new Date().toLocaleTimeString();
@@ -47,3 +58,31 @@
             }
         };
     </script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="text-center">
+            <h1 class="text-xl font-bold text-blue-900">Prueba de Conexión en Vivo</h1>
+            <p class="text-xs text-slate-500 mt-1">Diagnóstico de Firebase para GitHub Pages</p>
+        </div>
+
+        <div id="connection-status" class="p-3 bg-amber-100 text-amber-800 rounded-lg text-xs font-semibold text-center">
+            Conectando con Firebase...
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+            <h2 class="text-xs font-bold text-slate-700 uppercase">Estado recibido desde la nube:</h2>
+            <p class="text-sm font-bold text-blue-600" id="display-message">Esperando datos...</p>
+            <p class="text-xs text-slate-400">Última actualización: <span id="display-time">--:--:--</span></p>
+        </div>
+
+        <div class="space-y-3">
+            <label class="block text-xs font-medium text-slate-700">Escribe algo para probar la sincronización:</label>
+            <input type="text" id="input-mensaje" placeholder="Ej. ¡Hola desde el teléfono 1!" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="enviarPrueba()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow">
+                Enviar y Sincronizar en la Nube
+            </button>
+        </div>
+    </div>
+</body>
+</html>
