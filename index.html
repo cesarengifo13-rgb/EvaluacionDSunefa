@@ -495,8 +495,7 @@
             }
         });
 
-        // Evaluación Proporcional Flexible basada en el Solucionario Oficial (5 pts máximo por ejercicio)
-        // Se espera idealmente: 3 tablas, un total de ~9 campos distribuidos, 3 PKs y 2 FKs correctamente enlazadas.
+        // Evaluación Proporcional ajustada estrictamente a múltiplos de 0.5 puntos (máximo 5 pts)
         function evaluateNormalizationProportional(tablesList) {
             if (!tablesList || tablesList.length === 0) return 0.0;
 
@@ -515,14 +514,17 @@
                 }
             });
 
-            // Criterios ideales esperados por el solucionario oficial: 3 tablas, 9 campos, 3 PKs, 2 FKs
-            let scoreTables = Math.min(totalTables / 3, 1.0) * 1.25;  // Hasta 1.25 pts por las tablas
-            let scoreFields = Math.min(totalFields / 9, 1.0) * 1.25;  // Hasta 1.25 pts por los campos
-            let scorePKs = Math.min(totalPKs / 3, 1.0) * 1.00;        // Hasta 1.00 pt por las PKs
-            let scoreFKs = Math.min(totalFKs / 2, 1.0) * 1.50;        // Hasta 1.50 pts por las FKs
+            // Solucionario ideal: 3 tablas, 9 campos, 3 PKs, 2 FKs
+            let scoreTables = Math.min(totalTables / 3, 1.0) * 1.25;
+            let scoreFields = Math.min(totalFields / 9, 1.0) * 1.25;
+            let scorePKs = Math.min(totalPKs / 3, 1.0) * 1.00;
+            let scoreFKs = Math.min(totalFKs / 2, 1.0) * 1.50;
 
-            let finalExerciseScore = scoreTables + scoreFields + scorePKs + scoreFKs;
-            return Number(Math.min(finalExerciseScore, 5.0).toFixed(2));
+            let rawScore = scoreTables + scoreFields + scorePKs + scoreFKs;
+            
+            // Redondeo estricto al múltiplo de 0.5 más cercano (ej. 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0)
+            let roundedScore = Math.round(rawScore * 2) / 2;
+            return Math.min(roundedScore, 5.0);
         }
 
         function generatePDFDocument() {
@@ -669,7 +671,7 @@
 
             doc.setFontSize(9);
             doc.setFont("helvetica", "bold");
-            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 6;
+            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Nota: ${examData.details.p4.ex1Pts.toFixed(1)} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex1Tables.length === 0) {
                 doc.setFont("helvetica", "normal");
                 doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
@@ -681,7 +683,7 @@
 
             y += 4;
             checkPageSpace(25);
-            doc.text(`• Ejercicio 2 (Citas Médicas) - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 6;
+            doc.text(`• Ejercicio 2 (Citas Médicas) - Nota: ${examData.details.p4.ex2Pts.toFixed(1)} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex2Tables.length === 0) {
                 doc.setFont("helvetica", "normal");
                 doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
@@ -820,7 +822,7 @@
                 ex2TablesData.push({ name: tName, fields: fields });
             });
 
-            // Evaluación Proporcional Flexible contra el Solucionario Oficial
+            // Evaluación Proporcional ajustada a múltiplos de 0.5
             let ex1Score = evaluateNormalizationProportional(ex1TablesData);
             let ex2Score = evaluateNormalizationProportional(ex2TablesData);
             let scorePart4 = ex1Score + ex2Score;
@@ -864,6 +866,7 @@
                 }
             }
 
+            // Generación y envío por correo del PDF adjunto con EmailJS
             const pdfDoc = generatePDFDocument();
             const pdfBase64 = pdfDoc.output('datauristring');
 
@@ -872,7 +875,7 @@
                 `- Parte I (Completación): ${scorePart1}/4 pts\n` +
                 `- Parte II (Selección Simple): ${scorePart2}/2 pts\n` +
                 `- Parte III (Desarrollo): ${scorePart3}/4 pts\n` +
-                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${ex1Score}/5 pts, Ej2: ${ex2Score}/5 pts)`;
+                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${ex1Score.toFixed(1)}/5 pts, Ej2: ${ex2Score.toFixed(1)}/5 pts)`;
 
             emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
                 to_email: examData.profEmail,
