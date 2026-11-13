@@ -147,7 +147,7 @@
                 </div>
                 <div class="space-y-4 pt-2">
                     <div class="space-y-2">
-                        <p class="text-sm font-medium text-slate-800">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
+                        <p class="text-sm font-medium text-slate-800">1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
                         <div class="space-y-1.5 pl-2">
                             <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="a"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
                             <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="b"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
@@ -374,7 +374,6 @@
             });
         }
 
-        // Actualiza los selectores FK dinámicos en tiempo real
         window.updateAllFKDropdowns = function(exerciseId) {
             const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
             if (!wrapper) return;
@@ -503,9 +502,9 @@
 
             let scorePart1 = 0;
             let c1 = p1_1.toLowerCase().includes('protegida');
-            let c2 = p1_2.toLowerCase().includes('homogeneos');
+            let c2 = p1_2.toLowerCase().includes('homogeneos') || p1_2.toLowerCase().includes('homogéneos');
             let c3 = p1_3.toLowerCase().includes('ingeniería inversa') || p1_3.toLowerCase().includes('ingenieria inversa');
-            let c4 = p1_4.toLowerCase().includes('logico');
+            let c4 = p1_4.toLowerCase().includes('logico') || p1_4.toLowerCase().includes('lógico');
 
             if (c1) scorePart1 += 1;
             if (c2) scorePart1 += 1;
@@ -527,7 +526,7 @@
             const p3_2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
             let scorePart3 = (p3_1.length > 15 ? 2 : 0) + (p3_2.length > 15 ? 2 : 0);
 
-            // Recopilar tablas detalladas del Ejercicio 1 con tipo, longitud y ref
+            // Recopilar tablas detalladas del Ejercicio 1
             const ex1Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
             let ex1TablesData = [];
             ex1Cards.forEach(card => {
@@ -567,31 +566,94 @@
                 ex2TablesData.push({ name: tName, fields: fields });
             });
 
-            let scorePart4 = (ex1TablesData.length >= 2 ? 5 : (ex1TablesData.length === 1 ? 2.5 : 0)) + 
-                             (ex2TablesData.length >= 2 ? 5 : (ex2TablesData.length === 1 ? 2.5 : 0));
+            // Evaluación estricta de 3FN (Requiere 3 tablas independientes por ejercicio)
+            function calcNormalizationScore(tablesList) {
+                if (tablesList.length >= 3) return 5.0;
+                if (tablesList.length === 2) return 3.0;
+                if (tablesList.length === 1) return 1.5;
+                return 0.0;
+            }
+
+            let ex1Score = calcNormalizationScore(ex1TablesData);
+            let ex2Score = calcNormalizationScore(ex2TablesData);
+            let scorePart4 = ex1Score + ex2Score;
 
             examData.score = scorePart1 + scorePart2 + scorePart3 + scorePart4;
             
             examData.details = {
                 p1: [
-                    {q: 1, resp: p1_1 || 'Vacía', expected: 'Protegida', correct: c1, pts: c1 ? 1 : 0}, 
-                    {q: 2, resp: p1_2 || 'Vacía', expected: 'Homogéneos', correct: c2, pts: c2 ? 1 : 0}, 
-                    {q: 3, resp: p1_3 || 'Vacía', expected: 'Ingeniería Inversa', correct: c3, pts: c3 ? 1 : 0}, 
-                    {q: 4, resp: p1_4 || 'Vacía', expected: 'Lógico', correct: c4, pts: c4 ? 1 : 0}
+                    {
+                        q: 1,
+                        question: "1. Un campo es la unidad mínima de datos con significado _____________________. Representa una característica o propiedad de una entidad.",
+                        resp: p1_4 || 'Vacía',
+                        expected: 'Lógico',
+                        correct: c4,
+                        pts: c4 ? 1 : 0
+                    },
+                    {
+                        q: 2,
+                        question: "2. La capa de datos es una Base de datos _______________________ en la red interna (Backend).",
+                        resp: p1_1 || 'Vacía',
+                        expected: 'Protegida',
+                        correct: c1,
+                        pts: c1 ? 1 : 0
+                    }, 
+                    {
+                        q: 3,
+                        question: "3. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.",
+                        resp: p1_2 || 'Vacía',
+                        expected: 'Homogéneos',
+                        correct: c2,
+                        pts: c2 ? 1 : 0
+                    }, 
+                    {
+                        q: 4,
+                        question: "4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.",
+                        resp: p1_3 || 'Vacía',
+                        expected: 'Ingeniería Inversa',
+                        correct: c3,
+                        pts: c3 ? 1 : 0
+                    }
                 ],
                 p2: [
-                    {q: 1, resp: p2_1 ? p2_1.toUpperCase() : 'Ninguna', expected: 'B', correct: cc1, pts: cc1 ? 1 : 0}, 
-                    {q: 2, resp: p2_2 ? p2_2.toUpperCase() : 'Ninguna', expected: 'C', correct: cc2, pts: cc2 ? 1 : 0}
+                    {
+                        q: 1,
+                        question: "1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?\n   Opciones: a) Eliminar dependencias transitivas | b) Asegurar atomicidad de los datos, eliminando grupos repetitivos | c) Conectar tablas mediante FK | d) Optimizar consultas OLAP",
+                        resp: p2_1 ? p2_1.toUpperCase() : 'Ninguna',
+                        expected: 'B',
+                        correct: cc1,
+                        pts: cc1 ? 1 : 0
+                    }, 
+                    {
+                        q: 2,
+                        question: "2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?\n   Opciones: a) Optimizado para OLTP | b) Datos normalizados para inserciones masivas | c) Repositorio centralizado, histórico y de solo lectura optimizado para OLAP | d) Permite modificar datos históricos libremente",
+                        resp: p2_2 ? p2_2.toUpperCase() : 'Ninguna',
+                        expected: 'C',
+                        correct: cc2,
+                        pts: cc2 ? 1 : 0
+                    }
                 ],
                 p3: [
-                    {q: 1, resp: p3_1 || 'Vacía', expectedText: 'Es un sistema estructurado e integrado de archivos y datos persistentes relacionados entre sí, administrados por un SGBD (DBMS)...', pts: p3_1.length > 15 ? 2 : 0}, 
-                    {q: 2, resp: p3_2 || 'Vacía', expectedText: 'Es una colección de campos lógicamente relacionados que describen las características de una entidad específica...', pts: p3_2.length > 15 ? 2 : 0}
+                    {
+                        q: 1,
+                        question: "1. ¿Qué es una Base de Datos?",
+                        resp: p3_1 || 'Vacía',
+                        expectedText: 'Es un sistema estructurado e integrado de archivos y datos persistentes relacionados entre sí, administrados por un SGBD (DBMS). Su objetivo principal es reducir la redundancia, garantizar la independencia de los datos y permitir múltiples vistas de la información a diferentes usuarios de forma simultánea.',
+                        pts: p3_1.length > 15 ? 2 : 0
+                    }, 
+                    {
+                        q: 2,
+                        question: "2. ¿Qué es un registro?",
+                        resp: p3_2 || 'Vacía',
+                        expectedText: 'Es una colección de campos lógicamente relacionados que describen las características de una entidad específica.',
+                        pts: p3_2.length > 15 ? 2 : 0
+                    }
                 ],
                 p4: {
                     ex1Tables: ex1TablesData,
-                    ex1Pts: ex1TablesData.length >= 2 ? 5 : (ex1TablesData.length === 1 ? 2.5 : 0),
+                    ex1Pts: ex1Score,
                     ex2Tables: ex2TablesData,
-                    ex2Pts: ex2TablesData.length >= 2 ? 5 : (ex2TablesData.length === 1 ? 2.5 : 0)
+                    ex2Pts: ex2Score
                 }
             };
 
@@ -616,7 +678,7 @@
                 `- Parte I (Completación): ${scorePart1}/4 pts\n` +
                 `- Parte II (Selección Simple): ${scorePart2}/2 pts\n` +
                 `- Parte III (Desarrollo): ${scorePart3}/4 pts\n` +
-                `- Parte IV (Normalización): ${scorePart4}/10 pts`;
+                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${ex1TablesData.length} tablas [${ex1Score} pts], Ej2: ${ex2TablesData.length} tablas [${ex2Score} pts])`;
 
             emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
                 to_email: examData.profEmail,
@@ -646,7 +708,7 @@
             });
         }
 
-        // Descarga de PDF con Tipo de Dato, Longitud/Límite de caracteres y Relaciones FK
+        // Descarga de PDF con todas las preguntas incluidas y texto ajustado al ancho
         document.getElementById('btn-download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -658,6 +720,17 @@
                     doc.addPage();
                     y = 20;
                 }
+            }
+
+            // Función auxiliar para imprimir texto multilínea sin que se corte en los bordes
+            function printWrappedText(text, x, maxWidth, lineHeight = 4.5, isBold = false) {
+                doc.setFont("helvetica", isBold ? "bold" : "normal");
+                let lines = doc.splitTextToSize(text, maxWidth);
+                checkPageSpace(lines.length * lineHeight + 2);
+                lines.forEach(line => {
+                    doc.text(line, x, y);
+                    y += lineHeight;
+                });
             }
 
             function drawMySQLTable(tableName, fields) {
@@ -734,54 +807,60 @@
 
             y += 6;
             doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
             doc.text("PLANILLA DE EVALUACIÓN - TALLER N° 1 (ESTRUCTURA DE PRUEBA)", 20, y);
             y += 8;
 
-            // Parte I
+            // Parte I con enunciados completos
             checkPageSpace(45);
             doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
             doc.text("I PARTE: COMPLETACIÓN (Valor: 4 Puntos)", 20, y); y += 6;
-            doc.setFontSize(9);
+            doc.setFontSize(8.5);
             examData.details.p1.forEach(item => {
-                checkPageSpace(14);
-                doc.text(`- P${item.q}: Estudiante: [ ${item.resp} ] (Nota: ${item.pts} pt)`, 25, y); y += 5;
-                doc.text(`  Clave oficial esperada: ${item.expected}`, 28, y); y += 6;
+                printWrappedText(item.question, 22, 168, 4.2, true);
+                printWrappedText(`   Respuesta Estudiante: [ ${item.resp} ] | Nota: ${item.pts} pt | Clave esperada: ${item.expected}`, 24, 166, 4.2, false);
+                y += 3;
             });
 
             y += 4;
-            // Parte II
-            checkPageSpace(30);
+            // Parte II con enunciados completos
+            checkPageSpace(35);
             doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
             doc.text("II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos)", 20, y); y += 6;
-            doc.setFontSize(9);
+            doc.setFontSize(8.5);
             examData.details.p2.forEach(item => {
-                checkPageSpace(12);
-                doc.text(`- P${item.q}: Opción marcada: [ ${item.resp} ] (Nota: ${item.pts} pt | Clave: [${item.expected}])`, 25, y);
-                y += 6;
+                printWrappedText(item.question, 22, 168, 4.2, true);
+                printWrappedText(`   Opción marcada: [ ${item.resp} ] | Nota: ${item.pts} pt | Clave correcta: [${item.expected}]`, 24, 166, 4.2, false);
+                y += 3;
             });
 
             y += 4;
-            // Parte III
+            // Parte III con enunciados y respuestas ajustadas
             checkPageSpace(45);
             doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
             doc.text("III PARTE: DESARROLLO (Valor: 4 Puntos)", 20, y); y += 6;
-            doc.setFontSize(9);
-            doc.text(`1. ¿Qué es una Base de Datos? (Nota: ${examData.details.p3[0].pts}/2 pts)`, 25, y); y += 5;
-            doc.text(`   R/ Estudiante: ${examData.details.p3[0].resp}`, 25, y); y += 5;
-            doc.text(`   Solución modelo: ${examData.details.p3[0].expectedText}`, 28, y); y += 7;
-
-            doc.text(`2. ¿Qué es un registro? (Nota: ${examData.details.p3[1].pts}/2 pts)`, 25, y); y += 5;
-            doc.text(`   R/ Estudiante: ${examData.details.p3[1].resp}`, 25, y); y += 5;
-            doc.text(`   Solución modelo: ${examData.details.p3[1].expectedText}`, 28, y); y += 8;
+            doc.setFontSize(8.5);
+            examData.details.p3.forEach(item => {
+                printWrappedText(`${item.question} (Nota: ${item.pts}/2 pts)`, 22, 168, 4.2, true);
+                printWrappedText(`   R/ Estudiante: ${item.resp}`, 24, 166, 4.2, false);
+                printWrappedText(`   Solución modelo: ${item.expectedText}`, 24, 166, 4.2, false);
+                y += 4;
+            });
 
             // Parte IV: Normalización (Tablas del Estudiante)
             checkPageSpace(35);
             doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
             doc.text("IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 Puntos)", 20, y); y += 8;
 
             doc.setFontSize(9);
-            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 6;
+            doc.setFont("helvetica", "bold");
+            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Tablas creadas: ${examData.details.p4.ex1Tables.length}/3 - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex1Tables.length === 0) {
+                doc.setFont("helvetica", "normal");
                 doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
             } else {
                 examData.details.p4.ex1Tables.forEach((tbl, tIdx) => {
@@ -791,8 +870,10 @@
 
             y += 4;
             checkPageSpace(25);
-            doc.text(`• Ejercicio 2 (Citas Médicas) - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 6;
+            doc.setFont("helvetica", "bold");
+            doc.text(`• Ejercicio 2 (Citas Médicas) - Tablas creadas: ${examData.details.p4.ex2Tables.length}/3 - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex2Tables.length === 0) {
+                doc.setFont("helvetica", "normal");
                 doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
             } else {
                 examData.details.p4.ex2Tables.forEach((tbl, tIdx) => {
@@ -817,7 +898,7 @@
             doc.setFontSize(9);
 
             // Solucionario Ejercicio 1
-            doc.text("Solución Ejercicio 1: Sistema de Préstamos Bibliotecarios (Tablas en 3FN):", 20, y); y += 6;
+            doc.text("Solución Ejercicio 1: Sistema de Préstamos Bibliotecarios (3 Tablas en 3FN):", 20, y); y += 6;
             
             drawMySQLTable("ESTUDIANTES", [
                 { name: "ID_Estudiante", datatype: "INT", length: "11", type: "PK" },
@@ -841,7 +922,7 @@
 
             // Solucionario Ejercicio 2
             checkPageSpace(60);
-            doc.text("Solución Ejercicio 2: Sistema de Citas Médicas (Tablas en 3FN):", 20, y); y += 6;
+            doc.text("Solución Ejercicio 2: Sistema de Citas Médicas (3 Tablas en 3FN):", 20, y); y += 6;
 
             drawMySQLTable("MEDICOS", [
                 { name: "ID_Medico", datatype: "INT", length: "11", type: "PK" },
