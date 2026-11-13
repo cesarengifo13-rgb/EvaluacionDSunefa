@@ -42,7 +42,7 @@
             <div class="flex items-center gap-3">
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 ..(10%)</h1>
+                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
                     <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
                 </div>
             </div>
@@ -538,7 +538,7 @@
             setupLiveInputsSync();
         }
 
-        // Sincronización en tiempo real
+        // Sincronización en tiempo real optimizada para evitar pérdida de foco
         function startRealtimeSync() {
             if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
             
@@ -567,6 +567,7 @@
                             }
                         }
 
+                        // Sincronización remota inteligente: solo actualiza si el elemento NO tiene el foco actual del usuario
                         if (data.examAnswers && !isRemoteUpdating) {
                             isRemoteUpdating = true;
                             Object.keys(data.examAnswers).forEach(key => {
@@ -575,12 +576,16 @@
                                 if (key.startsWith('input_')) {
                                     let qId = key.replace('input_', '');
                                     let el = document.querySelector(`input[data-part="1"][data-q="${qId}"]`);
-                                    if (el && el.value !== val) el.value = val;
+                                    if (el && document.activeElement !== el && el.value !== val) {
+                                        el.value = val;
+                                    }
                                 } 
                                 else if (key.startsWith('textarea_')) {
                                     let qId = key.replace('textarea_', '');
                                     let el = document.querySelector(`textarea[data-part="3"][data-q="${qId}"]`);
-                                    if (el && el.value !== val) el.value = val;
+                                    if (el && document.activeElement !== el && el.value !== val) {
+                                        el.value = val;
+                                    }
                                 } 
                                 else if (key.startsWith('radio_')) {
                                     let radioName = key.replace('radio_', '');
@@ -592,10 +597,14 @@
                         }
 
                         if (data.normalizationTables && !isRemoteUpdating) {
-                            isRemoteUpdating = true;
-                            renderTablesFromCloud('ex1', data.normalizationTables.ex1 || []);
-                            renderTablesFromCloud('ex2', data.normalizationTables.ex2 || []);
-                            isRemoteUpdating = false;
+                            // Validar que ningún input dentro de las tablas tenga el foco activo antes de re-renderizar
+                            const activeInsideTables = document.querySelector('.tables-wrapper input:focus, .tables-wrapper select:focus');
+                            if (!activeInsideTables) {
+                                isRemoteUpdating = true;
+                                renderTablesFromCloud('ex1', data.normalizationTables.ex1 || []);
+                                renderTablesFromCloud('ex2', data.normalizationTables.ex2 || []);
+                                isRemoteUpdating = false;
+                            }
                         }
                     }
                 });
@@ -605,7 +614,6 @@
         function setupLiveInputsSync() {
             document.querySelectorAll('.sync-input').forEach(input => {
                 input.addEventListener('input', () => {
-                    if (isRemoteUpdating) return;
                     let qId = input.getAttribute('data-q');
                     saveAnswerToCloud(`input_${qId}`, input.value);
                 });
@@ -613,7 +621,6 @@
 
             document.querySelectorAll('.sync-textarea').forEach(textarea => {
                 textarea.addEventListener('input', () => {
-                    if (isRemoteUpdating) return;
                     let qId = textarea.getAttribute('data-q');
                     saveAnswerToCloud(`textarea_${qId}`, textarea.value);
                 });
@@ -621,7 +628,6 @@
 
             document.querySelectorAll('.sync-radio').forEach(radio => {
                 radio.addEventListener('change', () => {
-                    if (isRemoteUpdating) return;
                     let rName = radio.getAttribute('name');
                     saveAnswerToCloud(`radio_${rName}`, radio.value);
                 });
@@ -1005,19 +1011,16 @@
                 });
             }
 
-            // FUNCIÓN ACTUALIZADA: Estilo MySQL Workbench (Cabecera azul oscuro/naranja con listado compacto)
             function drawMySQLTable(tableName, fields) {
                 let rowHeight = 5.5;
                 let headerHeight = 7;
                 let totalHeight = headerHeight + (fields && fields.length > 0 ? fields.length * rowHeight : rowHeight);
                 checkPageSpace(totalHeight + 4);
 
-                // Marco principal de la entidad (estilo tarjeta de MySQL Workbench)
                 doc.setDrawColor(100, 116, 139);
                 doc.setLineWidth(0.3);
                 doc.rect(20, y, 170, totalHeight);
 
-                // Cabecera de la tabla estilo Workbench (Azul oscuro institucional / corporativo)
                 doc.setFillColor(30, 41, 59);
                 doc.rect(20, y, 170, headerHeight, 'F');
                 doc.setTextColor(255, 255, 255);
@@ -1026,7 +1029,6 @@
                 doc.text(tableName.toUpperCase(), 24, y + 4.8);
                 y += headerHeight;
 
-                // Filas de atributos / columnas
                 doc.setFont("helvetica", "normal");
                 if (!fields || fields.length === 0) {
                     doc.setTextColor(100, 116, 139);
@@ -1035,7 +1037,6 @@
                     y += rowHeight;
                 } else {
                     fields.forEach((f, idx) => {
-                        // Línea separadora sutil entre atributos
                         if (idx > 0) {
                             doc.setDrawColor(226, 232, 240);
                             doc.line(20, y, 190, y);
@@ -1044,23 +1045,19 @@
                         doc.setTextColor(15, 23, 42);
                         doc.setFontSize(8);
 
-                        // Icono indicador si es PK o FK simulando a MySQL Workbench
                         let prefix = "  ";
                         if (f.type === 'PK') prefix = "[PK] ";
                         else if (f.type === 'FK') prefix = "[FK] ";
                         else if (f.type === 'PK-FK') prefix = "[PK+FK] ";
 
-                        // Nombre de columna
                         doc.setFont("helvetica", f.type !== 'Normal' ? "bold" : "normal");
                         doc.text(prefix + (f.name || '-'), 24, y + 3.8);
 
-                        // Tipo de dato y longitud
                         doc.setFont("helvetica", "normal");
                         let typeStr = f.datatype || 'VARCHAR';
                         if (f.length) typeStr += `(${f.length})`;
                         doc.text(typeStr, 105, y + 3.8);
 
-                        // Referencia de llave foránea (si aplica)
                         let refText = "";
                         if ((f.type === 'FK' || f.type === 'PK-FK') && f.ref) {
                             refText = `-> ${f.ref}`;
@@ -1071,7 +1068,7 @@
                         y += rowHeight;
                     });
                 }
-                y += 6; // Espacio inferior entre entidades
+                y += 6;
             }
 
             doc.setFillColor(30, 58, 138);
@@ -1103,7 +1100,7 @@
             doc.text("PLANILLA DE EVALUACIÓN - TALLER N° 1 (ESTRUCTURA DE PRUEBA)", 20, y);
             y += 8;
 
-            // Parte I: Completación con respuesta del estudiante sobre la raya
+            // Parte I
             checkPageSpace(45);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
