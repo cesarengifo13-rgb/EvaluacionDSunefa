@@ -186,18 +186,31 @@
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-6">
                 <div class="border-b border-slate-700 pb-2">
                     <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS (Valor: 10 Puntos)</h3>
+                    <p class="text-xs text-slate-400 mt-1">Desarrolle las tablas normalizadas hasta la 3FN a partir de las estructuras base iniciales indicadas a continuación.</p>
                 </div>
+
+                <!-- Ejercicio 1 -->
                 <div class="bg-slate-900/60 border border-slate-700 p-4 rounded-xl space-y-3" id="ex1-container">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-red-400 text-sm">Ejercicio 1: Sistema de Préstamos Bibliotecarios (5 Puntos)</h4>
                         <button type="button" onclick="addTable('ex1')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
                     </div>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                        <p class="text-xs font-bold text-amber-400">Estructura Base Original (Tabla Plana Inicial):</p>
+                        <p class="text-xs text-slate-300 font-mono">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</p>
+                    </div>
                     <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex1"></div>
                 </div>
+
+                <!-- Ejercicio 2 -->
                 <div class="bg-slate-900/60 border border-slate-700 p-4 rounded-xl space-y-3" id="ex2-container">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-red-400 text-sm">Ejercicio 2: Sistema de Citas Médicas (5 Puntos)</h4>
                         <button type="button" onclick="addTable('ex2')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                        <p class="text-xs font-bold text-amber-400">Estructura Base Original (Tabla Plana Inicial):</p>
+                        <p class="text-xs text-slate-300 font-mono">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</p>
                     </div>
                     <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex2"></div>
                 </div>
@@ -405,16 +418,17 @@
         function finishExam() {
             clearInterval(examData.timerInterval);
 
+            // Validaciones estrictas de Completación (Evita falsos positivos por letras aleatorias como "hhhh")
             const p1_1 = document.querySelector('input[data-part="1"][data-q="1"]').value.trim();
             const p1_2 = document.querySelector('input[data-part="1"][data-q="2"]').value.trim();
             const p1_3 = document.querySelector('input[data-part="1"][data-q="3"]').value.trim();
             const p1_4 = document.querySelector('input[data-part="1"][data-q="4"]').value.trim();
 
             let scorePart1 = 0;
-            let c1 = p1_1.toLowerCase().includes('distribuida') || p1_1.toLowerCase().includes('centralizada') || p1_1.toLowerCase().includes('relacional');
-            let c2 = p1_2.toLowerCase().includes('físicos') || p1_2.toLowerCase().includes('fisicos') || p1_2.toLowerCase().includes('lógicos');
-            let c3 = p1_3.toLowerCase().includes('ingeniería inversa') || p1_3.toLowerCase().includes('ingenieria inversa');
-            let c4 = p1_4.length > 2;
+            let c1 = p1_1.length > 3 && (p1_1.toLowerCase().includes('distribuida') || p1_1.toLowerCase().includes('centralizada') || p1_1.toLowerCase().includes('relacional'));
+            let c2 = p1_2.length > 3 && (p1_2.toLowerCase().includes('físicos') || p1_2.toLowerCase().includes('fisicos') || p1_2.toLowerCase().includes('lógicos') || p1_2.toLowerCase().includes('logicos'));
+            let c3 = p1_3.length > 5 && (p1_3.toLowerCase().includes('ingeniería inversa') || p1_3.toLowerCase().includes('ingenieria inversa') || p1_3.toLowerCase().includes('inversa'));
+            let c4 = p1_4.length > 3 && (p1_4.toLowerCase().includes('único') || p1_4.toLowerCase().includes('unico') || p1_4.toLowerCase().includes('propio') || p1_4.toLowerCase().includes('elemental'));
 
             if (c1) scorePart1 += 1;
             if (c2) scorePart1 += 1;
@@ -423,8 +437,8 @@
 
             const p2_1_el = document.querySelector('input[name="p2_q1"]:checked');
             const p2_2_el = document.querySelector('input[name="p2_q2"]:checked');
-            const p2_1 = p2_1_el ? p2_1_el.value : 'No respondida';
-            const p2_2 = p2_2_el ? p2_2_el.value : 'No respondida';
+            const p2_1 = p2_1_el ? p2_1_el.value : '';
+            const p2_2 = p2_2_el ? p2_2_el.value : '';
 
             let scorePart2 = 0;
             let cc1 = p2_1 === 'b';
@@ -434,7 +448,7 @@
 
             const p3_1 = document.querySelector('textarea[data-part="3"][data-q="1"]').value.trim();
             const p3_2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
-            let scorePart3 = (p3_1.length > 10 ? 2 : 0) + (p3_2.length > 10 ? 2 : 0);
+            let scorePart3 = (p3_1.length > 15 ? 2 : 0) + (p3_2.length > 15 ? 2 : 0);
 
             const ex1Tables = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
             const ex2Tables = document.querySelectorAll('.tables-wrapper[data-exercise="ex2"] .table-card');
@@ -443,120 +457,6 @@
 
             examData.score = scorePart1 + scorePart2 + scorePart3 + scorePart4;
             examData.details = {
-                p1: [{q: 1, resp: p1_1, correct: c1}, {q: 2, resp: p1_2, correct: c2}, {q: 3, resp: p1_3, correct: c3}, {q: 4, resp: p1_4, correct: c4}],
-                p2: [{q: 1, resp: p2_1, correct: cc1}, {q: 2, resp: p2_2, correct: cc2}],
-                p3: [{q: 1, resp: p3_1}, {q: 2, resp: p3_2}],
-                p4: {ex1TablesCount: ex1Tables.length, ex2TablesCount: ex2Tables.length}
-            };
-
-            // Guardar en Firebase
-            if (window.firebaseAvailable && window.db) {
-                try {
-                    addDoc(collection(window.db, "evaluaciones_taller1"), {
-                        groupName: examData.groupName,
-                        students: examData.students,
-                        score: examData.score,
-                        details: examData.details,
-                        timestamp: new Date()
-                    });
-                } catch (e) {
-                    console.error("Error guardando en Firebase:", e);
-                }
-            }
-
-            // ENVÍO AUTOMÁTICO VÍA EMAILJS CON template_spoqjhb
-            let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
-            let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN FINAL: ${examData.score.toFixed(2)} / 20\n\nDETALLE DE RESPUESTAS:\n- Parte I (Completación): ${scorePart1}/4 pts\n- Parte II (Selección): ${scorePart2}/2 pts\n- Parte III (Desarrollo): ${scorePart3}/4 pts\n- Parte IV (Normalización): ${scorePart4}/10 pts`;
-
-            emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
-                to_email: examData.profEmail,
-                group_name: examData.groupName,
-                students: studentsStr,
-                score: examData.score.toFixed(2),
-                report_details: reportDetails
-            }).then(() => {
-                console.log("Correo enviado automáticamente con éxito.");
-            }, (err) => {
-                console.error("Error al enviar correo automático:", err);
-            });
-
-            document.getElementById('view-exam').classList.add('hidden');
-            document.getElementById('header-timer-container').classList.add('hidden');
-            document.getElementById('view-results').classList.remove('hidden');
-
-            document.getElementById('res-group').textContent = examData.groupName;
-            document.getElementById('res-score').textContent = examData.score.toFixed(2) + " / 20 pts";
-            
-            const membersList = document.getElementById('res-members');
-            membersList.innerHTML = '';
-            examData.students.forEach(st => {
-                const li = document.createElement('li');
-                li.textContent = `${st.nombre} (C.I: ${st.cedula})`;
-                membersList.appendChild(li);
-            });
-        }
-
-        // Descarga de PDF detallada
-        document.getElementById('btn-download-pdf').addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            doc.setFillColor(185, 28, 28);
-            doc.rect(0, 0, 210, 25, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(13);
-            doc.text("UNEFA - NÚCLEO GUÁRICO SEDE TUCUPIDO", 105, 11, { align: "center" });
-            doc.setFontSize(9);
-            doc.text("PLANILLA DE EVALUACIÓN CALIFICADA - DISEÑO DE SISTEMAS", 105, 18, { align: "center" });
-
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`Grupo: ${examData.groupName}`, 20, 33);
-            doc.text(`Puntuación Obtenida: ${examData.score.toFixed(2)} / 20 puntos`, 20, 40);
-
-            let y = 48;
-            doc.setFontSize(11);
-            doc.text("Integrantes del Grupo:", 20, y);
-            y += 6;
-            doc.setFontSize(9);
-            examData.students.forEach((st, idx) => {
-                doc.text(`${idx + 1}. ${st.nombre} - C.I: ${st.cedula}`, 25, y);
-                y += 5;
-            });
-
-            y += 6;
-            doc.setFontSize(11);
-            doc.text("Detalle de Respuestas y Calificación:", 20, y);
-            y += 6;
-            doc.setFontSize(9);
-
-            doc.text("I. COMPLETACIÓN (Valor: 4 pts):", 20, y); y += 5;
-            examData.details.p1.forEach(item => {
-                doc.text(` - P${item.q}: Resp: "${item.resp || 'Vacía'}" -> ${item.correct ? 'CORRECTA' : 'INCORRECTA'}`, 25, y);
-                y += 5;
-            });
-
-            y += 3;
-            doc.text("II. SELECCIÓN SIMPLE (Valor: 2 pts):", 20, y); y += 5;
-            examData.details.p2.forEach(item => {
-                doc.text(` - P${item.q}: Opción: (${item.resp}) -> ${item.correct ? 'CORRECTA' : 'INCORRECTA'}`, 25, y);
-                y += 5;
-            });
-
-            y += 3;
-            doc.text("III. DESARROLLO (Valor: 4 pts):", 20, y); y += 5;
-            examData.details.p3.forEach(item => {
-                doc.text(` - P${item.q}: Definición teórica entregada`, 25, y);
-                y += 5;
-            });
-
-            y += 3;
-            doc.text("IV. EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 pts):", 20, y); y += 5;
-            doc.text(` - Ejercicio 1 (Préstamos Bibliotecarios): ${examData.details.p4.ex1TablesCount} tablas diseñadas`, 25, y); y += 5;
-            doc.text(` - Ejercicio 2 (Citas Médicas): ${examData.details.p4.ex2TablesCount} tablas diseñadas`, 25, y);
-
-            doc.save(`Planilla_Taller1_${examData.groupName}.pdf`);
-        });
-    </script>
-</body>
-</html>
+                p1: [
+                    {q: 1, resp: p1_1 || 'Vacía', correct: c1}, 
+                    {q:
