@@ -43,7 +43,7 @@
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
-                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S..</p>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
                 </div>
             </div>
             <div id="header-timer-container" class="hidden flex items-center gap-4 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl shadow-inner text-white">
@@ -123,7 +123,7 @@
         <!-- VISTA 2: EXAMEN EN CURSO -->
         <section id="view-exam" class="hidden space-y-6">
             <div class="bg-amber-50 border border-amber-300 p-4 rounded-xl text-amber-900 text-xs md:text-sm flex flex-col md:flex-row items-center justify-between gap-2 shadow-sm">
-                <span>⚠️ <strong>Aviso Colaborativo:</strong> Los cambios que hagas se sincronizan en vivo con tus compañeros de grupo conectados.</span>
+                <span>⚠️ <strong>Aviso de Seguridad:</strong> Si algún miembro abandona la pantalla, la prueba se cerrará automáticamente para todo el grupo indicando al infractor.</span>
                 <span id="tab-warnings" class="font-bold bg-amber-200 px-3 py-1 rounded-lg text-xs whitespace-nowrap text-amber-900">Advertencias: 0/2</span>
             </div>
 
@@ -245,6 +245,7 @@
         <section id="view-results" class="hidden bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl text-center space-y-6">
             <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">✓</div>
             <h2 class="text-2xl font-bold text-slate-900">¡Evaluación Entregada y Enviada por Correo con PDF Adjunto!</h2>
+            <p id="closure-notice" class="text-xs text-amber-700 font-semibold mt-1"></p>
             <p class="text-sm text-slate-600">Los resultados han sido procesados, guardados en Firebase y enviados con el archivo PDF adjunto a <strong>cesarengifo13@gmail.com</strong>.</p>
             
             <div class="bg-slate-50 p-6 rounded-xl max-w-md mx-auto border border-slate-200 text-left space-y-3 shadow-sm">
@@ -293,6 +294,7 @@
             groupName: '',
             profEmail: 'cesarengifo13@gmail.com',
             students: [],
+            currentStudent: null,
             startTime: null,
             timerInterval: null,
             warnings: 0,
@@ -302,9 +304,8 @@
 
         let currentGroupDocId = null;
         let unsubscribeSync = null;
-        let isRemoteUpdating = false; // Bandera para evitar bucles infinitos de sincronización
+        let isRemoteUpdating = false;
 
-        // Cargar nombres disponibles y filtrar los ya ocupados en Firebase
         async function updateStudentDropdowns() {
             const selectCreate = document.getElementById('create-student-select');
             const selectJoin = document.getElementById('join-student-select');
@@ -332,7 +333,6 @@
             }
 
             estudiantesSeccion.forEach((est, index) => {
-                // Si la cédula ya está en otro grupo, no se muestra
                 if (cedulasOcupadas.includes(est.cedula)) return;
 
                 const opt1 = document.createElement('option');
@@ -347,7 +347,6 @@
             });
         }
 
-        // Cargar grupos existentes en el selector desplegable
         async function loadExistingGroups() {
             const selectGroup = document.getElementById('select-existing-group');
             selectGroup.innerHTML = '<option value="">-- Cargando grupos... --</option>';
@@ -422,6 +421,7 @@
             }
 
             const selectedStudent = estudiantesSeccion[studentIndex];
+            examData.currentStudent = selectedStudent;
 
             if (window.firebaseAvailable && window.db) {
                 try {
@@ -439,6 +439,7 @@
                         students: [selectedStudent],
                         status: "en_proceso",
                         examAnswers: {},
+                        closedBy: "",
                         timestamp: new Date()
                     });
                     currentGroupDocId = docRef.id;
@@ -455,7 +456,7 @@
             launchExamView();
         });
 
-        // 2. UNIRSE A GRUPO EXISTENTE (Seleccionando de la lista)
+        // 2. UNIRSE A GRUPO EXISTENTE
         document.getElementById('btn-join-group').addEventListener('click', async () => {
             const groupCode = document.getElementById('select-existing-group').value;
             const studentIndex = document.getElementById('join-student-select').value;
@@ -470,6 +471,7 @@
             }
 
             const joiningStudent = estudiantesSeccion[studentIndex];
+            examData.currentStudent = joiningStudent;
 
             if (window.firebaseAvailable && window.db) {
                 try {
@@ -534,7 +536,7 @@
             setupLiveInputsSync();
         }
 
-        // Sincronización en tiempo real de datos, respuestas y estado del examen
+        // Sincronización en tiempo real
         function startRealtimeSync() {
             if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
             
@@ -543,14 +545,13 @@
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
 
-                        // 1. Si otro usuario finalizó la prueba, cerrar en todos
+                        // Si se finalizó la prueba (por tiempo, botón o salida de pantalla)
                         if (data.status === "finalizado" && document.getElementById('view-results').classList.contains('hidden')) {
-                            alert("⚠️ La evaluación fue finalizada y entregada por el equipo.");
                             finishExamRemotely(data);
                             return;
                         }
 
-                        // 2. Sincronizar respuestas en tiempo real de los compañeros
+                        // Sincronizar respuestas en vivo
                         if (data.examAnswers && !isRemoteUpdating) {
                             isRemoteUpdating = true;
                             Object.keys(data.examAnswers).forEach(key => {
@@ -572,10 +573,9 @@
             });
         }
 
-        // Configurar eventos para enviar cambios a Firebase cuando un estudiante escribe
         function setupLiveInputsSync() {
             const inputs = document.querySelectorAll('.sync-input');
-            inputs.forEach((input, idx) => {
+            inputs.forEach(input => {
                 input.addEventListener('input', () => {
                     if (isRemoteUpdating) return;
                     let qId = input.getAttribute('data-q');
@@ -609,6 +609,36 @@
             }
         }
 
+        // Detección estricta de salida de pantalla con nombre del infractor
+        function initTabSwitchDetection() {
+            document.addEventListener('visibilitychange', async () => {
+                if (document.hidden && document.getElementById('view-exam').classList.contains('') === false && document.getElementById('view-results').classList.contains('hidden')) {
+                    examData.warnings++;
+                    document.getElementById('tab-warnings').textContent = `Advertencias: ${examData.warnings}/2`;
+                    
+                    if (examData.warnings >= 2) {
+                        let infractorNombre = examData.currentStudent ? examData.currentStudent.nombre : "Un integrante";
+                        alert(`⚠️ La prueba se ha cerrado automáticamente porque ${infractorNombre} abandonó la pantalla.`);
+                        
+                        if (window.firebaseAvailable && window.db && currentGroupDocId) {
+                            try {
+                                const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                                await updateDoc(doc(window.db, "evaluacion_taller1", currentGroupDocId), {
+                                    closedBy: infractorNombre,
+                                    status: "finalizado"
+                                });
+                            } catch (e) {
+                                console.error("Error registrando infracción:", e);
+                            }
+                        }
+                        finishExam();
+                    } else {
+                        alert('⚠️ ¡ADVERTENCIA! Has salido de la pantalla de evaluación. A la segunda advertencia se entregará la prueba para todo el grupo.');
+                    }
+                }
+            });
+        }
+
         function finishExamRemotely(data) {
             if (unsubscribeSync) unsubscribeSync();
             document.getElementById('view-exam').classList.add('hidden');
@@ -618,6 +648,10 @@
             document.getElementById('res-group').textContent = examData.groupName || data.groupName;
             document.getElementById('res-score').textContent = (data.score !== undefined ? data.score.toFixed(2) : "0.00") + " / 20 pts";
             
+            if (data.closedBy) {
+                document.getElementById('closure-notice').textContent = `⚠️ Prueba finalizada por infracción de pantalla de: ${data.closedBy}`;
+            }
+
             const membersList = document.getElementById('res-members');
             membersList.innerHTML = '';
             let studentsArr = data.students || examData.students;
@@ -640,25 +674,10 @@
                 display.textContent = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
                 if (--timer < 0) {
                     clearInterval(examData.timerInterval);
-                    alert('¡El tiempo de los 90 minutos ha expirado! La prueba se enviará automáticamente para todo el grupo.');
+                    alert('¡El tiempo de los 90 minutos ha expirado! La prueba se enviará automáticamente.');
                     finishExam();
                 }
             }, 1000);
-        }
-
-        function initTabSwitchDetection() {
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    examData.warnings++;
-                    document.getElementById('tab-warnings').textContent = `Advertencias: ${examData.warnings}/2`;
-                    if (examData.warnings >= 2) {
-                        alert('Se ha detectado múltiples salidas de la pantalla de evaluación. La prueba se finalizará automáticamente.');
-                        finishExam();
-                    } else {
-                        alert('¡ADVERTENCIA! Ha salido de la pantalla de evaluación. A la segunda advertencia se entregará la prueba.');
-                    }
-                }
-            });
         }
 
         window.updateAllFKDropdowns = function(exerciseId) {
