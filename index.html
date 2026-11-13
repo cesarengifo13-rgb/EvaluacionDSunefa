@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNEFA - Evaluación de Diseño de Sistemas (Taller N° 1.)</title>
+    <title>UNEFA - Evaluación de Diseño de Sistemas (Taller N° 1)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs con URLs de CDN oficiales -->
     <script type="module">
-        import { initializeApp } from "firebase/app";
-        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where } from "firebase/firestore";
-        import { getAnalytics } from "firebase/analytics";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCQzRYL2PhgAFtcZlgsX69ooVmcuP-7bqM",
@@ -42,7 +42,7 @@
             <div class="flex items-center gap-3">
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 .(10%)</h1>
+                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
                     <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
                 </div>
             </div>
@@ -61,14 +61,14 @@
         <!-- VISTA 1: CONFIGURACIÓN Y ACCESO A GRUPOS -->
         <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
             <div class="text-center">
-                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Evaluación Colaborativa por Dispositivos</span>
+                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Evaluación Colaborativa Multidispositivo</span>
                 <h2 class="text-2xl font-bold mt-3 text-slate-900">Acceso a la Evaluación</h2>
-                <p class="text-sm text-slate-600 mt-1">El primer integrante crea el grupo; los demás se unen buscando el código y seleccionando su nombre.</p>
+                <p class="text-sm text-slate-600 mt-1">El primer estudiante crea el grupo; los demás se unen buscando el código y seleccionando su nombre.</p>
             </div>
 
             <!-- Selector de Modo: Crear o Unirse -->
             <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-                <button type="button" id="tab-create" onclick="switchMode('create')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">1. Crear Nuevo Grupo</button>
+                <button type="button" id="tab-create" onclick="switchMode('create')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">1. Crear Nuevo Grupo (Líder)</button>
                 <button type="button" id="tab-join" onclick="switchMode('join')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">2. Unirse a Grupo Existente</button>
             </div>
 
@@ -334,7 +334,7 @@
             }
         };
 
-        // 1. CREAR GRUPO (Primer dispositivo / líder)
+        // 1. CREAR GRUPO (Primer dispositivo / Líder)
         document.getElementById('btn-create-group').addEventListener('click', async () => {
             const groupCode = document.getElementById('create-group-code').value.trim();
             const studentIndex = document.getElementById('create-student-select').value;
@@ -352,7 +352,7 @@
 
             if (window.firebaseAvailable && window.db) {
                 try {
-                    const { collection, getDocs, addDoc, query, where } = await import("firebase/firestore");
+                    const { collection, getDocs, addDoc, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     const q = query(collection(window.db, "evaluacion_taller1"), where("groupName", "==", groupCode));
                     const querySnapshot = await getDocs(q);
 
@@ -371,6 +371,8 @@
                     currentGroupDocId = docRef.id;
                 } catch (e) {
                     console.error("Error creando grupo en Firebase:", e);
+                    alert("Error conectando con la base de datos.");
+                    return;
                 }
             }
 
@@ -380,7 +382,7 @@
             launchExamView();
         });
 
-        // 2. UNIRSE A GRUPO EXISTENTE (Integrantes 2 y 3)
+        // 2. UNIRSE A GRUPO EXISTENTE (Integrantes 2 o 3)
         document.getElementById('btn-join-group').addEventListener('click', async () => {
             const groupCode = document.getElementById('join-group-code').value.trim();
             const studentIndex = document.getElementById('join-student-select').value;
@@ -398,8 +400,7 @@
 
             if (window.firebaseAvailable && window.db) {
                 try {
-                    const { getDocs, updateDoc, doc, query, where } = await import("firebase/firestore");
-                    const { collection } = await import("firebase/firestore");
+                    const { collection, getDocs, updateDoc, doc, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
 
                     const q = query(collection(window.db, "evaluacion_taller1"), where("groupName", "==", groupCode));
                     const querySnapshot = await getDocs(q);
@@ -444,6 +445,7 @@
 
                 } catch (e) {
                     console.error("Error uniéndose al grupo:", e);
+                    alert("Error al intentar unirse al grupo.");
                     return;
                 }
             }
@@ -464,7 +466,7 @@
         function startRealtimeSync() {
             if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
             
-            import("firebase/firestore").then(({ doc, onSnapshot }) => {
+            import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js").then(({ doc, onSnapshot }) => {
                 unsubscribeSync = onSnapshot(doc(window.db, "evaluacion_taller1", currentGroupDocId), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
@@ -1001,7 +1003,7 @@
 
             if (window.firebaseAvailable && window.db && currentGroupDocId) {
                 try {
-                    const { updateDoc, doc } = await import("firebase/firestore");
+                    const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     await updateDoc(doc(window.db, "evaluacion_taller1", currentGroupDocId), {
                         score: examData.score,
                         details: examData.details,
