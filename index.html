@@ -43,12 +43,12 @@
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
-                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S..</p>
                 </div>
             </div>
             <div id="header-timer-container" class="hidden flex items-center gap-4 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl shadow-inner text-white">
                 <div class="text-right">
-                    <p class="text-xs text-blue-300 uppercase tracking-wider font-semibold">Tiempo Restante</p>
+                    <p class="text-xs text-blue-300 uppercase tracking-wider font-semibold">Tiempo Restante (Grupo)</p>
                     <p id="timer-display" class="text-xl font-mono font-bold text-amber-400">01:30:00</p>
                 </div>
             </div>
@@ -295,7 +295,6 @@
             profEmail: 'cesarengifo13@gmail.com',
             students: [],
             currentStudent: null,
-            startTime: null,
             timerInterval: null,
             warnings: 0,
             score: 0,
@@ -443,6 +442,7 @@
                         groupWarnings: 0,
                         lastWarningBy: "",
                         closedBy: "",
+                        examStartTime: Date.now(), // <-- Tiempo sincronizado global para el grupo
                         timestamp: new Date()
                     });
                     currentGroupDocId = docRef.id;
@@ -533,13 +533,12 @@
             document.getElementById('view-exam').classList.remove('hidden');
             document.getElementById('header-timer-container').classList.remove('hidden');
 
-            startTimer(90 * 60);
             initTabSwitchDetection();
             startRealtimeSync();
             setupLiveInputsSync();
         }
 
-        // Sincronización en tiempo real completa (Partes I, II, III, IV y advertencias)
+        // Sincronización en tiempo real completa (Partes I, II, III, IV, advertencias y temporizador grupal)
         function startRealtimeSync() {
             if (!window.firebaseAvailable || !window.db || !currentGroupDocId) return;
             
@@ -551,6 +550,11 @@
                         if (data.status === "finalizado" && document.getElementById('view-results').classList.contains('hidden')) {
                             finishExamRemotely(data);
                             return;
+                        }
+
+                        // Iniciar temporizador grupal sincronizado si aún no está activo
+                        if (data.examStartTime && !examData.timerInterval) {
+                            startSyncedTimer(data.examStartTime, 90 * 60);
                         }
 
                         // Sincronizar advertencias del grupo
@@ -609,6 +613,7 @@
                 });
             });
 
+            // Sincronización robusta para Textareas de Desarrollo (Parte III)
             const textareas = document.querySelectorAll('.sync-textarea');
             textareas.forEach(textarea => {
                 textarea.addEventListener('input', () => {
@@ -809,21 +814,29 @@
             });
         }
 
-        function startTimer(duration) {
-            let timer = duration;
+        // Temporizador sincronizado globalmente para todo el grupo basado en Firebase
+        function startSyncedTimer(startTime, durationSeconds) {
+            if (examData.timerInterval) return; // Ya está corriendo
+
             const display = document.getElementById('timer-display');
-            examData.startTime = new Date();
 
             examData.timerInterval = setInterval(() => {
-                let hours = Math.floor(timer / 3600);
-                let minutes = Math.floor((timer % 3600) / 60);
-                let seconds = timer % 60;
-                display.textContent = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
-                if (--timer < 0) {
+                let now = Date.now();
+                let elapsedSeconds = Math.floor((now - startTime) / 1000);
+                let remainingSeconds = durationSeconds - elapsedSeconds;
+
+                if (remainingSeconds <= 0) {
                     clearInterval(examData.timerInterval);
+                    display.textContent = "00:00:00";
                     alert('¡El tiempo de los 90 minutos ha expirado! La prueba se enviará automáticamente.');
                     finishExam();
+                    return;
                 }
+
+                let hours = Math.floor(remainingSeconds / 3600);
+                let minutes = Math.floor((remainingSeconds % 3600) / 60);
+                let seconds = remainingSeconds % 60;
+                display.textContent = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
             }, 1000);
         }
 
@@ -1200,7 +1213,7 @@
         }
 
         async function finishExam() {
-            clearInterval(examData.timerInterval);
+            if (examData.timerInterval) clearInterval(examData.timerInterval);
             if (unsubscribeSync) unsubscribeSync();
 
             const p1_1 = document.querySelector('input[data-part="1"][data-q="1"]').value.trim();
@@ -1276,7 +1289,7 @@
                         score: examData.score,
                         details: examData.details,
                         status: "finalizado",
-                        pdfBase64: pdfBase64, // <-- Guardado del PDF exacto para el administrador
+                        pdfBase64: pdfBase64,
                         timestamp: new Date()
                     });
                 } catch (e) {
