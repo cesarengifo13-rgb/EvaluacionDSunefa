@@ -6,7 +6,7 @@
     <title>Panel de Administración y Descarga de PDFs - UNEFA</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF para regenerar o descargar planillas -->
+    <!-- jsPDF por si es necesario regenerar -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- Firebase SDKs con URLs de CDN oficiales -->
     <script type="module">
@@ -26,14 +26,12 @@
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
 
-        // Exponer funciones globales para la interfaz
         window.loadDatabaseRecords = loadDatabaseRecords;
         window.deleteGroupDoc = deleteGroupDoc;
         window.updateGroupRecord = updateGroupRecord;
         window.deleteAllRecords = deleteAllRecords;
-        window.downloadGroupPDF = downloadGroupPDF;
+        window.downloadStudentPDF = downloadStudentPDF;
 
-        // Cargar registros al iniciar
         document.addEventListener('DOMContentLoaded', () => {
             loadDatabaseRecords();
         });
@@ -59,6 +57,9 @@
                         ? '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-bold">Finalizado</span>' 
                         : '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-bold">En Proceso</span>';
 
+                    // Guardamos el base64 de manera segura en un atributo data para usarlo al descargar
+                    let pdfBase64 = data.pdfBase64 || '';
+
                     let tr = document.createElement('tr');
                     tr.className = "border-b border-slate-200 hover:bg-slate-50";
                     tr.innerHTML = `
@@ -70,7 +71,7 @@
                         </td>
                         <td class="p-3 text-center text-xs font-mono text-slate-600">${data.groupWarnings || 0}</td>
                         <td class="p-3 text-right space-x-2 whitespace-nowrap">
-                            <button onclick="downloadGroupPDF('${docId}', '${encodeURIComponent(JSON.stringify(data))}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow">📥 Descargar PDF</button>
+                            <button onclick="downloadStudentPDF('${data.groupName}', '${pdfBase64}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow">📥 Descargar PDF</button>
                             <button onclick="updateGroupRecord('${docId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow">💾 Guardar</button>
                             <button onclick="deleteGroupDoc('${docId}', '${data.groupName}')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow">🗑️ Eliminar</button>
                         </td>
@@ -79,7 +80,7 @@
                 });
             } catch (e) {
                 console.error("Error cargando base de datos:", e);
-                container.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-600 font-semibold">Error al conectar con Firestore. Verifique su conexión o credenciales.</td></tr>`;
+                container.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-600 font-semibold">Error al conectar con Firestore.</td></tr>`;
             }
         }
 
@@ -116,7 +117,7 @@
         }
 
         async function deleteAllRecords() {
-            if (confirm('⚠️ PELIGRO: ¿Está completamente seguro de ELIMINAR TODOS LOS DATOS de la colección de evaluaciones? Esta acción no se puede deshacer.')) {
+            if (confirm('⚠️ PELIGRO: ¿Está completamente seguro de ELIMINAR TODOS LOS DATOS de la colección de evaluaciones?')) {
                 try {
                     const querySnapshot = await getDocs(collection(window.db, "evaluacion_taller1"));
                     let deletePromises = [];
@@ -133,193 +134,25 @@
             }
         }
 
-        // Función para generar y descargar el PDF directamente desde los datos guardados en Firebase
-        function downloadGroupPDF(docId, dataString) {
-            let data = JSON.parse(decodeURIComponent(dataString));
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            let y = 15;
-
-            function checkPageSpace(needed) {
-                if (y + needed > 275) {
-                    doc.addPage();
-                    y = 20;
-                }
+        // Descarga directa del PDF idéntico que vio el estudiante
+        function downloadStudentPDF(groupName, pdfBase64) {
+            if (!pdfBase64 || pdfBase64.length < 100) {
+                alert('⚠️ Este grupo aún no ha finalizado su examen o no tiene un PDF generado todavía.');
+                return;
             }
 
-            function printWrappedText(text, x, maxWidth, lineHeight = 4.5, isBold = false) {
-                doc.setFont("helvetica", isBold ? "bold" : "normal");
-                let lines = doc.splitTextToSize(text, maxWidth);
-                checkPageSpace(lines.length * lineHeight + 2);
-                lines.forEach(line => {
-                    doc.text(line, x, y);
-                    y += lineHeight;
-                });
-            }
-
-            function drawMySQLTable(tableName, fields) {
-                let requiredHeight = 15 + (fields && fields.length > 0 ? fields.length * 6 : 6);
-                checkPageSpace(requiredHeight);
-
-                doc.setFillColor(30, 41, 59);
-                doc.rect(20, y, 170, 7, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(9);
-                doc.text(`TABLE: ${tableName.toUpperCase()}`, 24, y + 4.5);
-                y += 7;
-
-                doc.setFillColor(226, 232, 240);
-                doc.rect(20, y, 170, 6, 'F');
-                doc.setTextColor(15, 23, 42);
-                doc.setFontSize(8);
-                doc.text("CAMPO (COLUMN)", 24, y + 4);
-                doc.text("TIPO(LÍMITE)", 85, y + 4);
-                doc.text("ATRIBUTO / RELACIÓN (FK)", 125, y + 4);
-                y += 6;
-
-                doc.setFont("helvetica", "normal");
-                if (!fields || fields.length === 0) {
-                    doc.rect(20, y, 170, 6);
-                    doc.text("(Sin atributos definidos)", 24, y + 4);
-                    y += 6;
-                } else {
-                    fields.forEach(f => {
-                        checkPageSpace(6);
-                        doc.rect(20, y, 170, 6);
-                        doc.text(f.name || '-', 24, y + 4);
-                        
-                        let typeStr = f.datatype || 'VARCHAR';
-                        if (f.length) typeStr += `(${f.length})`;
-                        doc.text(typeStr, 85, y + 4);
-                        
-                        let attrText = f.type || 'Normal';
-                        if (f.type === 'FK' && f.ref) attrText = `FK -> ${f.ref}`;
-                        else if (f.type === 'PK-FK' && f.ref) attrText = `PK+FK -> ${f.ref}`;
-                        doc.text(attrText, 125, y + 4);
-                        y += 6;
-                    });
-                }
-                y += 8;
-            }
-
-            doc.setFillColor(30, 58, 138);
-            doc.rect(0, 0, 210, 25, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.text("UNIVERSIDAD NACIONAL EXPERIMENTAL POLITÉCNICA", 105, 9, { align: "center" });
-            doc.text("DE LA FUERZA ARMADA NACIONAL BOLIVARIANA (UNEFA)", 105, 14, { align: "center" });
-            doc.setFontSize(8);
-            doc.text("NÚCLEO GUÁRICO - SEDE TUCUPIDO | DISEÑO DE SISTEMAS", 105, 20, { align: "center" });
-
-            y = 33;
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`GRUPO / SALA: ${data.groupName || 'N/A'}`, 20, y); y += 6;
-            doc.text(`CALIFICACIÓN OBTENIDA: ${data.score !== undefined ? data.score : 0} / 20 PUNTOS`, 20, y); y += 8;
-
-            doc.setFontSize(10);
-            doc.text("INTEGRANTES DEL GRUPO:", 20, y); y += 5;
-            doc.setFontSize(9);
-            if (data.students && data.students.length > 0) {
-                data.students.forEach((st, idx) => {
-                    doc.text(`${idx + 1}. ${st.nombre} - C.I: ${st.cedula}`, 25, y);
-                    y += 5;
-                });
-            } else {
-                doc.text("Sin integrantes registrados", 25, y);
-                y += 5;
-            }
-
-            y += 6;
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "bold");
-            doc.text("PLANILLA DE EVALUACIÓN - TALLER N° 1 (REPORTE DESCARGADO)", 20, y);
-            y += 8;
-
-            if (data.details) {
-                // Parte I
-                if (data.details.p1) {
-                    checkPageSpace(35);
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("I PARTE: COMPLETACIÓN", 20, y); y += 6;
-                    doc.setFontSize(8.5);
-                    data.details.p1.forEach(item => {
-                        printWrappedText(item.question, 22, 168, 4.2, true);
-                        printWrappedText(`   Respuesta: [ ${item.resp} ] | Nota: ${item.pts} pt`, 24, 166, 4.2, false);
-                        y += 3;
-                    });
-                    y += 4;
-                }
-
-                // Parte II
-                if (data.details.p2) {
-                    checkPageSpace(30);
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("II PARTE: SELECCIÓN SIMPLE", 20, y); y += 6;
-                    doc.setFontSize(8.5);
-                    data.details.p2.forEach(item => {
-                        printWrappedText(item.question, 22, 168, 4.2, true);
-                        printWrappedText(`   Opción marcada: [ ${item.resp} ] | Nota: ${item.pts} pt`, 24, 166, 4.2, false);
-                        y += 3;
-                    });
-                    y += 4;
-                }
-
-                // Parte III
-                if (data.details.p3) {
-                    checkPageSpace(35);
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("III PARTE: DESARROLLO", 20, y); y += 6;
-                    doc.setFontSize(8.5);
-                    data.details.p3.forEach(item => {
-                        printWrappedText(`${item.question} (Nota: ${item.pts}/2 pts)`, 22, 168, 4.2, true);
-                        printWrappedText(`   R/ Estudiante: ${item.resp}`, 24, 166, 4.2, false);
-                        y += 4;
-                    });
-                    y += 4;
-                }
-
-                // Parte IV: Normalización
-                if (data.details.p4) {
-                    checkPageSpace(35);
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN", 20, y); y += 8;
-
-                    doc.setFontSize(9);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`• Ejercicio 1 - Nota: ${data.details.p4.ex1Pts || 0} / 5 pts`, 22, y); y += 6;
-                    if (data.details.p4.ex1Tables) {
-                        data.details.p4.ex1Tables.forEach(tbl => {
-                            drawMySQLTable(`[Ej 1] - ${tbl.name}`, tbl.fields);
-                        });
-                    }
-
-                    y += 4;
-                    checkPageSpace(25);
-                    doc.text(`• Ejercicio 2 - Nota: ${data.details.p4.ex2Pts || 0} / 5 pts`, 22, y); y += 6;
-                    if (data.details.p4.ex2Tables) {
-                        data.details.p4.ex2Tables.forEach(tbl => {
-                            drawMySQLTable(`[Ej 2] - ${tbl.name}`, tbl.fields);
-                        });
-                    }
-                }
-            } else {
-                doc.setFontSize(9);
-                doc.text("El examen aún está en proceso o no contiene detalles guardados.", 20, y);
-            }
-
-            doc.save(`Planilla_Evaluacion_${data.groupName || 'Grupo'}.pdf`);
+            // Crear un link temporal para descargar el archivo base64 como PDF real
+            const link = document.createElement('a');
+            link.href = pdfBase64;
+            link.download = `Planilla_Prueba_Taller1_${groupName || 'Grupo'}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
 
-    <!-- Header -->
     <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 shadow-md text-white">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div>
@@ -332,21 +165,18 @@
         </div>
     </header>
 
-    <!-- Contenido Principal -->
     <main class="max-w-6xl w-full mx-auto p-4 md:p-6 my-auto flex-grow space-y-6">
-
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-200 pb-4">
                 <div>
                     <h2 class="text-lg font-bold text-slate-900">Registros y Planillas Guardadas en Firebase</h2>
-                    <p class="text-xs text-slate-600">Descargue el PDF generado por los estudiantes, modifique notas o elimine registros individualmente.</p>
+                    <p class="text-xs text-slate-600">Descargue el PDF original generado por los estudiantes, modifique notas o elimine registros individualmente.</p>
                 </div>
                 <button onclick="deleteAllRecords()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
                     🗑️ Borrar TODA la Base de Datos
                 </button>
             </div>
 
-            <!-- Tabla de Datos -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -367,10 +197,8 @@
                 </table>
             </div>
         </div>
-
     </main>
 
-    <!-- Footer -->
     <footer class="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-400">
         Panel de Administración Interno - Universidad Nacional Experimental Politécnica de la Fuerza Armada Nacional Bolivariana (UNEFA)
     </footer>
