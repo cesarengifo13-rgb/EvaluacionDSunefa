@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNEFA - Evaluación de Diseño de Sistemas (Taller N° 1)</title>
-    <!-- Tailwind CSS para diseño moderno -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF para generar la planilla de respuestas -->
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "firebase/app";
+        import { getFirestore, collection, addDoc } from "firebase/firestore";
+        import { getAnalytics } from "firebase/analytics";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCQzRYL2PhgAFtcZlgsX69ooVmcuP-7bqM",
@@ -19,11 +20,13 @@
             projectId: "evaluaciondsunefa",
             storageBucket: "evaluaciondsunefa.firebasestorage.app",
             messagingSenderId: "901181829694",
-            appId: "1:901181829694:web:3eea56237de2dc81c2d76f"
+            appId: "1:901181829694:web:3eea56237de2dc81c2d76f",
+            measurementId: "G-ZPMJF8NVQ4"
         };
 
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
+        window.analytics = getAnalytics(app);
         window.firebaseAvailable = true;
         console.log("Firebase conectado correctamente a evaluaciondsunefa");
     </script>
@@ -35,74 +38,74 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
 
     <!-- Header Institucional -->
-<header class="bg-slate-950 border-b border-slate-800 py-4 px-6 shadow-md">
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center gap-3">
-            <div class="bg-red-700 text-white font-bold p-2 rounded-lg text-xl tracking-wider">UNEFA</div>
-            <div>
-                <h1 class="text-lg font-bold text-slate-100">Diseño de Sistemas - Taller N° 1 (10%)</h1>
-                <p class="text-xs text-slate-400">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
+    <header class="bg-slate-950 border-b border-slate-800 py-4 px-6 shadow-md">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-red-700 text-white font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
+                <div>
+                    <h1 class="text-base md:text-lg font-bold text-slate-100">Diseño de Sistemas - Taller N° 1 (10%)</h1>
+                    <p class="text-xs text-slate-400">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
+                </div>
+            </div>
+            <div id="header-timer-container" class="hidden flex items-center gap-4 bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl shadow-inner">
+                <div class="text-right">
+                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Tiempo Restante</p>
+                    <p id="timer-display" class="text-xl font-mono font-bold text-red-400">02:00:00</p>
+                </div>
             </div>
         </div>
-        <div id="header-timer-container" class="hidden flex items-center gap-4 bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl">
-            <div class="text-right">
-                <p class="text-xs text-slate-400">Tiempo Restante</p>
-                <p id="timer-display" class="text-xl font-mono font-bold text-red-400">02:00:00</p>
-            </div>
-        </div>
-    </div>
-</header>
+    </header>
 
     <!-- Contenido Principal -->
     <main class="max-w-4xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
 
         <!-- VISTA 1: CONFIGURACIÓN Y REGISTRO GRUPAL -->
-        <section id="view-setup" class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-xl">
-            <div class="text-center mb-6">
-                <span class="bg-red-900/50 text-red-300 border border-red-700 text-xs font-semibold px-3 py-1 rounded-full">Evaluación Grupal (2 o 3 Estudiantes)</span>
-                <h2 class="text-2xl font-bold mt-2 text-white">Registro de Grupo y Sala</h2>
-                <p class="text-sm text-slate-400 mt-1">Ingrese los datos de los integrantes. Si algún miembro sale de la pantalla, la prueba se cerrará para todo el equipo.</p>
+        <section id="view-setup" class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
+            <div class="text-center">
+                <span class="bg-red-900/50 text-red-300 border border-red-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Evaluación Grupal (2 o 3 Estudiantes)</span>
+                <h2 class="text-2xl font-bold mt-3 text-white">Registro de Grupo y Sala</h2>
+                <p class="text-sm text-slate-400 mt-1">Ingrese los datos de los integrantes. Nota: Si algún miembro sale de la pantalla, la prueba se cerrará automáticamente para todo el equipo.</p>
             </div>
 
-            <!-- PANEL DE ESTADO FIREBASE Y DOCENTE -->
-            <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl mb-6 text-xs text-slate-300">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-semibold text-emerald-400 flex items-center gap-1">🟢 Firebase Conectado</span>
-                    <span class="text-slate-400">Proyecto: evaluaciondsunefa</span>
+            <!-- Panel Docente y Firebase Info -->
+            <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl text-xs text-slate-300 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-emerald-400 flex items-center gap-1.5">🟢 Base de Datos Firebase Conectada</span>
+                    <span class="text-slate-400 font-mono">Proyecto: evaluaciondsunefa</span>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-800">
                     <div>
-                        <label class="block text-slate-400 mb-1">Correo del Docente (Receptor):</label>
-                        <input type="email" id="cfg-prof-email" value="cesar.rengifo@unefa.edu.ve" class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-white">
+                        <label class="block text-slate-400 mb-1 font-medium">Correo del Docente (Receptor):</label>
+                        <input type="email" id="cfg-prof-email" value="cesar.rengifo@unefa.edu.ve" class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-white text-xs">
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">Código o Nombre del Grupo:</label>
-                        <input type="text" id="group-code" placeholder="Ej. Grupo_Sistemas_01" class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-white" required>
+                        <label class="block text-slate-400 mb-1 font-medium">Código o Nombre del Grupo:</label>
+                        <input type="text" id="group-code" placeholder="Ej. Grupo_Sistemas_01" class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-white text-xs" required>
                     </div>
                 </div>
             </div>
 
             <form id="form-setup" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1">Estudiante 1 (Obligatorio)</label>
-                        <input type="text" id="est1-nombre" placeholder="Apellidos y Nombres" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mb-2" required>
-                        <input type="text" id="est1-cedula" placeholder="Cédula de Identidad" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" required>
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/60 space-y-2">
+                        <label class="block text-xs font-bold text-red-400 uppercase">Estudiante 1 (Obligatorio)</label>
+                        <input type="text" id="est1-nombre" placeholder="Apellidos y Nombres" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white" required>
+                        <input type="text" id="est1-cedula" placeholder="Cédula de Identidad" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white" required>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1">Estudiante 2 (Obligatorio)</label>
-                        <input type="text" id="est2-nombre" placeholder="Apellidos y Nombres" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mb-2" required>
-                        <input type="text" id="est2-cedula" placeholder="Cédula de Identidad" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" required>
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/60 space-y-2">
+                        <label class="block text-xs font-bold text-red-400 uppercase">Estudiante 2 (Obligatorio)</label>
+                        <input type="text" id="est2-nombre" placeholder="Apellidos y Nombres" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white" required>
+                        <input type="text" id="est2-cedula" placeholder="Cédula de Identidad" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white" required>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1">Estudiante 3 (Opcional - Grupo de 3)</label>
-                        <input type="text" id="est3-nombre" placeholder="Apellidos y Nombres" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mb-2">
-                        <input type="text" id="est3-cedula" placeholder="Cédula de Identidad" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/60 space-y-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase">Estudiante 3 (Opcional)</label>
+                        <input type="text" id="est3-nombre" placeholder="Apellidos y Nombres" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                        <input type="text" id="est3-cedula" placeholder="Cédula de Identidad" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
                     </div>
                 </div>
 
                 <div class="pt-4 text-center">
-                    <button type="button" id="btn-start-exam" class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg w-full md:w-auto">
+                    <button type="button" id="btn-start-exam" class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-xl w-full md:w-auto text-sm tracking-wide">
                         Continuar e Iniciar Evaluación
                     </button>
                 </div>
@@ -111,86 +114,103 @@
 
         <!-- VISTA 2: EXAMEN EN CURSO -->
         <section id="view-exam" class="hidden space-y-6">
-            <div class="bg-amber-950/40 border border-amber-600/50 p-4 rounded-xl text-amber-200 text-xs md:text-sm flex items-center justify-between">
-                <span>⚠️ <strong>Aviso de Seguridad:</strong> Si algún miembro cambia de pestaña o minimiza la ventana, la prueba se finalizará y entregará automáticamente para todo el grupo.</span>
-                <span id="tab-warnings" class="font-bold bg-amber-900 px-2 py-1 rounded">Advertencias: 0/2</span>
+            <div class="bg-amber-950/40 border border-amber-600/50 p-4 rounded-xl text-amber-200 text-xs md:text-sm flex flex-col md:flex-row items-center justify-between gap-2 shadow">
+                <span>⚠️ <strong>Aviso de Seguridad:</strong> Si algún miembro sale de la pantalla o minimiza la ventana, la prueba se finalizará y entregará automáticamente para todo el grupo.</span>
+                <span id="tab-warnings" class="font-bold bg-amber-900 px-3 py-1 rounded-lg text-xs whitespace-nowrap">Advertencias: 0/2</span>
             </div>
 
             <!-- PARTE I: COMPLETACIÓN -->
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-                <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2">I PARTE: COMPLETACIÓN (Valor: 4 Puntos / 1 pt c/u)</h3>
+                <div class="border-b border-slate-700 pb-2">
+                    <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN (Valor: 4 Puntos)</h3>
+                    <p class="text-xs text-slate-400">Complete con la palabra que le dé sentido lógico a la oración (1 punto c/u).</p>
+                </div>
                 
-                <div>
-                    <label class="block text-sm text-slate-300 mb-2">1. La capa de datos es una Base de datos _______________________ en la red interna (Backend).</label>
-                    <input type="text" data-part="1" data-q="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" placeholder="Escriba la palabra faltante...">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-300 mb-2">2. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.</label>
-                    <input type="text" data-part="1" data-q="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" placeholder="Escriba la palabra faltante...">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-300 mb-2">3. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.</label>
-                    <input type="text" data-part="1" data-q="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" placeholder="Escriba la palabra faltante...">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-300 mb-2">4. Componente clave en arquitectura de sistemas que gestiona las reglas de negocio intermedias entre la interfaz y la BD: _________________________.</label>
-                    <input type="text" data-part="1" data-q="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" placeholder="Escriba la palabra faltante...">
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-2 font-medium">1. La capa de datos es una Base de datos _______________________ en la red interna (Backend).</label>
+                        <input type="text" data-part="1" data-q="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white" placeholder="Escriba la respuesta...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-2 font-medium">2. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.</label>
+                        <input type="text" data-part="1" data-q="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white" placeholder="Escriba la respuesta...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-2 font-medium">3. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.</label>
+                        <input type="text" data-part="1" data-q="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white" placeholder="Escriba la respuesta...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-2 font-medium">4. Un campo es la unidad mínima de datos con significado _____________________. Representa una característica o propiedad de una entidad.</label>
+                        <input type="text" data-part="1" data-q="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white" placeholder="Escriba la respuesta...">
+                    </div>
                 </div>
             </div>
 
             <!-- PARTE II: SELECCIÓN SIMPLE -->
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-                <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2">II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos / 1 pt c/u)</h3>
-                
-                <div class="space-y-3">
-                    <p class="text-sm font-medium text-slate-200">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
-                    <div class="space-y-2 pl-4">
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="a"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="b"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="c"> c) Conectar dos tablas mediante llaves foráneas.</label>
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="d"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
-                    </div>
+                <div class="border-b border-slate-700 pb-2">
+                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos)</h3>
+                    <p class="text-xs text-slate-400">Encierra en un círculo la respuesta correcta (1 punto c/u).</p>
                 </div>
+                
+                <div class="space-y-4 pt-2">
+                    <div class="space-y-2">
+                        <p class="text-sm font-medium text-slate-200">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
+                        <div class="space-y-1.5 pl-2">
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="a"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="b"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="c"> c) Conectar dos tablas mediante llaves foráneas.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q1" value="d"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
+                        </div>
+                    </div>
 
-                <div class="space-y-3 pt-4 border-t border-slate-700">
-                    <p class="text-sm font-medium text-slate-200">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse)?</p>
-                    <div class="space-y-2 pl-4">
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="a"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="b"> b) Contiene datos altamente normalizados para inserciones masivas.</label>
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="c"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
-                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="d"> d) Permite modificar los datos históricos libremente para corregir errores operativos.</label>
+                    <div class="space-y-2 pt-3 border-t border-slate-700/60">
+                        <p class="text-sm font-medium text-slate-200">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse)?</p>
+                        <div class="space-y-1.5 pl-2">
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="a"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="b"> b) Contiene datos altamente normalizados para inserciones masivas.</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="c"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
+                            <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="radio" name="p2_q2" value="d"> d) Permite modificar los datos históricos libremente para corregir errores operativos.</label>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- PARTE III: DESARROLLO -->
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-                <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2">III PARTE: DESARROLLO (Valor: 4 Puntos / 2 pts c/u)</h3>
-                
-                <div>
-                    <label class="block text-sm text-slate-300 mb-2">1. ¿Qué es una Base de Datos?</label>
-                    <textarea data-part="3" data-q="1" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Redacte su respuesta teórica aquí..."></textarea>
+                <div class="border-b border-slate-700 pb-2">
+                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO (Valor: 4 Puntos)</h3>
+                    <p class="text-xs text-slate-400">Defina los siguientes conceptos basados en clase (2 puntos c/u).</p>
                 </div>
-                <div>
-                    <label class="block text-sm text-slate-300 mb-2">2. ¿Qué es un registro?</label>
-                    <textarea data-part="3" data-q="2" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Redacte su respuesta teórica aquí..."></textarea>
+                
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-2 font-medium">1. ¿Qué es una Base de Datos?</label>
+                        <textarea data-part="3" data-q="1" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Redacte su respuesta aquí..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-2 font-medium">2. ¿Qué es un registro?</label>
+                        <textarea data-part="3" data-q="2" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Redacte su respuesta aquí..."></textarea>
+                    </div>
                 </div>
             </div>
 
-            <!-- PARTE IV: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN -->
+            <!-- PARTE IV: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (EN BLANCO) -->
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-6">
-                <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2">IV PARTE: EJERCICIOS PRÁCTICOS (Valor: 10 Puntos)</h3>
-                <p class="text-xs text-slate-400">Diseñe las tablas independientes hasta la 3FN, añadiendo sus campos y especificando cuáles son Claves Primarias (PK) y Claves Foráneas (FK).</p>
+                <div class="border-b border-slate-700 pb-2">
+                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS (Valor: 10 Puntos)</h3>
+                    <p class="text-xs text-slate-400">Aplique normalización paso a paso creando las tablas independientes hasta la 3FN, especificando sus atributos, Claves Primarias (PK) y Foráneas (FK).</p>
+                </div>
 
                 <!-- Ejercicio 1 -->
                 <div class="bg-slate-900/60 border border-slate-700 p-4 rounded-xl space-y-3" id="ex1-container">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-red-400 text-sm">Ejercicio 1: Sistema de Préstamos Bibliotecarios (5 Puntos)</h4>
-                        <button type="button" onclick="addTable('ex1')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg transition">+ Crear Tabla (3FN)</button>
+                        <button type="button" onclick="addTable('ex1')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
                     </div>
-                    <p class="text-xs text-slate-400 italic">Tabla plana inicial: ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo.</p>
+                    <p class="text-xs text-slate-400 italic bg-slate-950 p-2.5 rounded border border-slate-800">Tabla plana inicial: ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo.</p>
                     <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex1">
-                        <!-- Tablas creadas dinámicamente aquí -->
+                        <!-- Inicia completamente en blanco -->
                     </div>
                 </div>
 
@@ -198,41 +218,43 @@
                 <div class="bg-slate-900/60 border border-slate-700 p-4 rounded-xl space-y-3" id="ex2-container">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-red-400 text-sm">Ejercicio 2: Sistema de Citas Médicas (5 Puntos)</h4>
-                        <button type="button" onclick="addTable('ex2')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg transition">+ Crear Tabla (3FN)</button>
+                        <button type="button" onclick="addTable('ex2')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
                     </div>
-                    <p class="text-xs text-slate-400 italic">Tabla plana inicial: ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico.</p>
+                    <p class="text-xs text-slate-400 italic bg-slate-950 p-2.5 rounded border border-slate-800">Tabla plana inicial: ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico.</p>
                     <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex2">
-                        <!-- Tablas creadas dinámicamente aquí -->
+                        <!-- Inicia completamente en blanco -->
                     </div>
                 </div>
             </div>
 
             <!-- BOTÓN FINALIZAR -->
             <div class="text-center pt-4 pb-12">
-                <button type="button" id="btn-finish-exam" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl transition shadow-xl text-lg">
+                <button type="button" id="btn-finish-exam" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-10 py-4 rounded-xl transition shadow-2xl text-base tracking-wide">
                     Finalizar y Entregar Prueba Grupal
                 </button>
             </div>
         </section>
 
         <!-- VISTA 3: RESULTADOS Y DESCARGA DE PDF -->
-        <section id="view-results" class="hidden bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-xl text-center space-y-6">
-            <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl">✓</div>
+        <section id="view-results" class="hidden bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl text-center space-y-6">
+            <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">✓</div>
             <h2 class="text-2xl font-bold text-white">¡Evaluación Entregada con Éxito!</h2>
-            <p class="text-sm text-slate-300">Los resultados han sido registrados en la base de datos de Firebase y enviados al docente.</p>
+            <p class="text-sm text-slate-300">Los resultados han sido almacenados de forma segura en la base de datos de Firebase.</p>
             
-            <div class="bg-slate-900 p-6 rounded-xl max-w-md mx-auto border border-slate-700 text-left space-y-2">
-                <p class="text-xs text-slate-400">GRUPO: <span id="res-group" class="text-white font-bold"></span></p>
-                <p class="text-xs text-slate-400">INTEGRANTES:</p>
-                <ul id="res-members" class="list-disc pl-5 text-sm text-slate-200"></ul>
+            <div class="bg-slate-900 p-6 rounded-xl max-w-md mx-auto border border-slate-700 text-left space-y-3 shadow-inner">
+                <p class="text-xs text-slate-400 uppercase tracking-wider">Grupo: <span id="res-group" class="text-white font-bold font-mono"></span></p>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Integrantes:</p>
+                    <ul id="res-members" class="list-disc pl-5 text-sm text-slate-200 space-y-1"></ul>
+                </div>
                 <div class="border-t border-slate-800 pt-3 mt-3 flex justify-between items-center">
-                    <span class="text-sm text-slate-300 font-bold">PUNTUACIÓN FINAL:</span>
-                    <span id="res-score" class="text-2xl font-bold text-emerald-400">0.00 / 20 pts</span>
+                    <span class="text-sm text-slate-200 font-bold">PUNTUACIÓN FINAL:</span>
+                    <span id="res-score" class="text-2xl font-bold text-emerald-400 font-mono">0.00 / 20 pts</span>
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                <button type="button" id="btn-download-pdf" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg">
+            <div class="flex justify-center pt-2">
+                <button type="button" id="btn-download-pdf" class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-xl text-sm">
                     Descargar Planilla PDF Calificada
                 </button>
             </div>
@@ -245,7 +267,7 @@
         Universidad Nacional Experimental Politécnica de la Fuerza Armada Nacional Bolivariana (UNEFA) - Núcleo Guárico Sede Tucupido
     </footer>
 
-    <!-- Script de Lógica de la Evaluación -->
+    <!-- Script de Lógica -->
     <script>
         let examData = {
             groupName: '',
@@ -254,11 +276,9 @@
             startTime: null,
             timerInterval: null,
             warnings: 0,
-            score: 0,
-            answersSummary: {}
+            score: 0
         };
 
-        // Iniciar Examen
         document.getElementById('btn-start-exam').addEventListener('click', () => {
             const groupCode = document.getElementById('group-code').value.trim();
             const profEmail = document.getElementById('cfg-prof-email').value.trim();
@@ -284,16 +304,14 @@
                 examData.students.push({ nombre: est3Nombre, cedula: est3Cedula });
             }
 
-            // Cambiar vistas
             document.getElementById('view-setup').classList.add('hidden');
             document.getElementById('view-exam').classList.remove('hidden');
             document.getElementById('header-timer-container').classList.remove('hidden');
 
-            startTimer(120 * 60); // 2 horas en segundos
+            startTimer(120 * 60); // 2 horas
             initTabSwitchDetection();
         });
 
-        // Cronómetro de 2 horas
         function startTimer(duration) {
             let timer = duration;
             const display = document.getElementById('timer-display');
@@ -317,7 +335,6 @@
             }, 1000);
         }
 
-        // Detector de salida de pantalla / pestaña
         function initTabSwitchDetection() {
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
@@ -333,22 +350,21 @@
             });
         }
 
-        // Creador dinámico de tablas 3FN en blanco
         window.addTable = function(exerciseId) {
             const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
-            const tableId = 't_' + Math.random().toString(36.substring(2, 9));
+            const tableId = 't_' + Math.random().toString(36).substring(2, 9);
             
             const tableDiv = document.createElement('div');
-            tableDiv.className = 'bg-slate-950 border border-slate-700 p-4 rounded-xl space-y-3 relative table-card';
+            tableDiv.className = 'bg-slate-950 border border-slate-700 p-4 rounded-xl space-y-3 relative table-card shadow';
             tableDiv.innerHTML = `
                 <div class="flex justify-between items-center gap-2">
-                    <input type="text" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-bold w-full tbl-name">
-                    <button type="button" onclick="this.closest('.table-card').remove()" class="text-red-400 hover:text-red-300 text-xs font-bold px-2">✕ Eliminar</button>
+                    <input type="text" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white font-bold w-full tbl-name">
+                    <button type="button" onclick="this.closest('.table-card').remove()" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
                 </div>
                 <div class="fields-container space-y-2 pl-2 border-l-2 border-red-600">
                     <p class="text-xs text-slate-400">Atributos / Campos:</p>
                 </div>
-                <button type="button" onclick="addField('${tableId}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded transition">+ Añadir Campo</button>
+                <button type="button" onclick="addField('${tableId}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Campo</button>
             `;
             tableDiv.id = tableId;
             wrapper.appendChild(tableDiv);
@@ -360,20 +376,19 @@
             const fieldRow = document.createElement('div');
             fieldRow.className = 'flex flex-col sm:flex-row gap-2 items-center field-row';
             fieldRow.innerHTML = `
-                <input type="text" placeholder="Nombre del campo" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white flex-grow w-full f-name">
+                <input type="text" placeholder="Nombre del campo" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white flex-grow w-full f-name">
                 <select class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-300 f-type">
                     <option value="Normal">Atributo Normal</option>
                     <option value="PK">PK (Clave Primaria)</option>
                     <option value="FK">FK (Clave Foránea)</option>
                     <option value="PK-FK">PK + FK</option>
                 </select>
-                <input type="text" placeholder="Ref. Tabla (si es FK)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white f-ref w-full sm:w-32">
-                <button type="button" onclick="this.closest('.field-row').remove()" class="text-red-400 text-xs px-1">🗑</button>
+                <input type="text" placeholder="Ref. Tabla (si es FK)" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white f-ref w-full sm:w-32">
+                <button type="button" onclick="this.closest('.field-row').remove()" class="text-red-400 text-xs px-1 font-bold">🗑</button>
             `;
             container.appendChild(fieldRow);
         };
 
-        // Finalizar examen y calcular nota
         document.getElementById('btn-finish-exam').addEventListener('click', () => {
             if (confirm('¿Está seguro de finalizar y enviar la prueba? No podrá modificar las respuestas después.')) {
                 finishExam();
@@ -383,7 +398,6 @@
         function finishExam() {
             clearInterval(examData.timerInterval);
 
-            // Calificación automática Parte I (4 pts)
             let scorePart1 = 0;
             const p1_q1 = document.querySelector('input[data-part="1"][data-q="1"]').value.trim().toLowerCase();
             const p1_q2 = document.querySelector('input[data-part="1"][data-q="2"]').value.trim().toLowerCase();
@@ -393,23 +407,20 @@
             if (p1_q1.includes('distribuida') || p1_q1.includes('centralizada') || p1_q1.includes('relacional')) scorePart1 += 1;
             if (p1_q2.includes('físicos') || p1_q2.includes('fisicos') || p1_q2.includes('lógicos')) scorePart1 += 1;
             if (p1_q3.includes('ingeniería inversa') || p1_q3.includes('ingenieria inversa')) scorePart1 += 1;
-            if (scorePart1 < 4 && p1_q4.length > 2) scorePart1 += 1; // Asignación generosa de completación
+            if (scorePart1 < 4 && p1_q4.length > 2) scorePart1 += 1;
 
-            // Calificación Parte II (2 pts)
             let scorePart2 = 0;
             const p2_q1 = document.querySelector('input[name="p2_q1"]:checked');
             const p2_q2 = document.querySelector('input[name="p2_q2"]:checked');
             if (p2_q1 && p2_q1.value === 'b') scorePart2 += 1;
             if (p2_q2 && p2_q2.value === 'c') scorePart2 += 1;
 
-            // Calificación Parte III Desarrollo (4 pts)
             let scorePart3 = 0;
             const p3_q1 = document.querySelector('textarea[data-part="3"][data-q="1"]').value.trim();
             const p3_q2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
             if (p3_q1.length > 10) scorePart3 += 2;
             if (p3_q2.length > 10) scorePart3 += 2;
 
-            // Calificación Parte IV Normalización (10 pts - basado en si crearon tablas y PKs)
             let scorePart4 = 0;
             const ex1Tables = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
             const ex2Tables = document.querySelectorAll('.tables-wrapper[data-exercise="ex2"] .table-card');
@@ -421,7 +432,6 @@
 
             examData.score = scorePart1 + scorePart2 + scorePart3 + scorePart4;
 
-            // Guardar en Firestore si está disponible
             if (window.firebaseAvailable && window.db) {
                 try {
                     addDoc(collection(window.db, "evaluaciones_taller1"), {
@@ -435,7 +445,6 @@
                 }
             }
 
-            // Mostrar vista de resultados
             document.getElementById('view-exam').classList.add('hidden');
             document.getElementById('header-timer-container').classList.add('hidden');
             document.getElementById('view-results').classList.remove('hidden');
@@ -452,7 +461,6 @@
             });
         }
 
-        // Descarga de PDF
         document.getElementById('btn-download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
