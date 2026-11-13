@@ -424,10 +424,10 @@
             const p1_4 = document.querySelector('input[data-part="1"][data-q="4"]').value.trim();
 
             let scorePart1 = 0;
-            let c1 = p1_1.length > 3 && (p1_1.toLowerCase().includes('distribuida') || p1_1.toLowerCase().includes('centralizada') || p1_1.toLowerCase().includes('relacional'));
-            let c2 = p1_2.length > 3 && (p1_2.toLowerCase().includes('físicos') || p1_2.toLowerCase().includes('fisicos') || p1_2.toLowerCase().includes('lógicos') || p1_2.toLowerCase().includes('logicos'));
-            let c3 = p1_3.length > 5 && (p1_3.toLowerCase().includes('ingeniería inversa') || p1_3.toLowerCase().includes('ingenieria inversa') || p1_3.toLowerCase().includes('inversa'));
-            let c4 = p1_4.length > 3 && (p1_4.toLowerCase().includes('único') || p1_4.toLowerCase().includes('unico') || p1_4.toLowerCase().includes('propio') || p1_4.toLowerCase().includes('elemental'));
+            let c1 = p1_1.toLowerCase().includes('logico');
+            let c2 = p1_2.toLowerCase().includes('protegida');
+            let c3 = p1_3.toLowerCase().includes('homogeneos');
+            let c4 = p1_4.toLowerCase().includes('ingeniería inversa') || p1_4.toLowerCase().includes('ingenieria inversa');
 
             if (c1) scorePart1 += 1;
             if (c2) scorePart1 += 1;
@@ -490,18 +490,18 @@
             
             examData.details = {
                 p1: [
-                    {q: 1, resp: p1_1 || 'Vacía', expected: 'Distribuida / Relacional', correct: c1, pts: c1 ? 1 : 0}, 
-                    {q: 2, resp: p1_2 || 'Vacía', expected: 'Físicos / Lógicos', correct: c2, pts: c2 ? 1 : 0}, 
-                    {q: 3, resp: p1_3 || 'Vacía', expected: 'Ingeniería Inversa', correct: c3, pts: c3 ? 1 : 0}, 
-                    {q: 4, resp: p1_4 || 'Vacía', expected: 'Único / Elemental', correct: c4, pts: c4 ? 1 : 0}
+                    {q: 1, resp: p1_1 || 'Vacía', expected: 'Lógico', correct: c1, pts: c1 ? 1 : 0}, 
+                    {q: 2, resp: p1_2 || 'Vacía', expected: 'Protegida', correct: c2, pts: c2 ? 1 : 0}, 
+                    {q: 3, resp: p1_3 || 'Vacía', expected: 'Homogéneos', correct: c3, pts: c3 ? 1 : 0}, 
+                    {q: 4, resp: p1_4 || 'Vacía', expected: 'Ingeniería Inversa', correct: c4, pts: c4 ? 1 : 0}
                 ],
                 p2: [
                     {q: 1, resp: p2_1 ? p2_1.toUpperCase() : 'Ninguna', expected: 'B', correct: cc1, pts: cc1 ? 1 : 0}, 
                     {q: 2, resp: p2_2 ? p2_2.toUpperCase() : 'Ninguna', expected: 'C', correct: cc2, pts: cc2 ? 1 : 0}
                 ],
                 p3: [
-                    {q: 1, resp: p3_1 || 'Vacía', pts: p3_1.length > 15 ? 2 : 0}, 
-                    {q: 2, resp: p3_2 || 'Vacía', pts: p3_2.length > 15 ? 2 : 0}
+                    {q: 1, resp: p3_1 || 'Vacía', expectedText: 'Es un sistema estructurado e integrado de archivos y datos persistentes relacionados entre sí...', pts: p3_1.length > 15 ? 2 : 0}, 
+                    {q: 2, resp: p3_2 || 'Vacía', expectedText: 'Es una colección de campos lógicamente relacionados que describen las características...', pts: p3_2.length > 15 ? 2 : 0}
                 ],
                 p4: {
                     ex1Tables: ex1TablesData,
@@ -532,7 +532,7 @@
                 `- Parte I (Completación): ${scorePart1}/4 pts\n` +
                 `- Parte II (Selección Simple): ${scorePart2}/2 pts\n` +
                 `- Parte III (Desarrollo): ${scorePart3}/4 pts\n` +
-                `- Parte IV (Normalización): ${scorePart4}/10 pts (Ej1: ${examData.details.p4.ex1Tables.length} tablas, Ej2: ${examData.details.p4.ex2Tables.length} tablas)`;
+                `- Parte IV (Normalización): ${scorePart4}/10 pts`;
 
             emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
                 to_email: examData.profEmail,
@@ -562,7 +562,7 @@
             });
         }
 
-        // Descarga de PDF con respuestas del alumno y clave de corrección oficial al final
+        // Descarga de PDF con espaciado vertical corregido (sin solapamientos ni agrupaciones)
         document.getElementById('btn-download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -570,7 +570,7 @@
             let y = 15;
 
             function checkPageSpace(needed) {
-                if (y + needed > 280) {
+                if (y + needed > 275) {
                     doc.addPage();
                     y = 20;
                 }
@@ -600,99 +600,102 @@
                 y += 5;
             });
 
-            y += 4;
+            y += 6;
             doc.setFontSize(11);
             doc.text("PLANILLA DE EVALUACIÓN - TALLER N° 1 (ESTRUCTURA DE PRUEBA)", 20, y);
-            y += 6;
+            y += 8;
 
             // Parte I
-            checkPageSpace(30);
+            checkPageSpace(35);
             doc.setFontSize(10);
-            doc.text("I PARTE: COMPLETACIÓN (Valor: 4 Puntos)", 20, y); y += 5;
+            doc.text("I PARTE: COMPLETACIÓN (Valor: 4 Puntos)", 20, y); y += 6;
             doc.setFontSize(9);
             examData.details.p1.forEach(item => {
-                checkPageSpace(10);
-                doc.text(`- P${item.q}: [ ${item.resp} ] (Nota: ${item.pts} pt | Clave: ${item.expected})`, 25, y);
-                y += 5;
+                checkPageSpace(14);
+                doc.text(`- P${item.q}: Estudiante: [ ${item.resp} ] (Nota: ${item.pts} pt)`, 25, y); y += 5;
+                doc.text(`  Clave oficial esperada: ${item.expected}`, 28, y); y += 6;
             });
 
-            y += 3;
+            y += 4;
             // Parte II
-            checkPageSpace(25);
+            checkPageSpace(30);
             doc.setFontSize(10);
-            doc.text("II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos)", 20, y); y += 5;
+            doc.text("II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos)", 20, y); y += 6;
             doc.setFontSize(9);
             examData.details.p2.forEach(item => {
-                checkPageSpace(10);
+                checkPageSpace(12);
                 doc.text(`- P${item.q}: Opción marcada: [ ${item.resp} ] (Nota: ${item.pts} pt | Clave: [${item.expected}])`, 25, y);
-                y += 5;
+                y += 6;
             });
 
-            y += 3;
+            y += 4;
             // Parte III
-            checkPageSpace(30);
+            checkPageSpace(45);
             doc.setFontSize(10);
-            doc.text("III PARTE: DESARROLLO (Valor: 4 Puntos)", 20, y); y += 5;
+            doc.text("III PARTE: DESARROLLO (Valor: 4 Puntos)", 20, y); y += 6;
             doc.setFontSize(9);
-            doc.text(`1. ¿Qué es una Base de Datos? (Nota: ${examData.details.p3[0].pts}/2 pts)`, 25, y); y += 4;
-            doc.text(`   R/ ${examData.details.p3[0].resp}`, 25, y); y += 5;
-            doc.text(`2. ¿Qué es un registro? (Nota: ${examData.details.p3[1].pts}/2 pts)`, 25, y); y += 4;
-            doc.text(`   R/ ${examData.details.p3[1].resp}`, 25, y); y += 6;
+            doc.text(`1. ¿Qué es una Base de Datos? (Nota: ${examData.details.p3[0].pts}/2 pts)`, 25, y); y += 5;
+            doc.text(`   R/ Estudiante: ${examData.details.p3[0].resp}`, 25, y); y += 5;
+            doc.text(`   Solución modelo: ${examData.details.p3[0].expectedText}`, 28, y); y += 7;
+
+            doc.text(`2. ¿Qué es un registro? (Nota: ${examData.details.p3[1].pts}/2 pts)`, 25, y); y += 5;
+            doc.text(`   R/ Estudiante: ${examData.details.p3[1].resp}`, 25, y); y += 5;
+            doc.text(`   Solución modelo: ${examData.details.p3[1].expectedText}`, 28, y); y += 8;
 
             // Parte IV: Normalización (Tablas del Estudiante)
-            checkPageSpace(30);
+            checkPageSpace(35);
             doc.setFontSize(10);
-            doc.text("IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 Puntos)", 20, y); y += 6;
+            doc.text("IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 Puntos)", 20, y); y += 8;
 
             doc.setFontSize(9);
-            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 5;
+            doc.text(`• Ejercicio 1 (Préstamos Bibliotecarios) - Nota: ${examData.details.p4.ex1Pts} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex1Tables.length === 0) {
-                doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 6;
+                doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
             } else {
                 examData.details.p4.ex1Tables.forEach((tbl, tIdx) => {
-                    checkPageSpace(25 + tbl.fields.length * 5);
+                    checkPageSpace(30 + tbl.fields.length * 6);
                     doc.setFillColor(235, 240, 250);
                     doc.rect(25, y, 160, 6, 'F');
                     doc.setFont("helvetica", "bold");
-                    doc.text(`Tabla Estudiante ${tIdx + 1}: ${tbl.name}`, 28, y + 4);
-                    y += 7;
+                    doc.text(`Tabla Estudiante ${tIdx + 1}: ${tbl.name}`, 28, y + 4.5);
+                    y += 9;
                     doc.setFont("helvetica", "normal");
                     tbl.fields.forEach(f => {
-                        checkPageSpace(6);
+                        checkPageSpace(7);
                         doc.text(`   - Atributo: ${f.name} [ Tipo: ${f.type} ${f.ref ? '-> Ref: ' + f.ref : ''} ]`, 28, y);
-                        y += 5;
+                        y += 5.5;
                     });
-                    y += 3;
+                    y += 4;
                 });
             }
 
-            y += 3;
-            checkPageSpace(20);
-            doc.text(`• Ejercicio 2 (Citas Médicas) - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 5;
+            y += 4;
+            checkPageSpace(25);
+            doc.text(`• Ejercicio 2 (Citas Médicas) - Nota: ${examData.details.p4.ex2Pts} / 5 pts`, 22, y); y += 6;
             if (examData.details.p4.ex2Tables.length === 0) {
-                doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 6;
+                doc.text("   (No se crearon tablas para este ejercicio)", 25, y); y += 8;
             } else {
                 examData.details.p4.ex2Tables.forEach((tbl, tIdx) => {
-                    checkPageSpace(25 + tbl.fields.length * 5);
+                    checkPageSpace(30 + tbl.fields.length * 6);
                     doc.setFillColor(235, 240, 250);
                     doc.rect(25, y, 160, 6, 'F');
                     doc.setFont("helvetica", "bold");
-                    doc.text(`Tabla Estudiante ${tIdx + 1}: ${tbl.name}`, 28, y + 4);
-                    y += 7;
+                    doc.text(`Tabla Estudiante ${tIdx + 1}: ${tbl.name}`, 28, y + 4.5);
+                    y += 9;
                     doc.setFont("helvetica", "normal");
                     tbl.fields.forEach(f => {
-                        checkPageSpace(6);
+                        checkPageSpace(7);
                         doc.text(`   - Atributo: ${f.name} [ Tipo: ${f.type} ${f.ref ? '-> Ref: ' + f.ref : ''} ]`, 28, y);
-                        y += 5;
+                        y += 5.5;
                     });
-                    y += 3;
+                    y += 4;
                 });
             }
 
             // ==========================================
             // CLAVE DE CORRECCIÓN OFICIAL (MODELO 3FN)
             // ==========================================
-            checkPageSpace(60);
+            checkPageSpace(70);
             y += 10;
             doc.setFillColor(20, 30, 80);
             doc.rect(20, y, 170, 7, 'F');
@@ -700,70 +703,64 @@
             doc.setFont("helvetica", "bold");
             doc.setFontSize(10);
             doc.text("CLAVE DE CORRECCIÓN OFICIAL - MODELO 3FN (SOLUCIONARIO)", 105, y + 5, { align: "center" });
-            y += 12;
+            y += 14;
 
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(9);
 
             // Solucionario Ejercicio 1
-            doc.text("Solución Ejercicio 1: Sistema de Préstamos Bibliotecarios (Tablas en 3FN):", 20, y); y += 5;
+            doc.text("Solución Ejercicio 1: Sistema de Préstamos Bibliotecarios (Tablas en 3FN):", 20, y); y += 6;
             
-            // Tabla Estudiantes
-            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 5, 'F');
-            doc.setFont("helvetica", "bold"); doc.text("Tabla: ESTUDIANTES", 28, y + 4); y += 6;
+            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 6, 'F');
+            doc.setFont("helvetica", "bold"); doc.text("Tabla: ESTUDIANTES", 28, y + 4.5); y += 9;
             doc.setFont("helvetica", "normal");
-            doc.text(" - ID_Estudiante [ PK ]", 28, y); y += 4;
-            doc.text(" - Nombre_Estudiante [ Normal ]", 28, y); y += 4;
-            doc.text(" - Carrera_Estudiante [ Normal ]", 28, y); y += 6;
+            doc.text(" - ID_Estudiante [ PK ]", 28, y); y += 5;
+            doc.text(" - Nombre_Estudiante [ Normal ]", 28, y); y += 5;
+            doc.text(" - Carrera_Estudiante [ Normal ]", 28, y); y += 7;
 
-            // Tabla Libros
-            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 5, 'F');
-            doc.setFont("helvetica", "bold"); doc.text("Tabla: LIBROS", 28, y + 4); y += 6;
+            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 6, 'F');
+            doc.setFont("helvetica", "bold"); doc.text("Tabla: LIBROS", 28, y + 4.5); y += 9;
             doc.setFont("helvetica", "normal");
-            doc.text(" - Codigo_Libro [ PK ]", 28, y); y += 4;
-            doc.text(" - Titulo_Libro [ Normal ]", 28, y); y += 4;
-            doc.text(" - Autor_Libro [ Normal ]", 28, y); y += 6;
+            doc.text(" - Codigo_Libro [ PK ]", 28, y); y += 5;
+            doc.text(" - Titulo_Libro [ Normal ]", 28, y); y += 5;
+            doc.text(" - Autor_Libro [ Normal ]", 28, y); y += 7;
 
-            // Tabla Prestamos
-            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 5, 'F');
-            doc.setFont("helvetica", "bold"); doc.text("Tabla: PRESTAMOS", 28, y + 4); y += 6;
+            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 6, 'F');
+            doc.setFont("helvetica", "bold"); doc.text("Tabla: PRESTAMOS", 28, y + 4.5); y += 9;
             doc.setFont("helvetica", "normal");
-            doc.text(" - ID_Prestamo [ PK ]", 28, y); y += 4;
-            doc.text(" - Fecha_Prestamo [ Normal ]", 28, y); y += 4;
-            doc.text(" - Dias_Prestamo [ Normal ]", 28, y); y += 4;
-            doc.text(" - ID_Estudiante [ FK -> ESTUDIANTES ]", 28, y); y += 4;
-            doc.text(" - Codigo_Libro [ FK -> LIBROS ]", 28, y); y += 8;
+            doc.text(" - ID_Prestamo [ PK ]", 28, y); y += 5;
+            doc.text(" - Fecha_Prestamo [ Normal ]", 28, y); y += 5;
+            doc.text(" - Dias_Prestamo [ Normal ]", 28, y); y += 5;
+            doc.text(" - ID_Estudiante [ FK -> ESTUDIANTES ]", 28, y); y += 5;
+            doc.text(" - Codigo_Libro [ FK -> LIBROS ]", 28, y); y += 9;
 
             // Solucionario Ejercicio 2
-            checkPageSpace(50);
+            checkPageSpace(60);
             doc.setFont("helvetica", "bold");
-            doc.text("Solución Ejercicio 2: Sistema de Citas Médicas (Tablas en 3FN):", 20, y); y += 5;
+            doc.text("Solución Ejercicio 2: Sistema de Citas Médicas (Tablas en 3FN):", 20, y); y += 6;
 
-            // Tabla Medicos
-            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 5, 'F');
-            doc.text("Tabla: MEDICOS", 28, y + 4); y += 6;
+            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 6, 'F');
+            doc.text("Tabla: MEDICOS", 28, y + 4.5); y += 9;
             doc.setFont("helvetica", "normal");
-            doc.text(" - ID_Medico [ PK ]", 28, y); y += 4;
-            doc.text(" - Nombre_Medico [ Normal ]", 28, y); y += 4;
-            doc.text(" - Especialidad_Medico [ Normal ]", 28, y); y += 4;
-            doc.text(" - Consultorio_Medico [ Normal ]", 28, y); y += 6;
+            doc.text(" - ID_Medico [ PK ]", 28, y); y += 5;
+            doc.text(" - Nombre_Medico [ Normal ]", 28, y); y += 5;
+            doc.text(" - Especialidad_Medico [ Normal ]", 28, y); y += 5;
+            doc.text(" - Consultorio_Medico [ Normal ]", 28, y); y += 7;
 
-            // Tabla Pacientes
-            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 5, 'F');
-            doc.setFont("helvetica", "bold"); doc.text("Tabla: PACIENTES", 28, y + 4); y += 6;
+            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 6, 'F');
+            doc.setFont("helvetica", "bold"); doc.text("Tabla: PACIENTES", 28, y + 4.5); y += 9;
             doc.setFont("helvetica", "normal");
-            doc.text(" - ID_Paciente [ PK ]", 28, y); y += 4;
-            doc.text(" - Nombre_Paciente [ Normal ]", 28, y); y += 4;
-            doc.text(" - Telefono_Paciente [ Normal ]", 28, y); y += 6;
+            doc.text(" - ID_Paciente [ PK ]", 28, y); y += 5;
+            doc.text(" - Nombre_Paciente [ Normal ]", 28, y); y += 5;
+            doc.text(" - Telefono_Paciente [ Normal ]", 28, y); y += 7;
 
-            // Tabla Citas
-            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 5, 'F');
-            doc.setFont("helvetica", "bold"); doc.text("Tabla: CITAS", 28, y + 4); y += 6;
+            doc.setFillColor(245, 247, 250); doc.rect(25, y, 160, 6, 'F');
+            doc.setFont("helvetica", "bold"); doc.text("Tabla: CITAS", 28, y + 4.5); y += 9;
             doc.setFont("helvetica", "normal");
-            doc.text(" - ID_Cita [ PK ]", 28, y); y += 4;
-            doc.text(" - Fecha_Hora [ Normal ]", 28, y); y += 4;
-            doc.text(" - Diagnostico [ Normal ]", 28, y); y += 4;
-            doc.text(" - ID_Medico [ FK -> MEDICOS ]", 28, y); y += 4;
+            doc.text(" - ID_Cita [ PK ]", 28, y); y += 5;
+            doc.text(" - Fecha_Hora [ Normal ]", 28, y); y += 5;
+            doc.text(" - Diagnostico [ Normal ]", 28, y); y += 5;
+            doc.text(" - ID_Medico [ FK -> MEDICOS ]", 28, y); y += 5;
             doc.text(" - ID_Paciente [ FK -> PACIENTES ]", 28, y);
 
             doc.save(`Planilla_Prueba_Taller1_${examData.groupName}.pdf`);
