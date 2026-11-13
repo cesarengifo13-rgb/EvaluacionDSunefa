@@ -337,7 +337,7 @@
             document.getElementById('view-exam').classList.remove('hidden');
             document.getElementById('header-timer-container').classList.remove('hidden');
 
-            startTimer(90 * 60); // 90 minutos exactos
+            startTimer(90 * 60);
             initTabSwitchDetection();
         });
 
@@ -374,6 +374,59 @@
             });
         }
 
+        // Actualiza los selectores FK dinámicos en tiempo real
+        window.updateAllFKDropdowns = function(exerciseId) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            if (!wrapper) return;
+
+            let availablePKs = [];
+            wrapper.querySelectorAll('.table-card').forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA_SIN_NOMBRE';
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fType = row.querySelector('.f-type').value;
+                    let fName = row.querySelector('.f-name').value.trim();
+                    if ((fType === 'PK' || fType === 'PK-FK') && fName) {
+                        availablePKs.push({ table: tName, field: fName });
+                    }
+                });
+            });
+
+            wrapper.querySelectorAll('.field-row').forEach(row => {
+                let typeSelect = row.querySelector('.f-type');
+                let refContainer = row.querySelector('.f-ref-container');
+                let currentVal = row.getAttribute('data-selected-ref') || '';
+
+                if (typeSelect.value === 'FK' || typeSelect.value === 'PK-FK') {
+                    refContainer.innerHTML = '';
+                    let selectRef = document.createElement('select');
+                    selectRef.className = 'bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 f-ref w-full focus:ring-1 focus:ring-blue-500 outline-none';
+                    
+                    let defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = '-- Seleccionar FK --';
+                    selectRef.appendChild(defaultOpt);
+
+                    availablePKs.forEach(pk => {
+                        let valStr = `${pk.table}.${pk.field}`;
+                        let opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = `${pk.table} (${pk.field})`;
+                        if (valStr === currentVal) opt.selected = true;
+                        selectRef.appendChild(opt);
+                    });
+
+                    selectRef.onchange = function() {
+                        row.setAttribute('data-selected-ref', this.value);
+                    };
+
+                    refContainer.appendChild(selectRef);
+                } else {
+                    refContainer.innerHTML = '<span class="text-slate-400 text-xs italic">N/A</span>';
+                    row.removeAttribute('data-selected-ref');
+                }
+            });
+        };
+
         window.addTable = function(exerciseId) {
             const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
             const tableId = 't_' + Math.random().toString(36).substring(2, 9);
@@ -381,35 +434,57 @@
             tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
             tableDiv.innerHTML = `
                 <div class="flex justify-between items-center gap-2">
-                    <input type="text" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name focus:ring-2 focus:ring-blue-500 outline-none">
-                    <button type="button" onclick="this.closest('.table-card').remove()" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                    <input type="text" placeholder="Nombre de la Tabla (Ej. TABLA_CLIENTES)" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name focus:ring-2 focus:ring-blue-500 outline-none" oninput="updateAllFKDropdowns('${exerciseId}')">
+                    <button type="button" onclick="this.closest('.table-card').remove(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
                 </div>
                 <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
                     <p class="text-xs text-slate-500">Atributos / Campos:</p>
                 </div>
-                <button type="button" onclick="addField('${tableId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Campo</button>
+                <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Campo</button>
             `;
             tableDiv.id = tableId;
             wrapper.appendChild(tableDiv);
+            updateAllFKDropdowns(exerciseId);
         };
 
-        window.addField = function(tableId) {
+        window.addField = function(tableId, exerciseId) {
             const tableCard = document.getElementById(tableId);
             const container = tableCard.querySelector('.fields-container');
             const fieldRow = document.createElement('div');
-            fieldRow.className = 'flex flex-col sm:flex-row gap-2 items-center field-row';
+            fieldRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200';
             fieldRow.innerHTML = `
-                <input type="text" placeholder="Nombre del campo" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 flex-grow w-full f-name focus:ring-1 focus:ring-blue-500 outline-none">
-                <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 f-type">
-                    <option value="Normal">Atributo Normal</option>
-                    <option value="PK">PK (Clave Primaria)</option>
-                    <option value="FK">FK (Clave Foránea)</option>
-                    <option value="PK-FK">PK + FK</option>
-                </select>
-                <input type="text" placeholder="Ref. Tabla (si es FK)" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 f-ref w-full sm:w-32 focus:ring-1 focus:ring-blue-500 outline-none">
-                <button type="button" onclick="this.closest('.field-row').remove()" class="text-red-600 text-xs px-1 font-bold">🗑</button>
+                <div class="sm:col-span-3">
+                    <input type="text" placeholder="Nombre del campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="updateAllFKDropdowns('${exerciseId}')">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype">
+                        <option value="INT">INT</option>
+                        <option value="VARCHAR">VARCHAR</option>
+                        <option value="DATE">DATE</option>
+                        <option value="DECIMAL">DECIMAL</option>
+                        <option value="TEXT">TEXT</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <input type="text" placeholder="Límite (Ej. 50)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="updateAllFKDropdowns('${exerciseId}')">
+                        <option value="Normal">Normal</option>
+                        <option value="PK">PK</option>
+                        <option value="FK">FK</option>
+                        <option value="PK-FK">PK + FK</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2 f-ref-container">
+                    <span class="text-slate-400 text-xs italic">N/A</span>
+                </div>
+                <div class="sm:col-span-1 text-right">
+                    <button type="button" onclick="this.closest('.field-row').remove(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                </div>
             `;
             container.appendChild(fieldRow);
+            updateAllFKDropdowns(exerciseId);
         };
 
         document.getElementById('btn-finish-exam').addEventListener('click', () => {
@@ -452,7 +527,7 @@
             const p3_2 = document.querySelector('textarea[data-part="3"][data-q="2"]').value.trim();
             let scorePart3 = (p3_1.length > 15 ? 2 : 0) + (p3_2.length > 15 ? 2 : 0);
 
-            // Recopilar tablas detalladas del Ejercicio 1
+            // Recopilar tablas detalladas del Ejercicio 1 con tipo, longitud y ref
             const ex1Cards = document.querySelectorAll('.tables-wrapper[data-exercise="ex1"] .table-card');
             let ex1TablesData = [];
             ex1Cards.forEach(card => {
@@ -460,10 +535,13 @@
                 let fields = [];
                 card.querySelectorAll('.field-row').forEach(row => {
                     let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
                     let fType = row.querySelector('.f-type').value;
-                    let fRef = row.querySelector('.f-ref').value.trim();
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
                     if (fName) {
-                        fields.push({ name: fName, type: fType, ref: fRef });
+                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
                     }
                 });
                 ex1TablesData.push({ name: tName, fields: fields });
@@ -477,10 +555,13 @@
                 let fields = [];
                 card.querySelectorAll('.field-row').forEach(row => {
                     let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
                     let fType = row.querySelector('.f-type').value;
-                    let fRef = row.querySelector('.f-ref').value.trim();
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
                     if (fName) {
-                        fields.push({ name: fName, type: fType, ref: fRef });
+                        fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
                     }
                 });
                 ex2TablesData.push({ name: tName, fields: fields });
@@ -565,7 +646,7 @@
             });
         }
 
-        // Descarga de PDF con tablas estilo MySQL (Esquema relacional con grillas, tipos y relaciones FK)
+        // Descarga de PDF con Tipo de Dato, Longitud/Límite de caracteres y Relaciones FK
         document.getElementById('btn-download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -579,12 +660,11 @@
                 }
             }
 
-            // Función auxiliar para dibujar una tabla en formato MySQL Schema Grid
             function drawMySQLTable(tableName, fields) {
                 let requiredHeight = 15 + (fields.length > 0 ? fields.length * 6 : 6);
                 checkPageSpace(requiredHeight);
 
-                // Cabecera de la tabla (Estilo MySQL Table Header - Dark Slate)
+                // Cabecera MySQL Schema
                 doc.setFillColor(30, 41, 59);
                 doc.rect(20, y, 170, 7, 'F');
                 doc.setTextColor(255, 255, 255);
@@ -593,17 +673,16 @@
                 doc.text(`TABLE: ${tableName.toUpperCase()}`, 24, y + 4.5);
                 y += 7;
 
-                // Sub-cabecera de Columnas (Campo | Tipo / Restricción | Relación FK)
+                // Sub-cabecera de columnas
                 doc.setFillColor(226, 232, 240);
                 doc.rect(20, y, 170, 6, 'F');
                 doc.setTextColor(15, 23, 42);
                 doc.setFontSize(8);
                 doc.text("CAMPO (COLUMN)", 24, y + 4);
-                doc.text("TIPO / ATRIBUTO", 90, y + 4);
-                doc.text("RELACIÓN / REFERENCIA (FK)", 130, y + 4);
+                doc.text("TIPO(LÍMITE)", 85, y + 4);
+                doc.text("ATRIBUTO / RELACIÓN (FK)", 125, y + 4);
                 y += 6;
 
-                // Filas de Atributos
                 doc.setFont("helvetica", "normal");
                 if (!fields || fields.length === 0) {
                     doc.rect(20, y, 170, 6);
@@ -614,16 +693,19 @@
                         checkPageSpace(6);
                         doc.rect(20, y, 170, 6);
                         doc.text(f.name || '-', 24, y + 4);
-                        doc.text(f.type || 'Normal', 90, y + 4);
-                        let relText = '-';
-                        if (f.type === 'PK') relText = 'Primary Key (PK)';
-                        else if (f.type === 'FK') relText = f.ref ? `Foreign Key -> ${f.ref}` : 'Foreign Key';
-                        else if (f.type === 'PK-FK') relText = f.ref ? `PK & FK -> ${f.ref}` : 'PK & FK';
-                        doc.text(relText, 130, y + 4);
+                        
+                        let typeStr = f.datatype || 'VARCHAR';
+                        if (f.length) typeStr += `(${f.length})`;
+                        doc.text(typeStr, 85, y + 4);
+                        
+                        let attrText = f.type || 'Normal';
+                        if (f.type === 'FK' && f.ref) attrText = `FK -> ${f.ref}`;
+                        else if (f.type === 'PK-FK' && f.ref) attrText = `PK+FK -> ${f.ref}`;
+                        doc.text(attrText, 125, y + 4);
                         y += 6;
                     });
                 }
-                y += 8; // Espacio inferior entre tablas
+                y += 8;
             }
 
             // Encabezado institucional
@@ -692,7 +774,7 @@
             doc.text(`   R/ Estudiante: ${examData.details.p3[1].resp}`, 25, y); y += 5;
             doc.text(`   Solución modelo: ${examData.details.p3[1].expectedText}`, 28, y); y += 8;
 
-            // Parte IV: Normalización (Tablas diseñadas por el Estudiante en formato MySQL)
+            // Parte IV: Normalización (Tablas del Estudiante)
             checkPageSpace(35);
             doc.setFontSize(10);
             doc.text("IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 Puntos)", 20, y); y += 8;
@@ -719,7 +801,7 @@
             }
 
             // ==========================================
-            // CLAVE DE CORRECCIÓN OFICIAL - MODELO 3FN (Tablas MySQL)
+            // CLAVE DE CORRECCIÓN OFICIAL - MODELO 3FN
             // ==========================================
             checkPageSpace(70);
             y += 10;
@@ -738,23 +820,23 @@
             doc.text("Solución Ejercicio 1: Sistema de Préstamos Bibliotecarios (Tablas en 3FN):", 20, y); y += 6;
             
             drawMySQLTable("ESTUDIANTES", [
-                { name: "ID_Estudiante", type: "PK" },
-                { name: "Nombre_Estudiante", type: "Normal" },
-                { name: "Carrera_Estudiante", type: "Normal" }
+                { name: "ID_Estudiante", datatype: "INT", length: "11", type: "PK" },
+                { name: "Nombre_Estudiante", datatype: "VARCHAR", length: "100", type: "Normal" },
+                { name: "Carrera_Estudiante", datatype: "VARCHAR", length: "50", type: "Normal" }
             ]);
 
             drawMySQLTable("LIBROS", [
-                { name: "Codigo_Libro", type: "PK" },
-                { name: "Titulo_Libro", type: "Normal" },
-                { name: "Autor_Libro", type: "Normal" }
+                { name: "Codigo_Libro", datatype: "VARCHAR", length: "20", type: "PK" },
+                { name: "Titulo_Libro", datatype: "VARCHAR", length: "150", type: "Normal" },
+                { name: "Autor_Libro", datatype: "VARCHAR", length: "100", type: "Normal" }
             ]);
 
             drawMySQLTable("PRESTAMOS", [
-                { name: "ID_Prestamo", type: "PK" },
-                { name: "Fecha_Prestamo", type: "Normal" },
-                { name: "Dias_Prestamo", type: "Normal" },
-                { name: "ID_Estudiante", type: "FK", ref: "ESTUDIANTES" },
-                { name: "Codigo_Libro", type: "FK", ref: "LIBROS" }
+                { name: "ID_Prestamo", datatype: "INT", length: "11", type: "PK" },
+                { name: "Fecha_Prestamo", datatype: "DATE", length: "", type: "Normal" },
+                { name: "Dias_Prestamo", datatype: "INT", length: "3", type: "Normal" },
+                { name: "ID_Estudiante", datatype: "INT", length: "11", type: "FK", ref: "ESTUDIANTES.ID_Estudiante" },
+                { name: "Codigo_Libro", datatype: "VARCHAR", length: "20", type: "FK", ref: "LIBROS.Codigo_Libro" }
             ]);
 
             // Solucionario Ejercicio 2
@@ -762,24 +844,24 @@
             doc.text("Solución Ejercicio 2: Sistema de Citas Médicas (Tablas en 3FN):", 20, y); y += 6;
 
             drawMySQLTable("MEDICOS", [
-                { name: "ID_Medico", type: "PK" },
-                { name: "Nombre_Medico", type: "Normal" },
-                { name: "Especialidad_Medico", type: "Normal" },
-                { name: "Consultorio_Medico", type: "Normal" }
+                { name: "ID_Medico", datatype: "INT", length: "11", type: "PK" },
+                { name: "Nombre_Medico", datatype: "VARCHAR", length: "100", type: "Normal" },
+                { name: "Especialidad_Medico", datatype: "VARCHAR", length: "50", type: "Normal" },
+                { name: "Consultorio_Medico", datatype: "VARCHAR", length: "30", type: "Normal" }
             ]);
 
             drawMySQLTable("PACIENTES", [
-                { name: "ID_Paciente", type: "PK" },
-                { name: "Nombre_Paciente", type: "Normal" },
-                { name: "Telefono_Paciente", type: "Normal" }
+                { name: "ID_Paciente", datatype: "INT", length: "11", type: "PK" },
+                { name: "Nombre_Paciente", datatype: "VARCHAR", length: "100", type: "Normal" },
+                { name: "Telefono_Paciente", datatype: "VARCHAR", length: "20", type: "Normal" }
             ]);
 
             drawMySQLTable("CITAS", [
-                { name: "ID_Cita", type: "PK" },
-                { name: "Fecha_Hora", type: "Normal" },
-                { name: "Diagnostico", type: "Normal" },
-                { name: "ID_Medico", type: "FK", ref: "MEDICOS" },
-                { name: "ID_Paciente", type: "FK", ref: "PACIENTES" }
+                { name: "ID_Cita", datatype: "INT", length: "11", type: "PK" },
+                { name: "Fecha_Hora", datatype: "DATE", length: "", type: "Normal" },
+                { name: "Diagnostico", datatype: "TEXT", length: "", type: "Normal" },
+                { name: "ID_Medico", datatype: "INT", length: "11", type: "FK", ref: "MEDICOS.ID_Medico" },
+                { name: "ID_Paciente", datatype: "INT", length: "11", type: "FK", ref: "PACIENTES.ID_Paciente" }
             ]);
 
             doc.save(`Planilla_Prueba_Taller1_${examData.groupName}.pdf`);
