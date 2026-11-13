@@ -459,4 +459,126 @@
             examData.details = {
                 p1: [
                     {q: 1, resp: p1_1 || 'Vacía', correct: c1}, 
-                    {q:
+                    {q: 2, resp: p1_2 || 'Vacía', correct: c2}, 
+                    {q: 3, resp: p1_3 || 'Vacía', correct: c3}, 
+                    {q: 4, resp: p1_4 || 'Vacía', correct: c4}
+                ],
+                p2: [
+                    {q: 1, resp: p2_1 ? `Opción (${p2_1})` : 'No seleccionada', correct: cc1}, 
+                    {q: 2, resp: p2_2 ? `Opción (${p2_2})` : 'No seleccionada', correct: cc2}
+                ],
+                p3: [{q: 1, resp: p3_1 || 'Vacía'}, {q: 2, resp: p3_2 || 'Vacía'}],
+                p4: {ex1TablesCount: ex1Tables.length, ex2TablesCount: ex2Tables.length}
+            };
+
+            // Guardar en Firebase
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    addDoc(collection(window.db, "evaluaciones_taller1"), {
+                        groupName: examData.groupName,
+                        students: examData.students,
+                        score: examData.score,
+                        details: examData.details,
+                        timestamp: new Date()
+                    });
+                } catch (e) {
+                    console.error("Error guardando en Firebase:", e);
+                }
+            }
+
+            // ENVÍO AUTOMÁTICO VÍA EMAILJS
+            let studentsStr = examData.students.map(s => `${s.nombre} (C.I: ${s.cedula})`).join(", ");
+            let reportDetails = `GRUPO: ${examData.groupName}\nINTEGRANTES: ${studentsStr}\nCALIFICACIÓN FINAL: ${examData.score.toFixed(2)} / 20\n\nDETALLE DE RESPUESTAS:\n- Parte I (Completación):\n  P1: "${examData.details.p1[0].resp}" [${examData.details.p1[0].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P2: "${examData.details.p1[1].resp}" [${examData.details.p1[1].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P3: "${examData.details.p1[2].resp}" [${examData.details.p1[2].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P4: "${examData.details.p1[3].resp}" [${examData.details.p1[3].correct ? 'CORRECTA' : 'INCORRECTA'}]\n- Parte II (Selección Simple):\n  P1: ${examData.details.p2[0].resp} [${examData.details.p2[0].correct ? 'CORRECTA' : 'INCORRECTA'}]\n  P2: ${examData.details.p2[1].resp} [${examData.details.p2[1].correct ? 'CORRECTA' : 'INCORRECTA'}]\n- Parte III (Desarrollo): Revisión teórica\n- Parte IV (Normalización): Ej1 (${examData.details.p4.ex1TablesCount} tablas), Ej2 (${examData.details.p4.ex2TablesCount} tablas)`;
+
+            emailjs.send("Service_uiz1wpi", "template_spoqjhb", {
+                to_email: examData.profEmail,
+                group_name: examData.groupName,
+                students: studentsStr,
+                score: examData.score.toFixed(2),
+                report_details: reportDetails
+            }).then(() => {
+                console.log("Correo enviado automáticamente con éxito.");
+            }, (err) => {
+                console.error("Error al enviar correo automático:", err);
+            });
+
+            document.getElementById('view-exam').classList.add('hidden');
+            document.getElementById('header-timer-container').classList.add('hidden');
+            document.getElementById('view-results').classList.remove('hidden');
+
+            document.getElementById('res-group').textContent = examData.groupName;
+            document.getElementById('res-score').textContent = examData.score.toFixed(2) + " / 20 pts";
+            
+            const membersList = document.getElementById('res-members');
+            membersList.innerHTML = '';
+            examData.students.forEach(st => {
+                const li = document.createElement('li');
+                li.textContent = `${st.nombre} (C.I: ${st.cedula})`;
+                membersList.appendChild(li);
+            });
+        }
+
+        // Descarga de PDF detallada con las opciones exactas seleccionadas
+        document.getElementById('btn-download-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFillColor(185, 28, 28);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(13);
+            doc.text("UNEFA - NÚCLEO GUÁRICO SEDE TUCUPIDO", 105, 11, { align: "center" });
+            doc.setFontSize(9);
+            doc.text("PLANILLA DE EVALUACIÓN CALIFICADA - DISEÑO DE SISTEMAS", 105, 18, { align: "center" });
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`Grupo: ${examData.groupName}`, 20, 33);
+            doc.text(`Puntuación Obtenida: ${examData.score.toFixed(2)} / 20 puntos`, 20, 40);
+
+            let y = 48;
+            doc.setFontSize(11);
+            doc.text("Integrantes del Grupo:", 20, y);
+            y += 6;
+            doc.setFontSize(9);
+            examData.students.forEach((st, idx) => {
+                doc.text(`${idx + 1}. ${st.nombre} - C.I: ${st.cedula}`, 25, y);
+                y += 5;
+            });
+
+            y += 6;
+            doc.setFontSize(11);
+            doc.text("Detalle de Respuestas y Calificación:", 20, y);
+            y += 6;
+            doc.setFontSize(9);
+
+            doc.text("I. COMPLETACIÓN (Valor: 4 pts):", 20, y); y += 5;
+            examData.details.p1.forEach(item => {
+                doc.text(` - P${item.q}: Resp: "${item.resp}" -> ${item.correct ? 'CORRECTA' : 'INCORRECTA'}`, 25, y);
+                y += 5;
+            });
+
+            y += 3;
+            doc.text("II. SELECCIÓN SIMPLE (Valor: 2 pts):", 20, y); y += 5;
+            examData.details.p2.forEach(item => {
+                doc.text(` - P${item.q}: Seleccionaron [ ${item.resp} ] -> ${item.correct ? 'CORRECTA' : 'INCORRECTA'}`, 25, y);
+                y += 5;
+            });
+
+            y += 3;
+            doc.text("III. DESARROLLO (Valor: 4 pts):", 20, y); y += 5;
+            examData.details.p3.forEach(item => {
+                doc.text(` - P${item.q}: Definición teórica entregada`, 25, y);
+                y += 5;
+            });
+
+            y += 3;
+            doc.text("IV. EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN (Valor: 10 pts):", 20, y); y += 5;
+            doc.text(` - Ejercicio 1 (Préstamos Bibliotecarios): ${examData.details.p4.ex1TablesCount} tablas creadas`, 25, y); y += 5;
+            doc.text(` - Ejercicio 2 (Citas Médicas): ${examData.details.p4.ex2TablesCount} tablas creadas`, 25, y);
+
+            doc.save(`Planilla_Taller1_${examData.groupName}.pdf`);
+        });
+    </script>
+</body>
+</html>
