@@ -42,7 +42,7 @@
             <div class="flex items-center gap-3">
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
+                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 ..(10%)</h1>
                     <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
                 </div>
             </div>
@@ -280,7 +280,7 @@
     <!-- Script de Lógica -->
     <script>
         const estudiantesSeccion = [
-            { nombre: "MOTA ARPON VICTOR MANUEL", cedula: "26.166.763" },
+            { nombre: "MOTARPON VICTOR MANUEL", cedula: "26.166.763" },
             { nombre: "JIMÉNEZ SIFONTES JOSÉ LEONARDO", cedula: "27.664.252" },
             { nombre: "OJEDA GONZÁLEZ JUAN DE JESÚS", cedula: "31.464.928" },
             { nombre: "JIMÉNEZ JIMÉNEZ REYMARI", cedula: "31.537.865" },
@@ -1005,50 +1005,73 @@
                 });
             }
 
+            // FUNCIÓN ACTUALIZADA: Estilo MySQL Workbench (Cabecera azul oscuro/naranja con listado compacto)
             function drawMySQLTable(tableName, fields) {
-                let requiredHeight = 15 + (fields.length > 0 ? fields.length * 6 : 6);
-                checkPageSpace(requiredHeight);
+                let rowHeight = 5.5;
+                let headerHeight = 7;
+                let totalHeight = headerHeight + (fields && fields.length > 0 ? fields.length * rowHeight : rowHeight);
+                checkPageSpace(totalHeight + 4);
 
+                // Marco principal de la entidad (estilo tarjeta de MySQL Workbench)
+                doc.setDrawColor(100, 116, 139);
+                doc.setLineWidth(0.3);
+                doc.rect(20, y, 170, totalHeight);
+
+                // Cabecera de la tabla estilo Workbench (Azul oscuro institucional / corporativo)
                 doc.setFillColor(30, 41, 59);
-                doc.rect(20, y, 170, 7, 'F');
+                doc.rect(20, y, 170, headerHeight, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(9);
-                doc.text(`TABLE: ${tableName.toUpperCase()}`, 24, y + 4.5);
-                y += 7;
+                doc.setFontSize(8.5);
+                doc.text(tableName.toUpperCase(), 24, y + 4.8);
+                y += headerHeight;
 
-                doc.setFillColor(226, 232, 240);
-                doc.rect(20, y, 170, 6, 'F');
-                doc.setTextColor(15, 23, 42);
-                doc.setFontSize(8);
-                doc.text("CAMPO (COLUMN)", 24, y + 4);
-                doc.text("TIPO(LÍMITE)", 85, y + 4);
-                doc.text("ATRIBUTO / RELACIÓN (FK)", 125, y + 4);
-                y += 6;
-
+                // Filas de atributos / columnas
                 doc.setFont("helvetica", "normal");
                 if (!fields || fields.length === 0) {
-                    doc.rect(20, y, 170, 6);
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFontSize(8);
                     doc.text("(Sin atributos definidos)", 24, y + 4);
-                    y += 6;
+                    y += rowHeight;
                 } else {
-                    fields.forEach(f => {
-                        checkPageSpace(6);
-                        doc.rect(20, y, 170, 6);
-                        doc.text(f.name || '-', 24, y + 4);
-                        
+                    fields.forEach((f, idx) => {
+                        // Línea separadora sutil entre atributos
+                        if (idx > 0) {
+                            doc.setDrawColor(226, 232, 240);
+                            doc.line(20, y, 190, y);
+                        }
+
+                        doc.setTextColor(15, 23, 42);
+                        doc.setFontSize(8);
+
+                        // Icono indicador si es PK o FK simulando a MySQL Workbench
+                        let prefix = "  ";
+                        if (f.type === 'PK') prefix = "[PK] ";
+                        else if (f.type === 'FK') prefix = "[FK] ";
+                        else if (f.type === 'PK-FK') prefix = "[PK+FK] ";
+
+                        // Nombre de columna
+                        doc.setFont("helvetica", f.type !== 'Normal' ? "bold" : "normal");
+                        doc.text(prefix + (f.name || '-'), 24, y + 3.8);
+
+                        // Tipo de dato y longitud
+                        doc.setFont("helvetica", "normal");
                         let typeStr = f.datatype || 'VARCHAR';
                         if (f.length) typeStr += `(${f.length})`;
-                        doc.text(typeStr, 85, y + 4);
-                        
-                        let attrText = f.type || 'Normal';
-                        if (f.type === 'FK' && f.ref) attrText = `FK -> ${f.ref}`;
-                        else if (f.type === 'PK-FK' && f.ref) attrText = `PK+FK -> ${f.ref}`;
-                        doc.text(attrText, 125, y + 4);
-                        y += 6;
+                        doc.text(typeStr, 105, y + 3.8);
+
+                        // Referencia de llave foránea (si aplica)
+                        let refText = "";
+                        if ((f.type === 'FK' || f.type === 'PK-FK') && f.ref) {
+                            refText = `-> ${f.ref}`;
+                        }
+                        doc.setTextColor(71, 85, 105);
+                        doc.text(refText, 140, y + 3.8);
+
+                        y += rowHeight;
                     });
                 }
-                y += 8;
+                y += 6; // Espacio inferior entre entidades
             }
 
             doc.setFillColor(30, 58, 138);
