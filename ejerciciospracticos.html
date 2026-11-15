@@ -47,8 +47,7 @@
                 </div>
             </div>
             <div id="room-info" class="hidden flex items-center gap-3 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl text-xs text-white">
-                <span>Sala: <strong id="lbl-room-name" class="text-amber-400 font-mono"></strong></span>
-                <span class="text-blue-300">| Estudiante: <strong id="lbl-student-name" class="text-white"></strong></span>
+                <span>Estudiante: <strong id="lbl-student-name" class="text-amber-400"></strong></span>
                 <button type="button" onclick="leaveRoom()" class="text-red-400 hover:underline font-semibold ml-2">Salir</button>
             </div>
         </div>
@@ -62,44 +61,26 @@
             <div class="text-center">
                 <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Portal de Acceso</span>
                 <h2 class="text-2xl font-bold mt-3 text-slate-900">Seleccione su Perfil</h2>
-                <p class="text-sm text-slate-600 mt-1">Acceda como estudiante a su práctica o ingrese al panel de control docente.</p>
+                <p class="text-sm text-slate-600 mt-1">Seleccione su nombre para ingresar directamente o ingrese como docente.</p>
             </div>
 
             <!-- Selector de Perfil -->
             <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
                 <button type="button" id="tab-student" onclick="switchProfile('student')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">Estudiante</button>
-                <button type="button" id="tab-teacher" onclick="switchProfile('teacher'); loadTeacherDashboard();" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Acceso Profesor</button>
+                <button type="button" id="tab-teacher" onclick="switchProfile('teacher');" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Acceso Profesor</button>
             </div>
 
             <!-- PERFIL ESTUDIANTE -->
             <div id="profile-student-container" class="space-y-4">
-                <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-                    <button type="button" id="tab-create" onclick="switchMode('create')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow">Crear Sala</button>
-                    <button type="button" id="tab-join" onclick="switchMode('join'); loadRooms();" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Unirse a Sala</button>
-                </div>
-
                 <div class="space-y-2">
                     <label class="block text-slate-700 font-medium text-xs">Selecciona tu nombre y cédula (Nómina Oficial):</label>
                     <select id="select-student" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Selecciona tu nombre de la lista --</option>
                     </select>
                 </div>
-
-                <div id="mode-create-container" class="space-y-3">
-                    <input type="text" id="input-room-name" placeholder="Código o Nombre de la Sala (Ej. Grupo_01)" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
-                    <button type="button" onclick="createRoom()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">Crear Sala e Iniciar Práctica</button>
-                </div>
-
-                <div id="mode-join-container" class="hidden space-y-3">
-                    <div class="flex justify-between items-center">
-                        <label class="block text-slate-700 font-medium text-xs">Selecciona la Sala:</label>
-                        <button type="button" onclick="loadRooms()" class="text-xs text-blue-600 hover:underline font-semibold">🔄 Actualizar</button>
-                    </div>
-                    <select id="select-rooms" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="">-- Cargando salas... --</option>
-                    </select>
-                    <button type="button" onclick="joinRoom()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">Unirse a la Sala</button>
-                </div>
+                <button type="button" onclick="loginStudent()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm">
+                    Ingresar al Laboratorio de Práctica
+                </button>
             </div>
 
             <!-- PERFIL PROFESOR -->
@@ -160,18 +141,21 @@
             <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold">Panel de Control Docente</h2>
-                    <p class="text-xs text-slate-300 mt-1">Supervisa las salas activas de los estudiantes, visualiza sus reportes PDF y fuérzalos a tu vista en tiempo real para orientar.</p>
+                    <p class="text-xs text-slate-300 mt-1">Supervisa los registros de los estudiantes, descarga sus reportes y limpia los datos en Firebase cuando lo necesites.</p>
                 </div>
-                <button type="button" onclick="location.reload()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">Cerrar Sesión Docente</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="deleteAllFirebaseData()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">🗑️ Eliminar Todos los Datos</button>
+                    <button type="button" onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">Cerrar Sesión</button>
+                </div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                    <h3 class="font-bold text-slate-900 text-base">Salas y Estudiantes Registrados en Tiempo Real</h3>
+                    <h3 class="font-bold text-slate-900 text-base">Estudiantes Activos en Tiempo Real</h3>
                     <button type="button" onclick="loadTeacherDashboard()" class="text-xs text-blue-600 hover:underline font-semibold">🔄 Actualizar Lista</button>
                 </div>
                 <div id="teacher-rooms-list" class="space-y-3">
-                    <p class="text-xs text-slate-500 italic">Cargando salas...</p>
+                    <p class="text-xs text-slate-500 italic">Cargando registros...</p>
                 </div>
             </div>
         </section>
@@ -197,7 +181,6 @@
         ];
 
         let sessionData = {
-            roomName: '',
             student: null,
             normalizationTables: { ex1: [], ex2: [] }
         };
@@ -235,25 +218,6 @@
             }
         };
 
-        window.switchMode = function(mode) {
-            const btnCreate = document.getElementById('tab-create');
-            const btnJoin = document.getElementById('tab-join');
-            const boxCreate = document.getElementById('mode-create-container');
-            const boxJoin = document.getElementById('mode-join-container');
-
-            if (mode === 'create') {
-                btnCreate.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow";
-                btnJoin.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
-                boxCreate.classList.remove('hidden');
-                boxJoin.classList.add('hidden');
-            } else {
-                btnJoin.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-                btnCreate.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
-                boxJoin.classList.remove('hidden');
-                boxCreate.classList.add('hidden');
-            }
-        };
-
         window.verifyTeacher = function() {
             const pass = document.getElementById('teacher-password').value;
             if (pass === "unefa2026" || pass === "admin123") {
@@ -267,7 +231,7 @@
 
         async function loadTeacherDashboard() {
             const listContainer = document.getElementById('teacher-rooms-list');
-            listContainer.innerHTML = '<p class="text-xs text-slate-500">Cargando salas activas...</p>';
+            listContainer.innerHTML = '<p class="text-xs text-slate-500">Cargando registros activos...</p>';
 
             if (window.firebaseAvailable && window.db) {
                 try {
@@ -285,20 +249,20 @@
                         div.className = "bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4";
                         div.innerHTML = `
                             <div>
-                                <h4 class="font-bold text-slate-900 text-sm">Sala: <span class="text-blue-700 font-mono">${data.roomName}</span></h4>
-                                <p class="text-xs text-slate-600 mt-0.5">Estudiante Creador/Participante: <strong>${data.creator || 'No especificado'}</strong></p>
+                                <h4 class="font-bold text-slate-900 text-sm">Estudiante: <span class="text-blue-700">${data.studentName || 'Anónimo'}</span></h4>
+                                <p class="text-xs text-slate-600 mt-0.5">Cédula: <strong>${data.studentCedula || 'N/A'}</strong></p>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button type="button" onclick="teacherViewRoom('${docId}', '${data.roomName}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">👁️ Ver / Guiar Sala</button>
-                                <button type="button" onclick="teacherGeneratePDFForRoom('${docId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">📥 Descargar PDF</button>
-                                <button type="button" onclick="teacherDeleteRoom('${docId}')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-2 rounded-lg transition shadow">🗑️</button>
+                                <button type="button" onclick="teacherViewStudent('${docId}', '${data.studentName}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">👁️ Ver / Guiar</button>
+                                <button type="button" onclick="teacherGeneratePDFForStudent('${docId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">📥 Descargar PDF</button>
+                                <button type="button" onclick="teacherDeleteStudentRecord('${docId}')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-2 rounded-lg transition shadow">🗑️</button>
                             </div>
                         `;
                         listContainer.appendChild(div);
                     });
 
                     if (count === 0) {
-                        listContainer.innerHTML = '<p class="text-xs text-slate-500 italic">No hay salas creadas en este momento.</p>';
+                        listContainer.innerHTML = '<p class="text-xs text-slate-500 italic">No hay estudiantes activos en este momento.</p>';
                     }
                 } catch (e) {
                     console.error("Error cargando panel de profesor:", e);
@@ -307,10 +271,32 @@
             }
         }
 
-        window.teacherViewRoom = async function(docId, roomName) {
+        window.deleteAllFirebaseData = async function() {
+            if (confirm('⚠️ ¿ESTÁ SEGURO? Esto eliminará todos los registros y tablas de los ejercicios guardados en Firebase para todos los estudiantes.')) {
+                if (window.firebaseAvailable && window.db) {
+                    try {
+                        const { collection, getDocs, deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                        const snapshot = await getDocs(collection(window.db, "laboratorio_normalizacion"));
+                        
+                        let deletions = [];
+                        snapshot.forEach(docSnap => {
+                            deletions.push(deleteDoc(doc(window.db, "laboratorio_normalizacion", docSnap.id)));
+                        });
+
+                        await Promise.all(deletions);
+                        alert('✅ Todos los datos de Firebase han sido eliminados correctamente.');
+                        loadTeacherDashboard();
+                    } catch (e) {
+                        console.error("Error borrando datos:", e);
+                        alert('Error al intentar eliminar los datos.');
+                    }
+                }
+            }
+        };
+
+        window.teacherViewStudent = async function(docId, studentName) {
             currentDocId = docId;
-            sessionData.roomName = roomName;
-            sessionData.student = { nombre: "Profesor (Modo Orientación)", cedula: "DOCENTE" };
+            sessionData.student = { nombre: studentName, cedula: "DOCENTE" };
 
             if (window.firebaseAvailable && window.db) {
                 const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
@@ -323,16 +309,15 @@
             document.getElementById('view-teacher-dashboard').classList.add('hidden');
             document.getElementById('view-workspace').classList.remove('hidden');
             document.getElementById('room-info').classList.remove('hidden');
-            document.getElementById('lbl-room-name').textContent = sessionData.roomName;
-            document.getElementById('lbl-student-name').textContent = sessionData.student.nombre;
+            document.getElementById('lbl-student-name').textContent = sessionData.student.nombre + " (Modo Docente)";
 
             renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
             renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
             startRealtimeSync();
         };
 
-        window.teacherDeleteRoom = async function(docId) {
-            if (confirm('¿Está seguro de eliminar esta sala?')) {
+        window.teacherDeleteStudentRecord = async function(docId) {
+            if (confirm('¿Está seguro de eliminar el registro de este estudiante?')) {
                 if (window.firebaseAvailable && window.db) {
                     const { deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     await deleteDoc(doc(window.db, "laboratorio_normalizacion", docId));
@@ -341,116 +326,47 @@
             }
         };
 
-        window.teacherGeneratePDFForRoom = async function(docId) {
+        window.teacherGeneratePDFForStudent = async function(docId) {
             if (window.firebaseAvailable && window.db) {
                 const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
                 if (snap.exists()) {
                     let data = snap.data();
-                    generatePDFCustom(data.roomName, data.creator || 'Estudiante', data.normalizationTables || { ex1: [], ex2: [] });
+                    generatePDFCustom(data.studentName + " (C.I: " + data.studentCedula + ")", data.normalizationTables || { ex1: [], ex2: [] });
                 }
             }
         };
 
-        async function loadRooms() {
-            const select = document.getElementById('select-rooms');
-            select.innerHTML = '<option value="">-- Buscando salas... --</option>';
-            if (window.firebaseAvailable && window.db) {
-                try {
-                    const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                    const snapshot = await getDocs(collection(window.db, "laboratorio_normalizacion"));
-                    select.innerHTML = '<option value="">-- Selecciona una sala existente --</option>';
-                    let count = 0;
-                    snapshot.forEach(docSnap => {
-                        let data = docSnap.data();
-                        if (data.roomName) {
-                            const opt = document.createElement('option');
-                            opt.value = data.roomName;
-                            opt.textContent = `Sala: ${data.roomName} (Creador: ${data.creator || 'Anónimo'})`;
-                            select.appendChild(opt);
-                            count++;
-                        }
-                    });
-                    if (count === 0) select.innerHTML = '<option value="">No hay salas creadas todavía</option>';
-                } catch (e) {
-                    console.error("Error cargando salas:", e);
-                }
-            }
-        }
-
-        window.createRoom = async function() {
+        window.loginStudent = async function() {
             const studentIdx = document.getElementById('select-student').value;
-            const roomName = document.getElementById('input-room-name').value.trim();
 
             if (studentIdx === "") {
                 alert('Por favor selecciona tu nombre de la nómina.');
                 return;
             }
-            if (!roomName) {
-                alert('Por favor ingresa un nombre para la sala.');
-                return;
-            }
 
             sessionData.student = estudiantesSeccion[studentIdx];
-            sessionData.roomName = roomName;
 
             if (window.firebaseAvailable && window.db) {
                 try {
-                    const { collection, addDoc, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                    const q = query(collection(window.db, "laboratorio_normalizacion"), where("roomName", "==", roomName));
+                    const { collection, addDoc, getDocs, query, where, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const q = query(collection(window.db, "laboratorio_normalizacion"), where("studentCedula", "==", sessionData.student.cedula));
                     const snap = await getDocs(q);
 
                     if (!snap.empty) {
-                        alert('⚠️ Esta sala ya existe. Elige otro nombre o únete desde la otra pestaña.');
-                        return;
+                        currentDocId = snap.docs[0].id;
+                        sessionData.normalizationTables = snap.docs[0].data().normalizationTables || { ex1: [], ex2: [] };
+                    } else {
+                        const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
+                            studentName: sessionData.student.nombre,
+                            studentCedula: sessionData.student.cedula,
+                            normalizationTables: { ex1: [], ex2: [] },
+                            timestamp: new Date()
+                        });
+                        currentDocId = docRef.id;
                     }
-
-                    const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
-                        roomName: roomName,
-                        creator: sessionData.student.nombre,
-                        normalizationTables: { ex1: [], ex2: [] },
-                        timestamp: new Date()
-                    });
-                    currentDocId = docRef.id;
                 } catch (e) {
-                    console.error("Error creando sala:", e);
-                    return;
-                }
-            }
-
-            enterWorkspace();
-        };
-
-        window.joinRoom = async function() {
-            const studentIdx = document.getElementById('select-student').value;
-            const roomName = document.getElementById('select-rooms').value;
-
-            if (studentIdx === "") {
-                alert('Por favor selecciona tu nombre de la nómina.');
-                return;
-            }
-            if (!roomName) {
-                alert('Por favor selecciona una sala.');
-                return;
-            }
-
-            sessionData.student = estudiantesSeccion[studentIdx];
-            sessionData.roomName = roomName;
-
-            if (window.firebaseAvailable && window.db) {
-                try {
-                    const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                    const q = query(collection(window.db, "laboratorio_normalizacion"), where("roomName", "==", roomName));
-                    const snap = await getDocs(q);
-
-                    if (snap.empty) {
-                        alert('⚠️ La sala seleccionada ya no existe.');
-                        return;
-                    }
-                    currentDocId = snap.docs[0].id;
-                } catch (e) {
-                    console.error("Error uniéndose:", e);
-                    return;
+                    console.error("Error conectando con Firebase:", e);
                 }
             }
 
@@ -461,9 +377,10 @@
             document.getElementById('view-setup').classList.add('hidden');
             document.getElementById('view-workspace').classList.remove('hidden');
             document.getElementById('room-info').classList.remove('hidden');
-            document.getElementById('lbl-room-name').textContent = sessionData.roomName;
-            document.getElementById('lbl-student-name').textContent = sessionData.student.nombre;
+            document.getElementById('lbl-student-name').textContent = sessionData.student.nombre + ` (C.I: ${sessionData.student.cedula})`;
 
+            renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+            renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
             startRealtimeSync();
         }
 
@@ -711,10 +628,10 @@
         window.generatePDF = function() {
             let ex1Tables = extractTablesDataFromDOM('ex1');
             let ex2Tables = extractTablesDataFromDOM('ex2');
-            generatePDFCustom(sessionData.roomName, sessionData.student.nombre + " (C.I: " + sessionData.student.cedula + ")", { ex1: ex1Tables, ex2: ex2Tables });
+            generatePDFCustom(sessionData.student.nombre + " (C.I: " + sessionData.student.cedula + ")", { ex1: ex1Tables, ex2: ex2Tables });
         };
 
-        function generatePDFCustom(roomName, studentInfo, tablesObj) {
+        function generatePDFCustom(studentInfo, tablesObj) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             let y = 15;
@@ -799,7 +716,6 @@
             y = 33;
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
-            doc.text(`SALA / GRUPO: ${roomName}`, 20, y); y += 6;
             doc.text(`ESTUDIANTE: ${studentInfo}`, 20, y); y += 10;
 
             doc.setFontSize(11);
@@ -834,7 +750,7 @@
                 });
             }
 
-            doc.save(`Reporte_Normalizacion_${roomName}.pdf`);
+            doc.save(`Reporte_Normalizacion_${sessionData.student.cedula}.pdf`);
         }
     </script>
 </body>
