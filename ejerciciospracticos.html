@@ -47,7 +47,14 @@
                 </div>
             </div>
             <div id="room-info" class="hidden flex items-center gap-3 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl text-xs text-white">
-                <span>Sesión: <strong id="lbl-student-name" class="text-amber-400"></strong></span>
+                <span id="label-sesion-text">Sesión: <strong id="lbl-student-name" class="text-amber-400"></strong></span>
+                <!-- Selector rápido para profesor en la cabecera -->
+                <div id="teacher-quick-switch-container" class="hidden items-center gap-2">
+                    <span class="text-slate-300">Cambiar:</span>
+                    <select id="header-teacher-select" onchange="onTeacherSelectStudent(this.value)" class="bg-slate-900 border border-blue-600 rounded px-2 py-1 text-xs text-white outline-none">
+                        <option value="">-- Estudiante --</option>
+                    </select>
+                </div>
                 <button type="button" onclick="leaveRoom()" class="text-red-400 hover:underline font-semibold ml-2">Salir</button>
             </div>
         </div>
@@ -95,7 +102,7 @@
             </div>
         </section>
 
-        <!-- VISTA 2: ENTORNO DE EJERCICIOS PRÁCTICOS (ESTUDIANTE Y DOCENTE) -->
+        <!-- VISTA 2: ENTORNO DE EJERCICIOS PRÁCTICOS -->
         <section id="view-workspace" class="hidden space-y-8">
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
@@ -103,7 +110,6 @@
                     <p class="text-xs text-slate-600 mt-0.5" id="workspace-subtitle">Analiza las tablas planas, diseña las entidades relacionales y define las PK y FK.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" id="btn-back-teacher" onclick="backToTeacherDashboard()" class="hidden bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl transition shadow">← Volver al Panel Docente</button>
                     <button type="button" onclick="generatePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 whitespace-nowrap">
                         📥 Generar e Imprimir PDF
                     </button>
@@ -147,11 +153,11 @@
                     </div>
                 </div>
 
-                <!-- Diseño Tablas 3FN -->
-                <div class="space-y-3 pt-4 border-t border-slate-200">
+                <!-- Diseño Tablas 3FN (Oculto en modo profesor) -->
+                <div id="container-normalizer-ex1" class="space-y-3 pt-4 border-t border-slate-200">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
-                        <button type="button" id="btn-add-tbl-ex1" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
+                        <button type="button" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
                     </div>
                     <div class="tables-wrapper space-y-4" data-exercise="ex1"></div>
                 </div>
@@ -162,7 +168,7 @@
                         👁️ Vista Previa Consolidada (Esquema Relacional Ejercicio 1):
                     </h5>
                     <div class="preview-container-ex1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <p class="text-xs text-slate-400 italic">Agregue tablas arriba para ver la vista previa en tiempo real...</p>
+                        <p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>
                     </div>
                 </div>
             </div>
@@ -204,11 +210,11 @@
                     </div>
                 </div>
 
-                <!-- Diseño Tablas 3FN -->
-                <div class="space-y-3 pt-4 border-t border-slate-200">
+                <!-- Diseño Tablas 3FN (Oculto en modo profesor) -->
+                <div id="container-normalizer-ex2" class="space-y-3 pt-4 border-t border-slate-200">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
-                        <button type="button" id="btn-add-tbl-ex2" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
+                        <button type="button" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
                     </div>
                     <div class="tables-wrapper space-y-4" data-exercise="ex2"></div>
                 </div>
@@ -219,18 +225,18 @@
                         👁️ Vista Previa Consolidada (Esquema Relacional Ejercicio 2):
                     </h5>
                     <div class="preview-container-ex2 grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <p class="text-xs text-slate-400 italic">Agregue tablas arriba para ver la vista previa en tiempo real...</p>
+                        <p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- VISTA 3: PANEL DE CONTROL DOCENTE -->
+        <!-- VISTA 3: PANEL DE CONTROL DOCENTE (INICIAL) -->
         <section id="view-teacher-dashboard" class="hidden space-y-6">
             <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold">Panel de Control Docente</h2>
-                    <p class="text-xs text-slate-300 mt-1">Selecciona un estudiante para revisar sus tablas y registros en tiempo real.</p>
+                    <p class="text-xs text-slate-300 mt-1">Selecciona un estudiante para revisar sus registros y vistas previas en tiempo real.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="deleteAllFirebaseData()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">🗑️ Eliminar Todos los Datos</button>
@@ -357,7 +363,9 @@
 
         async function loadTeacherDashboard() {
             const teacherSelect = document.getElementById('teacher-student-select');
-            teacherSelect.innerHTML = '<option value="">-- Seleccionar Estudiante --</option>';
+            const headerSelect = document.getElementById('header-teacher-select');
+            
+            let optionsHTML = '<option value="">-- Seleccionar Estudiante --</option>';
 
             if (window.firebaseAvailable && window.db) {
                 try {
@@ -368,23 +376,20 @@
                         let data = docSnap.data();
                         let docId = docSnap.id;
                         if (data.studentName) {
-                            const opt = document.createElement('option');
-                            opt.value = docId;
-                            opt.textContent = `${data.studentName} (C.I: ${data.studentCedula})`;
-                            teacherSelect.appendChild(opt);
+                            optionsHTML += `<option value="${docId}">${data.studentName} (C.I: ${data.studentCedula})</option>`;
                         }
                     });
                 } catch (e) {
                     console.error("Error cargando estudiantes en profesor:", e);
                 }
             }
+
+            teacherSelect.innerHTML = optionsHTML;
+            headerSelect.innerHTML = optionsHTML;
         }
 
         window.onTeacherSelectStudent = async function(docId) {
-            if (!docId) {
-                document.getElementById('teacher-quick-info').innerHTML = 'Elija un estudiante en el selector superior para visualizar su espacio de trabajo en tiempo real.';
-                return;
-            }
+            if (!docId) return;
 
             if (unsubscribe) unsubscribe();
             currentDocId = docId;
@@ -402,32 +407,25 @@
                     document.getElementById('view-teacher-dashboard').classList.add('hidden');
                     document.getElementById('view-workspace').classList.remove('hidden');
                     document.getElementById('room-info').classList.remove('hidden');
-                    document.getElementById('btn-back-teacher').classList.remove('hidden');
-                    document.getElementById('lbl-student-name').textContent = `Supervisor: ${sessionData.student.nombre}`;
-                    document.getElementById('workspace-subtitle').textContent = `Visualizando en tiempo real el trabajo del estudiante ${sessionData.student.nombre} (Modo Lectura / Supervisión).`;
+                    
+                    // Mostrar selector rápido en la cabecera
+                    document.getElementById('teacher-quick-switch-container').style.display = 'flex';
+                    document.getElementById('lbl-student-name').style.display = 'none';
+                    document.getElementById('header-teacher-select').value = docId;
 
-                    // Deshabilitar edición para el profesor en modo supervisión pura
-                    toggleWorkspaceInputs(false);
+                    document.getElementById('workspace-subtitle').textContent = `Supervisando al estudiante ${sessionData.student.nombre} (Modo Docente).`;
+
+                    document.getElementById('container-normalizer-ex1').style.display = 'none';
+                    document.getElementById('container-normalizer-ex2').style.display = 'none';
 
                     renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
                     renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
-                    renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || [], false);
-                    renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || [], false);
                     updatePreview('ex1', sessionData.normalizationTables.ex1 || []);
                     updatePreview('ex2', sessionData.normalizationTables.ex2 || []);
 
                     startRealtimeSync();
                 }
             }
-        };
-
-        window.backToTeacherDashboard = function() {
-            if (unsubscribe) unsubscribe();
-            document.getElementById('view-workspace').classList.add('hidden');
-            document.getElementById('room-info').classList.add('hidden');
-            document.getElementById('btn-back-teacher').classList.add('hidden');
-            document.getElementById('view-teacher-dashboard').classList.remove('hidden');
-            loadTeacherDashboard();
         };
 
         window.deleteAllFirebaseData = async function() {
@@ -494,25 +492,21 @@
             document.getElementById('view-setup').classList.add('hidden');
             document.getElementById('view-workspace').classList.remove('hidden');
             document.getElementById('room-info').classList.remove('hidden');
+            document.getElementById('teacher-quick-switch-container').style.display = 'none';
+            document.getElementById('lbl-student-name').style.display = 'inline';
             document.getElementById('lbl-student-name').textContent = sessionData.student.nombre + ` (C.I: ${sessionData.student.cedula})`;
             document.getElementById('workspace-subtitle').textContent = "Analiza las tablas planas, diseña las entidades relacionales y define las PK y FK.";
-            document.getElementById('btn-back-teacher').classList.add('hidden');
 
-            toggleWorkspaceInputs(true);
+            document.getElementById('container-normalizer-ex1').style.display = 'block';
+            document.getElementById('container-normalizer-ex2').style.display = 'block';
+
             renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
             renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
-            renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || [], true);
-            renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || [], true);
+            renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+            renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
             updatePreview('ex1', sessionData.normalizationTables.ex1 || []);
             updatePreview('ex2', sessionData.normalizationTables.ex2 || []);
             startRealtimeSync();
-        }
-
-        function toggleWorkspaceInputs(enable) {
-            document.getElementById('btn-add-row-ex1').style.display = enable ? 'inline-block' : 'none';
-            document.getElementById('btn-add-row-ex2').style.display = enable ? 'inline-block' : 'none';
-            document.getElementById('btn-add-tbl-ex1').style.display = enable ? 'inline-block' : 'none';
-            document.getElementById('btn-add-tbl-ex2').style.display = enable ? 'inline-block' : 'none';
         }
 
         window.leaveRoom = function() {
@@ -536,8 +530,10 @@
                             }
                             if (data.normalizationTables) {
                                 sessionData.normalizationTables = data.normalizationTables;
-                                renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || [], !sessionData.isTeacherMode);
-                                renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || [], !sessionData.isTeacherMode);
+                                if (!sessionData.isTeacherMode) {
+                                    renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+                                    renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+                                }
                                 updatePreview('ex1', sessionData.normalizationTables.ex1 || []);
                                 updatePreview('ex2', sessionData.normalizationTables.ex2 || []);
                             }
@@ -617,6 +613,8 @@
             });
             if(sessionData.isTeacherMode) {
                 document.querySelectorAll('.action-col').forEach(el => el.style.display = 'none');
+                document.getElementById('btn-add-row-ex1').style.display = 'none';
+                document.getElementById('btn-add-row-ex2').style.display = 'none';
             }
         }
 
@@ -646,7 +644,7 @@
             if (!container) return;
 
             if (!tablesArray || tablesArray.length === 0) {
-                container.innerHTML = '<p class="text-xs text-slate-400 italic">Agregue tablas arriba para ver la vista previa en tiempo real...</p>';
+                container.innerHTML = '<p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>';
                 return;
             }
 
@@ -697,7 +695,7 @@
             return tablesData;
         }
 
-        function renderTablesFromCloud(exerciseId, tablesArray, editable = true) {
+        function renderTablesFromCloud(exerciseId, tablesArray) {
             const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
             if (!wrapper) return;
 
@@ -715,10 +713,10 @@
                     fieldsHTML += `
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-white p-2 rounded border border-slate-200" id="${fieldId}">
                             <div class="sm:col-span-3">
-                                <input type="text" value="${f.name || ''}" ${editable?'':'disabled'} placeholder="Nombre campo" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                                <input type="text" value="${f.name || ''}" placeholder="Nombre campo" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
                             </div>
                             <div class="sm:col-span-2">
-                                <select ${editable?'':'disabled'} class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveToCloud()">
+                                <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveToCloud()">
                                     <option value="INT" ${f.datatype === 'INT' ? 'selected' : ''}>INT</option>
                                     <option value="VARCHAR" ${f.datatype === 'VARCHAR' ? 'selected' : ''}>VARCHAR</option>
                                     <option value="DATE" ${f.datatype === 'DATE' ? 'selected' : ''}>DATE</option>
@@ -727,10 +725,10 @@
                                 </select>
                             </div>
                             <div class="sm:col-span-2">
-                                <input type="text" value="${f.length || ''}" ${editable?'':'disabled'} placeholder="Límite" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud()">
+                                <input type="text" value="${f.length || ''}" placeholder="Límite" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud()">
                             </div>
                             <div class="sm:col-span-2">
-                                <select ${editable?'':'disabled'} class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                                <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
                                     <option value="Normal" ${f.type === 'Normal' ? 'selected' : ''}>Normal</option>
                                     <option value="PK" ${f.type === 'PK' ? 'selected' : ''}>PK</option>
                                     <option value="FK" ${f.type === 'FK' ? 'selected' : ''}>FK</option>
@@ -741,7 +739,7 @@
                                 <span class="text-slate-400 text-xs italic">${f.ref || 'N/A'}</span>
                             </div>
                             <div class="sm:col-span-1 text-right">
-                                ${editable ? '<button type="button" onclick="this.closest(\'.field-row\').remove(); saveToCloud(); updateAllFKDropdowns(\''+exerciseId+'\');" class="text-red-600 text-xs font-bold px-1">🗑</button>' : ''}
+                                <button type="button" onclick="this.closest('.field-row').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
                             </div>
                         </div>
                     `;
@@ -749,19 +747,19 @@
 
                 tableDiv.innerHTML = `
                     <div class="flex justify-between items-center gap-2">
-                        <input type="text" value="${tblData.name || ''}" ${editable?'':'disabled'} placeholder="NOMBRE_TABLA" class="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
-                        ${editable ? '<button type="button" onclick="this.closest(\'.table-card\').remove(); saveToCloud(); updateAllFKDropdowns(\''+exerciseId+'\');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>' : ''}
+                        <input type="text" value="${tblData.name || ''}" placeholder="NOMBRE_TABLA" class="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                        <button type="button" onclick="this.closest('.table-card').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
                     </div>
                     <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
                         <p class="text-xs text-slate-500">Atributos / Columnas:</p>
                         ${fieldsHTML}
                     </div>
-                    ${editable ? '<button type="button" onclick="addField(\''+tableId+'\', \''+exerciseId+'\')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-medium px-3 py-1.5 rounded transition">+ Añadir Columna</button>' : ''}
+                    <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-medium px-3 py-1.5 rounded transition">+ Añadir Columna</button>
                 `;
                 wrapper.appendChild(tableDiv);
             });
 
-            if (editable) updateAllFKDropdowns(exerciseId);
+            updateAllFKDropdowns(exerciseId);
         }
 
         window.updateAllFKDropdowns = function(exerciseId) {
