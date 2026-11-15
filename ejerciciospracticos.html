@@ -100,7 +100,7 @@
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900">Laboratorio de Normalización y Registros (3FN)</h2>
-                    <p class="text-xs text-slate-600 mt-0.5">Analiza las tablas planas con registros de ejemplo (10 a 20 filas), diseña las entidades relacionales y define las PK y FK.</p>
+                    <p class="text-xs text-slate-600 mt-0.5">Analiza las tablas planas con registros precargados (12 filas aleatorias), añade más filas si lo requieres, diseña las entidades relacionales y define las PK y FK.</p>
                 </div>
                 <button type="button" onclick="generatePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 whitespace-nowrap">
                     📥 Generar e Imprimir PDF
@@ -116,10 +116,10 @@
                     </p>
                 </div>
 
-                <!-- Tabla de Registros de Ejemplo (10-20 filas) -->
+                <!-- Tabla de Registros de Ejemplo -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana - 10 a 20 filas):</h4>
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana - Precargados y Editables):</h4>
                         <button type="button" onclick="addRecordRow('ex1')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Registro</button>
                     </div>
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -163,10 +163,10 @@
                     </p>
                 </div>
 
-                <!-- Tabla de Registros de Ejemplo (10-20 filas) -->
+                <!-- Tabla de Registros de Ejemplo -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana - 10 a 20 filas):</h4>
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana - Precargados y Editables):</h4>
                         <button type="button" onclick="addRecordRow('ex2')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Registro</button>
                     </div>
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -244,6 +244,37 @@
             { nombre: "MOTA SEGOVIA JORVIN ANDRÉS", cedula: "31.791.315" },
             { nombre: "ITRIAGO LEON ESTEFANI ALEXANDRA", cedula: "31.791.350" },
             { nombre: "HERNÁNDEZ HERNÁNDEZ YEAN MANUEL", cedula: "32.679.937" }
+        ];
+
+        // Datos aleatorios predeterminados (12 filas) para los ejercicios
+        const defaultEx1Records = [
+            {c1:"101", c2:"2026-03-01", c3:"1", c4:"Carlos Pérez", c5:"Calle Bolívar, Tucupido", c6:"P01", c7:"Laptop Core i5", c8:"Tecnología", c9:"450.00", c10:"1"},
+            {c1:"102", c2:"2026-03-01", c3:"2", c4:"Ana Gómez", c5:"Av. Principal, Las Mercedes", c6:"P02", c7:"Mouse Inalámbrico", c8:"Accesorios", c9:"15.50", c10:"2"},
+            {c1:"103", c2:"2026-03-02", c3:"1", c4:"Carlos Pérez", c5:"Calle Bolívar, Tucupido", c6:"P03", c7:"Teclado Mecánico", c8:"Accesorios", c9:"35.00", c10:"1"},
+            {c1:"104", c2:"2026-03-02", c3:"3", c4:"Luis Rodríguez", c5:"Sector Centro, Tucupido", c6:"P01", c7:"Laptop Core i5", c8:"Tecnología", c9:"450.00", c10:"1"},
+            {c1:"105", c2:"2026-03-03", c3:"4", c4:"María Silva", c5:"Calle El Carmen", c6:"P04", c7:"Monitor 24\"", c8:"Tecnología", c9:"120.00", c10:"1"},
+            {c1:"106", c2:"2026-03-03", c3:"2", c4:"Ana Gómez", c5:"Av. Principal, Las Mercedes", c6:"P05", c7:"Pendrive 64GB", c8:"Almacenamiento", c9:"10.00", c10:"3"},
+            {c1:"107", c2:"2026-03-04", c3:"5", c4:"José Torres", c5:"Urbanización Sur", c6:"P02", c7:"Mouse Inalámbrico", c8:"Accesorios", c9:"15.50", c10:"1"},
+            {c1:"108", c2:"2026-03-04", c3:"3", c4:"Luis Rodríguez", c5:"Sector Centro, Tucupido", c6:"P06", c7:"Impresora Laser", c8:"Oficina", c9:"210.00", c10:"1"},
+            {c1:"109", c2:"2026-03-05", c3:"6", c4:"Carmen Rivas", c5:"Calle Comercio", c6:"P03", c7:"Teclado Mecánico", c8:"Accesorios", c9:"35.00", c10:"2"},
+            {c1:"110", c2:"2026-03-05", c3:"1", c4:"Carlos Pérez", c5:"Calle Bolívar, Tucupido", c6:"P05", c7:"Pendrive 64GB", c8:"Almacenamiento", c9:"10.00", c10:"1"},
+            {c1:"111", c2:"2026-03-06", c3:"4", c4:"María Silva", c5:"Calle El Carmen", c6:"P01", c7:"Laptop Core i5", c8:"Tecnología", c9:"450.00", c10:"1"},
+            {c1:"112", c2:"2026-03-06", c3:"5", c4:"José Torres", c5:"Urbanización Sur", c6:"P04", c7:"Monitor 24\"", c8:"Tecnología", c9:"120.00", c10:"2"}
+        ];
+
+        const defaultEx2Records = [
+            {c1:"501", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S101", c7:"Diseño de Sistemas", c8:"4", c9:"Prof. Cesar Rengifo", c10:"18"},
+            {c1:"502", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S101", c7:"Diseño de Sistemas", c8:"4", c9:"Prof. Cesar Rengifo", c10:"16"},
+            {c1:"503", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"15"},
+            {c1:"504", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C201", c7:"Resistencia de Materiales", c8:"4", c9:"Prof. Pedro Infante", c10:"17"},
+            {c1:"505", c2:"2026-1", c3:"31781439", c4:"Eduardo Sifontes", c5:"Ing. de Sistemas", c6:"S101", c7:"Diseño de Sistemas", c8:"4", c9:"Prof. Cesar Rengifo", c10:"14"},
+            {c1:"506", c2:"2026-1", c3:"31791315", c4:"Jorvin Mota", c5:"Ing. Agronómica", c6:"A301", c7:"Fitopatología", c8:"3", c9:"Prof. Luis Zambrano", c10:"16"},
+            {c1:"507", c2:"2026-1", c3:"31791350", c4:"Estefani Itriago", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"19"},
+            {c1:"508", c2:"2026-1", c3:"32679937", c4:"Yean Hernández", c5:"Ing. Civil", c6:"C201", c7:"Resistencia de Materiales", c8:"4", c9:"Prof. Pedro Infante", c10:"13"},
+            {c1:"509", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"17"},
+            {c1:"510", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"15"},
+            {c1:"511", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S103", c7:"Redes de Computadoras", c8:"4", c9:"Prof. Alberto Sosa", c10:"18"},
+            {c1:"512", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C202", c7:"Mecánica de Suelos", c8:"3", c9:"Prof. Carlos Páez", c10:"16"}
         ];
 
         let sessionData = {
@@ -370,7 +401,7 @@
                 const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
                 if (snap.exists()) {
                     let d = snap.data();
-                    sessionData.records = d.records || { ex1: [], ex2: [] };
+                    sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
                     sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
                 }
             }
@@ -403,7 +434,7 @@
                 const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
                 if (snap.exists()) {
                     let data = snap.data();
-                    generatePDFCustom(data.studentName + " (C.I: " + data.studentCedula + ")", data.records || { ex1: [], ex2: [] }, data.normalizationTables || { ex1: [], ex2: [] });
+                    generatePDFCustom(data.studentName + " (C.I: " + data.studentCedula + ")", data.records || { ex1: defaultEx1Records, ex2: defaultEx2Records }, data.normalizationTables || { ex1: [], ex2: [] });
                 }
             }
         };
@@ -427,14 +458,10 @@
                     if (!snap.empty) {
                         currentDocId = snap.docs[0].id;
                         let d = snap.docs[0].data();
-                        sessionData.records = d.records || { ex1: [], ex2: [] };
+                        sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
                         sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
                     } else {
-                        // Precargar filas iniciales vacías para los registros (ej. 3 filas de ejemplo iniciales)
-                        let initialEx1Records = Array.from({length: 3}, () => ({c1:'', c2:'', c3:'', c4:'', c5:'', c6:'', c7:'', c8:'', c9:'', c10:''}));
-                        let initialEx2Records = Array.from({length: 3}, () => ({c1:'', c2:'', c3:'', c4:'', c5:'', c6:'', c7:'', c8:'', c9:'', c10:''}));
-                        
-                        sessionData.records = { ex1: initialEx1Records, ex2: initialEx2Records };
+                        sessionData.records = { ex1: defaultEx1Records, ex2: defaultEx2Records };
 
                         const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
                             studentName: sessionData.student.nombre,
