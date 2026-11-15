@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNEFA - Laboratorio de Normalización y Bases de Datos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Firebase SDKs (CDN oficiales) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBRoNV1cbplpWMiW8gnymQkLz_GJkLiIiA",
+          authDomain: "ejerciciospracticos-6f20e.firebaseapp.com",
+          projectId: "ejerciciospracticos-6f20e",
+          storageBucket: "ejerciciospracticos-6f20e.firebasestorage.app",
+          messagingSenderId: "349441493609",
+          appId: "1:349441493609:web:e0466c55996a01853cf0f8",
+          measurementId: "G-DNK5G2C687"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.analytics = getAnalytics(app);
+        window.firebaseAvailable = true;
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header Institucional -->
+    <header class="bg-blue-900 border-b border-blue-800 py-4 px-6 shadow-md text-white">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
+                <div>
+                    <h1 class="text-base md:text-lg font-bold">Laboratorio de Normalización y Diseño Relacional</h1>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Práctica Colaborativa</p>
+                </div>
+            </div>
+            <div id="room-info" class="hidden flex items-center gap-3 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl text-xs text-white">
+                <span>Sala: <strong id="lbl-room-name" class="text-amber-400 font-mono"></strong></span>
+                <span class="text-blue-300">| Estudiante: <strong id="lbl-student-name" class="text-white"></strong></span>
+                <button type="button" onclick="leaveRoom()" class="text-red-400 hover:underline font-semibold ml-2">Salir</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-4xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
+
+        <!-- VISTA 1: ACCESO Y SELECCIÓN DE ESTUDIANTE -->
+        <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6 max-w-xl mx-auto">
+            <div class="text-center">
+                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Módulo de Práctica Estudiantil</span>
+                <h2 class="text-2xl font-bold mt-3 text-slate-900">Acceso al Laboratorio</h2>
+                <p class="text-sm text-slate-600 mt-1">Selecciona tu nombre de la nómina oficial, elige o crea una sala de trabajo.</p>
+            </div>
+
+            <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                <button type="button" id="tab-create" onclick="switchMode('create')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">1. Crear Sala Nueva</button>
+                <button type="button" id="tab-join" onclick="switchMode('join'); loadRooms();" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">2. Unirse a Sala Existente</button>
+            </div>
+
+            <!-- Nómina de Estudiantes -->
+            <div class="space-y-2">
+                <label class="block text-slate-700 font-medium text-xs">Selecciona tu nombre y cédula (Nómina Oficial):</label>
+                <select id="select-student" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">-- Selecciona tu nombre de la lista --</option>
+                </select>
+            </div>
+
+            <!-- MODO CREAR -->
+            <div id="mode-create-container" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="block text-slate-700 font-medium text-xs">Código o Nombre de la Sala:</label>
+                    <input type="text" id="input-room-name" placeholder="Ej. Sala_BaseDatos_Grupo1" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <button type="button" onclick="createRoom()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
+                    Crear Sala e Iniciar Práctica
+                </button>
+            </div>
+
+            <!-- MODO UNIRSE -->
+            <div id="mode-join-container" class="hidden space-y-4">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-slate-700 font-medium text-xs">Selecciona la Sala Existente:</label>
+                        <button type="button" onclick="loadRooms()" class="text-xs text-blue-600 hover:underline font-semibold">🔄 Actualizar Lista</button>
+                    </div>
+                    <select id="select-rooms" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">-- Cargando salas... --</option>
+                    </select>
+                </div>
+                <button type="button" onclick="joinRoom()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
+                    Unirse a la Sala
+                </button>
+            </div>
+        </section>
+
+        <!-- VISTA 2: ENTORNO DE EJERCICIOS PRÁCTICOS -->
+        <section id="view-workspace" class="hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Ejercicios Prácticos de Normalización (3FN)</h2>
+                    <p class="text-xs text-slate-600 mt-0.5">Resuelve los ejercicios estructurando tablas independientes, tipos de datos y relaciones de llaves primarias (PK) y foráneas (FK).</p>
+                </div>
+                <button type="button" onclick="generatePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 whitespace-nowrap">
+                    📥 Generar e Imprimir PDF
+                </button>
+            </div>
+
+            <!-- EJERCICIO 1 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <div>
+                        <h3 class="font-bold text-blue-900 text-base">Ejercicio 1: El Sistema de Préstamos Bibliotecarios</h3>
+                        <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-2 rounded border border-blue-200">
+                            Tabla Plana Inicial: ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo
+                        </p>
+                    </div>
+                    <button type="button" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow whitespace-nowrap">+ Añadir Tabla</button>
+                </div>
+                <div class="tables-wrapper space-y-4" data-exercise="ex1"></div>
+            </div>
+
+            <!-- EJERCICIO 2 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <div>
+                        <h3 class="font-bold text-blue-900 text-base">Ejercicio 2: El Sistema de Citas Médicas</h3>
+                        <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-2 rounded border border-blue-200">
+                            Tabla Plana Inicial: ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico
+                        </p>
+                    </div>
+                    <button type="button" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow whitespace-nowrap">+ Añadir Tabla</button>
+                </div>
+                <div class="tables-wrapper space-y-4" data-exercise="ex2"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-950 border-t border-blue-900 py-4 text-center text-xs text-blue-300 mt-12">
+        Universidad Nacional Experimental Politécnica de la Fuerza Armada Nacional Bolivariana (UNEFA) - Núcleo Guárico Sede Tucupido
+    </footer>
+
+    <!-- Lógica y Sincronización -->
+    <script>
+        const estudiantesSeccion = [
+            { nombre: "MOTARPON VICTOR MANUEL", cedula: "26.166.763" },
+            { nombre: "JIMÉNEZ SIFONTES JOSÉ LEONARDO", cedula: "27.664.252" },
+            { nombre: "OJEDA GONZÁLEZ JUAN DE JESÚS", cedula: "31.464.928" },
+            { nombre: "JIMÉNEZ JIMÉNEZ REYMARI", cedula: "31.537.865" },
+            { nombre: "SIFONTES CAMPOS EDUARDO ANDRÉS", cedula: "31.781.439" },
+            { nombre: "MOTA SEGOVIA JORVIN ANDRÉS", cedula: "31.791.315" },
+            { nombre: "ITRIAGO LEON ESTEFANI ALEXANDRA", cedula: "31.791.350" },
+            { nombre: "HERNÁNDEZ HERNÁNDEZ YEAN MANUEL", cedula: "32.679.937" }
+        ];
+
+        let sessionData = {
+            roomName: '',
+            student: null,
+            normalizationTables: { ex1: [], ex2: [] }
+        };
+
+        let currentDocId = null;
+        let unsubscribe = null;
+        let isRemoteUpdating = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('select-student');
+            estudiantesSeccion.forEach((est, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `${est.nombre} (C.I: ${est.cedula})`;
+                select.appendChild(opt);
+            });
+        });
+
+        window.switchMode = function(mode) {
+            const btnCreate = document.getElementById('tab-create');
+            const btnJoin = document.getElementById('tab-join');
+            const boxCreate = document.getElementById('mode-create-container');
+            const boxJoin = document.getElementById('mode-join-container');
+
+            if (mode === 'create') {
+                btnCreate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
+                btnJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                boxCreate.classList.remove('hidden');
+                boxJoin.classList.add('hidden');
+            } else {
+                btnJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+                btnCreate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                boxJoin.classList.remove('hidden');
+                boxCreate.classList.add('hidden');
+            }
+        };
+
+        async function loadRooms() {
+            const select = document.getElementById('select-rooms');
+            select.innerHTML = '<option value="">-- Buscando salas... --</option>';
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const snapshot = await getDocs(collection(window.db, "laboratorio_normalizacion"));
+                    select.innerHTML = '<option value="">-- Selecciona una sala existente --</option>';
+                    let count = 0;
+                    snapshot.forEach(docSnap => {
+                        let data = docSnap.data();
+                        if (data.roomName) {
+                            const opt = document.createElement('option');
+                            opt.value = data.roomName;
+                            opt.textContent = `Sala: ${data.roomName} (Creador: ${data.creator || 'Anónimo'})`;
+                            select.appendChild(opt);
+                            count++;
+                        }
+                    });
+                    if (count === 0) select.innerHTML = '<option value="">No hay salas creadas todavía</option>';
+                } catch (e) {
+                    console.error("Error cargando salas:", e);
+                    select.innerHTML = '<option value="">Error al cargar salas</option>';
+                }
+            }
+        }
+
+        window.createRoom = async function() {
+            const studentIdx = document.getElementById('select-student').value;
+            const roomName = document.getElementById('input-room-name').value.trim();
+
+            if (studentIdx === "") {
+                alert('Por favor selecciona tu nombre de la nómina.');
+                return;
+            }
+            if (!roomName) {
+                alert('Por favor ingresa un nombre para la sala.');
+                return;
+            }
+
+            sessionData.student = estudiantesSeccion[studentIdx];
+            sessionData.roomName = roomName;
+
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    const { collection, addDoc, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const q = query(collection(window.db, "laboratorio_normalizacion"), where("roomName", "==", roomName));
+                    const snap = await getDocs(q);
+
+                    if (!snap.empty) {
+                        alert('⚠️ Esta sala ya existe. Elige otro nombre o únete desde la otra pestaña.');
+                        return;
+                    }
+
+                    const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
+                        roomName: roomName,
+                        creator: sessionData.student.nombre,
+                        normalizationTables: { ex1: [], ex2: [] },
+                        timestamp: new Date()
+                    });
+                    currentDocId = docRef.id;
+                } catch (e) {
+                    console.error("Error creando sala:", e);
+                    alert("Error conectando con la base de datos.");
+                    return;
+                }
+            }
+
+            enterWorkspace();
+        };
+
+        window.joinRoom = async function() {
+            const studentIdx = document.getElementById('select-student').value;
+            const roomName = document.getElementById('select-rooms').value;
+
+            if (studentIdx === "") {
+                alert('Por favor selecciona tu nombre de la nómina.');
+                return;
+            }
+            if (!roomName) {
+                alert('Por favor selecciona una sala.');
+                return;
+            }
+
+            sessionData.student = estudiantesSeccion[studentIdx];
+            sessionData.roomName = roomName;
+
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const q = query(collection(window.db, "laboratorio_normalizacion"), where("roomName", "==", roomName));
+                    const snap = await getDocs(q);
+
+                    if (snap.empty) {
+                        alert('⚠️ La sala seleccionada ya no existe.');
+                        return;
+                    }
+                    currentDocId = snap.docs[0].id;
+                } catch (e) {
+                    console.error("Error uniéndose:", e);
+                    return;
+                }
+            }
+
+            enterWorkspace();
+        };
+
+        function enterWorkspace() {
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-workspace').classList.remove('hidden');
+            document.getElementById('room-info').classList.remove('hidden');
+            document.getElementById('lbl-room-name').textContent = sessionData.roomName;
+            document.getElementById('lbl-student-name').textContent = sessionData.student.nombre;
+
+            startRealtimeSync();
+        }
+
+        window.leaveRoom = function() {
+            if (unsubscribe) unsubscribe();
+            location.reload();
+        };
+
+        function startRealtimeSync() {
+            if (!window.firebaseAvailable || !window.db || !currentDocId) return;
+
+            import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js").then(({ doc, onSnapshot }) => {
+                unsubscribe = onSnapshot(doc(window.db, "laboratorio_normalizacion", currentDocId), (docSnapshot) => {
+                    if (docSnapshot.exists() && !isRemoteUpdating) {
+                        const data = docSnapshot.data();
+                        const activeInside = document.querySelector('.tables-wrapper input:focus, .tables-wrapper select:focus');
+                        if (!activeInside && data.normalizationTables) {
+                            sessionData.normalizationTables = data.normalizationTables;
+                            renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+                            renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+                        }
+                    }
+                });
+            });
+        }
+
+        async function saveNormalizationTablesToCloud() {
+            if (isRemoteUpdating || !window.firebaseAvailable || !window.db || !currentDocId) return;
+
+            sessionData.normalizationTables.ex1 = extractTablesDataFromDOM('ex1');
+            sessionData.normalizationTables.ex2 = extractTablesDataFromDOM('ex2');
+
+            try {
+                const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await updateDoc(doc(window.db, "laboratorio_normalizacion", currentDocId), {
+                    normalizationTables: sessionData.normalizationTables
+                });
+            } catch (e) {
+                console.error("Error sincronizando:", e);
+            }
+        }
+
+        function extractTablesDataFromDOM(exerciseId) {
+            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
+            let tablesData = [];
+            cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim();
+                let fields = [];
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
+                    let fType = row.querySelector('.f-type').value;
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
+                    fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
+                });
+                tablesData.push({ name: tName, fields: fields });
+            });
+            return tablesData;
+        }
+
+        function renderTablesFromCloud(exerciseId, tablesArray) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            if (!wrapper) return;
+
+            wrapper.innerHTML = '';
+
+            tablesArray.forEach((tblData, tIdx) => {
+                const tableId = `t_${exerciseId}_${tIdx}`;
+                const tableDiv = document.createElement('div');
+                tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+                tableDiv.id = tableId;
+
+                let fieldsHTML = '';
+                (tblData.fields || []).forEach((f, fIdx) => {
+                    let fieldId = `f_${tableId}_${fIdx}`;
+                    fieldsHTML += `
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200" id="${fieldId}">
+                            <div class="sm:col-span-3">
+                                <input type="text" value="${f.name || ''}" placeholder="Nombre campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveNormalizationTablesToCloud()">
+                                    <option value="INT" ${f.datatype === 'INT' ? 'selected' : ''}>INT</option>
+                                    <option value="VARCHAR" ${f.datatype === 'VARCHAR' ? 'selected' : ''}>VARCHAR</option>
+                                    <option value="DATE" ${f.datatype === 'DATE' ? 'selected' : ''}>DATE</option>
+                                    <option value="DECIMAL" ${f.datatype === 'DECIMAL' ? 'selected' : ''}>DECIMAL</option>
+                                    <option value="TEXT" ${f.datatype === 'TEXT' ? 'selected' : ''}>TEXT</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <input type="text" value="${f.length || ''}" placeholder="Límite" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud()">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                                    <option value="Normal" ${f.type === 'Normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="PK" ${f.type === 'PK' ? 'selected' : ''}>PK</option>
+                                    <option value="FK" ${f.type === 'FK' ? 'selected' : ''}>FK</option>
+                                    <option value="PK-FK" ${f.type === 'PK-FK' ? 'selected' : ''}>PK + FK</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2 f-ref-container" data-selected-ref="${f.ref || ''}">
+                                <span class="text-slate-400 text-xs italic">N/A</span>
+                            </div>
+                            <div class="sm:col-span-1 text-right">
+                                <button type="button" onclick="this.closest('.field-row').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                tableDiv.innerHTML = `
+                    <div class="flex justify-between items-center gap-2">
+                        <input type="text" value="${tblData.name || ''}" placeholder="NOMBRE_TABLA" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                        <button type="button" onclick="this.closest('.table-card').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                    </div>
+                    <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
+                        <p class="text-xs text-slate-500">Atributos / Columnas:</p>
+                        ${fieldsHTML}
+                    </div>
+                    <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Columna</button>
+                `;
+                wrapper.appendChild(tableDiv);
+            });
+
+            updateAllFKDropdowns(exerciseId);
+        }
+
+        window.updateAllFKDropdowns = function(exerciseId) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            if (!wrapper) return;
+
+            let availablePKs = [];
+            wrapper.querySelectorAll('.table-card').forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA';
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fType = row.querySelector('.f-type').value;
+                    let fName = row.querySelector('.f-name').value.trim();
+                    if ((fType === 'PK' || fType === 'PK-FK') && fName) {
+                        availablePKs.push({ table: tName, field: fName });
+                    }
+                });
+            });
+
+            wrapper.querySelectorAll('.field-row').forEach(row => {
+                let typeSelect = row.querySelector('.f-type');
+                let refContainer = row.querySelector('.f-ref-container');
+                let currentVal = refContainer.getAttribute('data-selected-ref') || '';
+
+                if (typeSelect.value === 'FK' || typeSelect.value === 'PK-FK') {
+                    refContainer.innerHTML = '';
+                    let selectRef = document.createElement('select');
+                    selectRef.className = 'bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 f-ref w-full focus:ring-1 focus:ring-blue-500 outline-none';
+                    
+                    let defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = '-- Seleccionar FK --';
+                    selectRef.appendChild(defaultOpt);
+
+                    availablePKs.forEach(pk => {
+                        let valStr = `${pk.table}.${pk.field}`;
+                        let opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = `${pk.table} (${pk.field})`;
+                        if (valStr === currentVal) opt.selected = true;
+                        selectRef.appendChild(opt);
+                    });
+
+                    selectRef.onchange = function() {
+                        refContainer.setAttribute('data-selected-ref', this.value);
+                        saveNormalizationTablesToCloud();
+                    };
+
+                    refContainer.appendChild(selectRef);
+                } else {
+                    refContainer.innerHTML = '<span class="text-slate-400 text-xs italic">N/A</span>';
+                    refContainer.removeAttribute('data-selected-ref');
+                }
+            });
+        };
+
+        window.addTable = function(exerciseId) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            const tableId = 't_' + Math.random().toString(36).substring(2, 9);
+            const tableDiv = document.createElement('div');
+            tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+            tableDiv.innerHTML = `
+                <div class="flex justify-between items-center gap-2">
+                    <input type="text" placeholder="NOMBRE_TABLA" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                    <button type="button" onclick="this.closest('.table-card').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                </div>
+                <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
+                    <p class="text-xs text-slate-500">Atributos / Columnas:</p>
+                </div>
+                <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Columna</button>
+            `;
+            tableDiv.id = tableId;
+            wrapper.appendChild(tableDiv);
+            saveNormalizationTablesToCloud();
+            updateAllFKDropdowns(exerciseId);
+        };
+
+        window.addField = function(tableId, exerciseId) {
+            const tableCard = document.getElementById(tableId);
+            const container = tableCard.querySelector('.fields-container');
+            const fieldRow = document.createElement('div');
+            fieldRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200';
+            fieldRow.innerHTML = `
+                <div class="sm:col-span-3">
+                    <input type="text" placeholder="Nombre campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveNormalizationTablesToCloud()">
+                        <option value="INT">INT</option>
+                        <option value="VARCHAR">VARCHAR</option>
+                        <option value="DATE">DATE</option>
+                        <option value="DECIMAL">DECIMAL</option>
+                        <option value="TEXT">TEXT</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <input type="text" placeholder="Límite" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud()">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                        <option value="Normal">Normal</option>
+                        <option value="PK">PK</option>
+                        <option value="FK">FK</option>
+                        <option value="PK-FK">PK + FK</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2 f-ref-container">
+                    <span class="text-slate-400 text-xs italic">N/A</span>
+                </div>
+                <div class="sm:col-span-1 text-right">
+                    <button type="button" onclick="this.closest('.field-row').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                </div>
+            `;
+            container.appendChild(fieldRow);
+            saveNormalizationTablesToCloud();
+            updateAllFKDropdowns(exerciseId);
+        };
+
+        window.generatePDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 15;
+
+            function checkPageSpace(needed) {
+                if (y + needed > 275) {
+                    doc.addPage();
+                    y = 20;
+                }
+            }
+
+            function drawMySQLTable(tableName, fields) {
+                let rowHeight = 5.5;
+                let headerHeight = 7;
+                let totalHeight = headerHeight + (fields && fields.length > 0 ? fields.length * rowHeight : rowHeight);
+                checkPageSpace(totalHeight + 4);
+
+                doc.setDrawColor(100, 116, 139);
+                doc.setLineWidth(0.3);
+                doc.rect(20, y, 170, totalHeight);
+
+                doc.setFillColor(30, 41, 59);
+                doc.rect(20, y, 170, headerHeight, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8.5);
+                doc.text(tableName.toUpperCase(), 24, y + 4.8);
+                y += headerHeight;
+
+                doc.setFont("helvetica", "normal");
+                if (!fields || fields.length === 0) {
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFontSize(8);
+                    doc.text("(Sin atributos definidos)", 24, y + 4);
+                    y += rowHeight;
+                } else {
+                    fields.forEach((f, idx) => {
+                        if (idx > 0) {
+                            doc.setDrawColor(226, 232, 240);
+                            doc.line(20, y, 190, y);
+                        }
+
+                        doc.setTextColor(15, 23, 42);
+                        doc.setFontSize(8);
+
+                        let prefix = "  ";
+                        if (f.type === 'PK') prefix = "[PK] ";
+                        else if (f.type === 'FK') prefix = "[FK] ";
+                        else if (f.type === 'PK-FK') prefix = "[PK+FK] ";
+
+                        doc.setFont("helvetica", f.type !== 'Normal' ? "bold" : "normal");
+                        doc.text(prefix + (f.name || '-'), 24, y + 3.8);
+
+                        doc.setFont("helvetica", "normal");
+                        let typeStr = f.datatype || 'VARCHAR';
+                        if (f.length) typeStr += `(${f.length})`;
+                        doc.text(typeStr, 105, y + 3.8);
+
+                        let refText = "";
+                        if ((f.type === 'FK' || f.type === 'PK-FK') && f.ref) {
+                            refText = `-> ${f.ref}`;
+                        }
+                        doc.setTextColor(71, 85, 105);
+                        doc.text(refText, 140, y + 3.8);
+
+                        y += rowHeight;
+                    });
+                }
+                y += 6;
+            }
+
+            // Membrete
+            doc.setFillColor(30, 58, 138);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(11);
+            doc.text("UNIVERSIDAD NACIONAL EXPERIMENTAL POLITÉCNICA", 105, 9, { align: "center" });
+            doc.text("DE LA FUERZA ARMADA NACIONAL BOLIVARIANA (UNEFA)", 105, 14, { align: "center" });
+            doc.setFontSize(8);
+            doc.text("NÚCLEO GUÁRICO - SEDE TUCUPIDO | LABORATORIO DE BASES DE DATOS", 105, 20, { align: "center" });
+
+            y = 33;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`SALA / GRUPO: ${sessionData.roomName}`, 20, y); y += 6;
+            doc.text(`ESTUDIANTE: ${sessionData.student.nombre} (C.I: ${sessionData.student.cedula})`, 20, y); y += 10;
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("REPORTE DE PRÁCTICA: NORMALIZACIÓN DE BASES DE DATOS", 20, y);
+            y += 8;
+
+            let ex1Tables = extractTablesDataFromDOM('ex1');
+            let ex2Tables = extractTablesDataFromDOM('ex2');
+
+            checkPageSpace(20);
+            doc.setFontSize(10);
+            doc.text("• Ejercicio 1: El Sistema de Préstamos Bibliotecarios", 20, y); y += 6;
+            if (ex1Tables.length === 0) {
+                doc.setFont("helvetica", "normal");
+                doc.text("   (No se definieron tablas en este ejercicio)", 24, y); y += 8;
+            } else {
+                ex1Tables.forEach(tbl => {
+                    drawMySQLTable(`Ej 1 - ${tbl.name}`, tbl.fields);
+                });
+            }
+
+            y += 4;
+            checkPageSpace(20);
+            doc.setFont("helvetica", "bold");
+            doc.text("• Ejercicio 2: El Sistema de Citas Médicas", 20, y); y += 6;
+            if (ex2Tables.length === 0) {
+                doc.setFont("helvetica", "normal");
+                doc.text("   (No se definieron tablas en este ejercicio)", 24, y); y += 8;
+            } else {
+                ex2Tables.forEach(tbl => {
+                    drawMySQLTable(`Ej 2 - ${tbl.name}`, tbl.fields);
+                });
+            }
+
+            doc.save(`Reporte_Normalizacion_${sessionData.student.cedula}.pdf`);
+        };
+    </script>
+</body>
+</html>
