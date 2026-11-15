@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNEFA - Laboratorio de Normalización y Bases de Datos</title>
+    <title>UNEFA - Laboratorio y Panel de Profesor</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsPDF -->
@@ -11,7 +11,7 @@
     <!-- Firebase SDKs (CDN oficiales) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
         const firebaseConfig = {
@@ -42,8 +42,8 @@
             <div class="flex items-center gap-3">
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold">Laboratorio de Normalización y Diseño Relacional</h1>
-                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Práctica Colaborativa</p>
+                    <h1 class="text-base md:text-lg font-bold">Laboratorio de Normalización y Bases de Datos</h1>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Módulo Colaborativo</p>
                 </div>
             </div>
             <div id="room-info" class="hidden flex items-center gap-3 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl text-xs text-white">
@@ -55,63 +55,71 @@
     </header>
 
     <!-- Contenido Principal -->
-    <main class="max-w-4xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
+    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
 
-        <!-- VISTA 1: ACCESO Y SELECCIÓN DE ESTUDIANTE -->
+        <!-- VISTA 1: ACCESO GENERAL Y PROFESOR -->
         <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6 max-w-xl mx-auto">
             <div class="text-center">
-                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Módulo de Práctica Estudiantil</span>
-                <h2 class="text-2xl font-bold mt-3 text-slate-900">Acceso al Laboratorio</h2>
-                <p class="text-sm text-slate-600 mt-1">Selecciona tu nombre de la nómina oficial, elige o crea una sala de trabajo.</p>
+                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Portal de Acceso</span>
+                <h2 class="text-2xl font-bold mt-3 text-slate-900">Seleccione su Perfil</h2>
+                <p class="text-sm text-slate-600 mt-1">Acceda como estudiante a su práctica o ingrese al panel de control docente.</p>
             </div>
 
+            <!-- Selector de Perfil -->
             <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-                <button type="button" id="tab-create" onclick="switchMode('create')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">1. Crear Sala Nueva</button>
-                <button type="button" id="tab-join" onclick="switchMode('join'); loadRooms();" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">2. Unirse a Sala Existente</button>
+                <button type="button" id="tab-student" onclick="switchProfile('student')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">Estudiante</button>
+                <button type="button" id="tab-teacher" onclick="switchProfile('teacher'); loadTeacherDashboard();" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Acceso Profesor</button>
             </div>
 
-            <!-- Nómina de Estudiantes -->
-            <div class="space-y-2">
-                <label class="block text-slate-700 font-medium text-xs">Selecciona tu nombre y cédula (Nómina Oficial):</label>
-                <select id="select-student" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option value="">-- Selecciona tu nombre de la lista --</option>
-                </select>
-            </div>
-
-            <!-- MODO CREAR -->
-            <div id="mode-create-container" class="space-y-4">
-                <div class="space-y-2">
-                    <label class="block text-slate-700 font-medium text-xs">Código o Nombre de la Sala:</label>
-                    <input type="text" id="input-room-name" placeholder="Ej. Sala_BaseDatos_Grupo1" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+            <!-- PERFIL ESTUDIANTE -->
+            <div id="profile-student-container" class="space-y-4">
+                <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                    <button type="button" id="tab-create" onclick="switchMode('create')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow">Crear Sala</button>
+                    <button type="button" id="tab-join" onclick="switchMode('join'); loadRooms();" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Unirse a Sala</button>
                 </div>
-                <button type="button" onclick="createRoom()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
-                    Crear Sala e Iniciar Práctica
-                </button>
-            </div>
 
-            <!-- MODO UNIRSE -->
-            <div id="mode-join-container" class="hidden space-y-4">
                 <div class="space-y-2">
+                    <label class="block text-slate-700 font-medium text-xs">Selecciona tu nombre y cédula (Nómina Oficial):</label>
+                    <select id="select-student" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">-- Selecciona tu nombre de la lista --</option>
+                    </select>
+                </div>
+
+                <div id="mode-create-container" class="space-y-3">
+                    <input type="text" id="input-room-name" placeholder="Código o Nombre de la Sala (Ej. Grupo_01)" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <button type="button" onclick="createRoom()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">Crear Sala e Iniciar Práctica</button>
+                </div>
+
+                <div id="mode-join-container" class="hidden space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="block text-slate-700 font-medium text-xs">Selecciona la Sala Existente:</label>
-                        <button type="button" onclick="loadRooms()" class="text-xs text-blue-600 hover:underline font-semibold">🔄 Actualizar Lista</button>
+                        <label class="block text-slate-700 font-medium text-xs">Selecciona la Sala:</label>
+                        <button type="button" onclick="loadRooms()" class="text-xs text-blue-600 hover:underline font-semibold">🔄 Actualizar</button>
                     </div>
                     <select id="select-rooms" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Cargando salas... --</option>
                     </select>
+                    <button type="button" onclick="joinRoom()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">Unirse a la Sala</button>
                 </div>
-                <button type="button" onclick="joinRoom()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
-                    Unirse a la Sala
+            </div>
+
+            <!-- PERFIL PROFESOR -->
+            <div id="profile-teacher-container" class="hidden space-y-4">
+                <div class="space-y-2">
+                    <label class="block text-slate-700 font-medium text-xs">Contraseña de Profesor:</label>
+                    <input type="password" id="teacher-password" placeholder="Ingrese contraseña docente" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <button type="button" onclick="verifyTeacher()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
+                    Acceder al Panel Docente
                 </button>
             </div>
         </section>
 
-        <!-- VISTA 2: ENTORNO DE EJERCICIOS PRÁCTICOS -->
+        <!-- VISTA 2: ENTORNO DE EJERCICIOS PRÁCTICOS (ESTUDIANTE) -->
         <section id="view-workspace" class="hidden space-y-6">
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900">Ejercicios Prácticos de Normalización (3FN)</h2>
-                    <p class="text-xs text-slate-600 mt-0.5">Resuelve los ejercicios estructurando tablas independientes, tipos de datos y relaciones de llaves primarias (PK) y foráneas (FK).</p>
+                    <p class="text-xs text-slate-600 mt-0.5">Resuelve los ejercicios estructurando tablas, tipos de datos y relaciones PK/FK.</p>
                 </div>
                 <button type="button" onclick="generatePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 whitespace-nowrap">
                     📥 Generar e Imprimir PDF
@@ -144,6 +152,27 @@
                     <button type="button" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow whitespace-nowrap">+ Añadir Tabla</button>
                 </div>
                 <div class="tables-wrapper space-y-4" data-exercise="ex2"></div>
+            </div>
+        </section>
+
+        <!-- VISTA 3: PANEL DE CONTROL DOCENTE -->
+        <section id="view-teacher-dashboard" class="hidden space-y-6">
+            <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold">Panel de Control Docente</h2>
+                    <p class="text-xs text-slate-300 mt-1">Supervisa las salas activas de los estudiantes, visualiza sus reportes PDF y fuérzalos a tu vista en tiempo real para orientar.</p>
+                </div>
+                <button type="button" onclick="location.reload()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">Cerrar Sesión Docente</button>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <h3 class="font-bold text-slate-900 text-base">Salas y Estudiantes Registrados en Tiempo Real</h3>
+                    <button type="button" onclick="loadTeacherDashboard()" class="text-xs text-blue-600 hover:underline font-semibold">🔄 Actualizar Lista</button>
+                </div>
+                <div id="teacher-rooms-list" class="space-y-3">
+                    <p class="text-xs text-slate-500 italic">Cargando salas...</p>
+                </div>
             </div>
         </section>
 
@@ -187,6 +216,25 @@
             });
         });
 
+        window.switchProfile = function(profile) {
+            const btnStudent = document.getElementById('tab-student');
+            const btnTeacher = document.getElementById('tab-teacher');
+            const boxStudent = document.getElementById('profile-student-container');
+            const boxTeacher = document.getElementById('profile-teacher-container');
+
+            if (profile === 'student') {
+                btnStudent.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
+                btnTeacher.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                boxStudent.classList.remove('hidden');
+                boxTeacher.classList.add('hidden');
+            } else {
+                btnTeacher.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-slate-900 text-white shadow";
+                btnStudent.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                boxTeacher.classList.remove('hidden');
+                boxStudent.classList.add('hidden');
+            }
+        };
+
         window.switchMode = function(mode) {
             const btnCreate = document.getElementById('tab-create');
             const btnJoin = document.getElementById('tab-join');
@@ -194,15 +242,113 @@
             const boxJoin = document.getElementById('mode-join-container');
 
             if (mode === 'create') {
-                btnCreate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
-                btnJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                btnCreate.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow";
+                btnJoin.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
                 boxCreate.classList.remove('hidden');
                 boxJoin.classList.add('hidden');
             } else {
-                btnJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-                btnCreate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                btnJoin.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+                btnCreate.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
                 boxJoin.classList.remove('hidden');
                 boxCreate.classList.add('hidden');
+            }
+        };
+
+        window.verifyTeacher = function() {
+            const pass = document.getElementById('teacher-password').value;
+            if (pass === "unefa2026" || pass === "admin123") {
+                document.getElementById('view-setup').classList.add('hidden');
+                document.getElementById('view-teacher-dashboard').classList.remove('hidden');
+                loadTeacherDashboard();
+            } else {
+                alert('⚠️ Contraseña de profesor incorrecta.');
+            }
+        };
+
+        async function loadTeacherDashboard() {
+            const listContainer = document.getElementById('teacher-rooms-list');
+            listContainer.innerHTML = '<p class="text-xs text-slate-500">Cargando salas activas...</p>';
+
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const snapshot = await getDocs(collection(window.db, "laboratorio_normalizacion"));
+                    listContainer.innerHTML = '';
+                    let count = 0;
+
+                    snapshot.forEach(docSnap => {
+                        let data = docSnap.data();
+                        let docId = docSnap.id;
+                        count++;
+
+                        let div = document.createElement('div');
+                        div.className = "bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4";
+                        div.innerHTML = `
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">Sala: <span class="text-blue-700 font-mono">${data.roomName}</span></h4>
+                                <p class="text-xs text-slate-600 mt-0.5">Estudiante Creador/Participante: <strong>${data.creator || 'No especificado'}</strong></p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="teacherViewRoom('${docId}', '${data.roomName}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">👁️ Ver / Guiar Sala</button>
+                                <button type="button" onclick="teacherGeneratePDFForRoom('${docId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">📥 Descargar PDF</button>
+                                <button type="button" onclick="teacherDeleteRoom('${docId}')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-2 rounded-lg transition shadow">🗑️</button>
+                            </div>
+                        `;
+                        listContainer.appendChild(div);
+                    });
+
+                    if (count === 0) {
+                        listContainer.innerHTML = '<p class="text-xs text-slate-500 italic">No hay salas creadas en este momento.</p>';
+                    }
+                } catch (e) {
+                    console.error("Error cargando panel de profesor:", e);
+                    listContainer.innerHTML = '<p class="text-xs text-red-600">Error al conectar con la base de datos.</p>';
+                }
+            }
+        }
+
+        window.teacherViewRoom = async function(docId, roomName) {
+            currentDocId = docId;
+            sessionData.roomName = roomName;
+            sessionData.student = { nombre: "Profesor (Modo Orientación)", cedula: "DOCENTE" };
+
+            if (window.firebaseAvailable && window.db) {
+                const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
+                if (snap.exists()) {
+                    sessionData.normalizationTables = snap.data().normalizationTables || { ex1: [], ex2: [] };
+                }
+            }
+
+            document.getElementById('view-teacher-dashboard').classList.add('hidden');
+            document.getElementById('view-workspace').classList.remove('hidden');
+            document.getElementById('room-info').classList.remove('hidden');
+            document.getElementById('lbl-room-name').textContent = sessionData.roomName;
+            document.getElementById('lbl-student-name').textContent = sessionData.student.nombre;
+
+            renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+            renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+            startRealtimeSync();
+        };
+
+        window.teacherDeleteRoom = async function(docId) {
+            if (confirm('¿Está seguro de eliminar esta sala?')) {
+                if (window.firebaseAvailable && window.db) {
+                    const { deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    await deleteDoc(doc(window.db, "laboratorio_normalizacion", docId));
+                    loadTeacherDashboard();
+                }
+            }
+        };
+
+        window.teacherGeneratePDFForRoom = async function(docId) {
+            if (window.firebaseAvailable && window.db) {
+                const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
+                if (snap.exists()) {
+                    let data = snap.data();
+                    generatePDFCustom(data.roomName, data.creator || 'Estudiante', data.normalizationTables || { ex1: [], ex2: [] });
+                }
             }
         };
 
@@ -228,7 +374,6 @@
                     if (count === 0) select.innerHTML = '<option value="">No hay salas creadas todavía</option>';
                 } catch (e) {
                     console.error("Error cargando salas:", e);
-                    select.innerHTML = '<option value="">Error al cargar salas</option>';
                 }
             }
         }
@@ -269,7 +414,6 @@
                     currentDocId = docRef.id;
                 } catch (e) {
                     console.error("Error creando sala:", e);
-                    alert("Error conectando con la base de datos.");
                     return;
                 }
             }
@@ -565,6 +709,12 @@
         };
 
         window.generatePDF = function() {
+            let ex1Tables = extractTablesDataFromDOM('ex1');
+            let ex2Tables = extractTablesDataFromDOM('ex2');
+            generatePDFCustom(sessionData.roomName, sessionData.student.nombre + " (C.I: " + sessionData.student.cedula + ")", { ex1: ex1Tables, ex2: ex2Tables });
+        };
+
+        function generatePDFCustom(roomName, studentInfo, tablesObj) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             let y = 15;
@@ -649,25 +799,23 @@
             y = 33;
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
-            doc.text(`SALA / GRUPO: ${sessionData.roomName}`, 20, y); y += 6;
-            doc.text(`ESTUDIANTE: ${sessionData.student.nombre} (C.I: ${sessionData.student.cedula})`, 20, y); y += 10;
+            doc.text(`SALA / GRUPO: ${roomName}`, 20, y); y += 6;
+            doc.text(`ESTUDIANTE: ${studentInfo}`, 20, y); y += 10;
 
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
             doc.text("REPORTE DE PRÁCTICA: NORMALIZACIÓN DE BASES DE DATOS", 20, y);
             y += 8;
 
-            let ex1Tables = extractTablesDataFromDOM('ex1');
-            let ex2Tables = extractTablesDataFromDOM('ex2');
-
             checkPageSpace(20);
             doc.setFontSize(10);
             doc.text("• Ejercicio 1: El Sistema de Préstamos Bibliotecarios", 20, y); y += 6;
-            if (ex1Tables.length === 0) {
+            let ex1 = tablesObj.ex1 || [];
+            if (ex1.length === 0) {
                 doc.setFont("helvetica", "normal");
                 doc.text("   (No se definieron tablas en este ejercicio)", 24, y); y += 8;
             } else {
-                ex1Tables.forEach(tbl => {
+                ex1.forEach(tbl => {
                     drawMySQLTable(`Ej 1 - ${tbl.name}`, tbl.fields);
                 });
             }
@@ -676,17 +824,18 @@
             checkPageSpace(20);
             doc.setFont("helvetica", "bold");
             doc.text("• Ejercicio 2: El Sistema de Citas Médicas", 20, y); y += 6;
-            if (ex2Tables.length === 0) {
+            let ex2 = tablesObj.ex2 || [];
+            if (ex2.length === 0) {
                 doc.setFont("helvetica", "normal");
                 doc.text("   (No se definieron tablas en este ejercicio)", 24, y); y += 8;
             } else {
-                ex2Tables.forEach(tbl => {
+                ex2.forEach(tbl => {
                     drawMySQLTable(`Ej 2 - ${tbl.name}`, tbl.fields);
                 });
             }
 
-            doc.save(`Reporte_Normalizacion_${sessionData.student.cedula}.pdf`);
-        };
+            doc.save(`Reporte_Normalizacion_${roomName}.pdf`);
+        }
     </script>
 </body>
 </html>
