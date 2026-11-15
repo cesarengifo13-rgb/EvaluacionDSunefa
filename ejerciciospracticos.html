@@ -162,12 +162,12 @@
                     <div class="tables-wrapper space-y-4" data-exercise="ex1"></div>
                 </div>
 
-                <!-- VISTA PREVIA CONSOLIDADA EX1 -->
-                <div class="bg-slate-50 border border-slate-300 p-4 rounded-xl space-y-3">
+                <!-- VISTA PREVIA CONSOLIDADA CON REGISTROS EX1 -->
+                <div class="bg-slate-50 border border-slate-300 p-4 rounded-xl space-y-4">
                     <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                        👁️ Vista Previa Consolidada (Esquema Relacional Ejercicio 1):
+                        👁️ Vista Previa Consolidada (Tablas Normalizadas y Registros - Ejercicio 1):
                     </h5>
-                    <div class="preview-container-ex1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="preview-container-ex1 space-y-6">
                         <p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>
                     </div>
                 </div>
@@ -219,19 +219,19 @@
                     <div class="tables-wrapper space-y-4" data-exercise="ex2"></div>
                 </div>
 
-                <!-- VISTA PREVIA CONSOLIDADA EX2 -->
-                <div class="bg-slate-50 border border-slate-300 p-4 rounded-xl space-y-3">
+                <!-- VISTA PREVIA CONSOLIDADA CON REGISTROS EX2 -->
+                <div class="bg-slate-50 border border-slate-300 p-4 rounded-xl space-y-4">
                     <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                        👁️ Vista Previa Consolidada (Esquema Relacional Ejercicio 2):
+                        👁️ Vista Previa Consolidada (Tablas Normalizadas y Registros - Ejercicio 2):
                     </h5>
-                    <div class="preview-container-ex2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="preview-container-ex2 space-y-6">
                         <p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- VISTA 3: PANEL DE CONTROL DOCENTE (INICIAL) -->
+        <!-- VISTA 3: PANEL DE CONTROL DOCENTE -->
         <section id="view-teacher-dashboard" class="hidden space-y-6">
             <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
@@ -314,7 +314,8 @@
             student: null,
             isTeacherMode: false,
             records: { ex1: [], ex2: [] },
-            normalizationTables: { ex1: [], ex2: [] }
+            normalizationTables: { ex1: [], ex2: [] },
+            tableRows: { ex1: {}, ex2: {} }
         };
 
         let currentDocId = null;
@@ -403,12 +404,12 @@
                     sessionData.student = { nombre: d.studentName, cedula: d.studentCedula };
                     sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
                     sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
+                    sessionData.tableRows = d.tableRows || { ex1: {}, ex2: {} };
 
                     document.getElementById('view-teacher-dashboard').classList.add('hidden');
                     document.getElementById('view-workspace').classList.remove('hidden');
                     document.getElementById('room-info').classList.remove('hidden');
                     
-                    // Mostrar selector rápido en la cabecera
                     document.getElementById('teacher-quick-switch-container').style.display = 'flex';
                     document.getElementById('lbl-student-name').style.display = 'none';
                     document.getElementById('header-teacher-select').value = docId;
@@ -420,8 +421,8 @@
 
                     renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
                     renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
-                    updatePreview('ex1', sessionData.normalizationTables.ex1 || []);
-                    updatePreview('ex2', sessionData.normalizationTables.ex2 || []);
+                    updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
+                    updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
 
                     startRealtimeSync();
                 }
@@ -469,13 +470,16 @@
                         let d = snap.docs[0].data();
                         sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
                         sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
+                        sessionData.tableRows = d.tableRows || { ex1: {}, ex2: {} };
                     } else {
                         sessionData.records = { ex1: defaultEx1Records, ex2: defaultEx2Records };
+                        sessionData.tableRows = { ex1: {}, ex2: {} };
                         const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
                             studentName: sessionData.student.nombre,
                             studentCedula: sessionData.student.cedula,
                             records: sessionData.records,
                             normalizationTables: { ex1: [], ex2: [] },
+                            tableRows: { ex1: {}, ex2: {} },
                             timestamp: new Date()
                         });
                         currentDocId = docRef.id;
@@ -504,8 +508,8 @@
             renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
             renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
             renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
-            updatePreview('ex1', sessionData.normalizationTables.ex1 || []);
-            updatePreview('ex2', sessionData.normalizationTables.ex2 || []);
+            updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
+            updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
             startRealtimeSync();
         }
 
@@ -534,9 +538,12 @@
                                     renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
                                     renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
                                 }
-                                updatePreview('ex1', sessionData.normalizationTables.ex1 || []);
-                                updatePreview('ex2', sessionData.normalizationTables.ex2 || []);
                             }
+                            if (data.tableRows) {
+                                sessionData.tableRows = data.tableRows;
+                            }
+                            updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
+                            updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
                         }
                     }
                 });
@@ -550,19 +557,44 @@
             sessionData.records.ex2 = extractRecordsDataFromDOM('ex2');
             sessionData.normalizationTables.ex1 = extractTablesDataFromDOM('ex1');
             sessionData.normalizationTables.ex2 = extractTablesDataFromDOM('ex2');
+            sessionData.tableRows.ex1 = extractTableRowsFromDOM('ex1');
+            sessionData.tableRows.ex2 = extractTableRowsFromDOM('ex2');
 
-            updatePreview('ex1', sessionData.normalizationTables.ex1);
-            updatePreview('ex2', sessionData.normalizationTables.ex2);
+            updatePreview('ex1', sessionData.normalizationTables.ex1, sessionData.tableRows.ex1);
+            updatePreview('ex2', sessionData.normalizationTables.ex2, sessionData.tableRows.ex2);
 
             try {
                 const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 await updateDoc(doc(window.db, "laboratorio_normalizacion", currentDocId), {
                     records: sessionData.records,
-                    normalizationTables: sessionData.normalizationTables
+                    normalizationTables: sessionData.normalizationTables,
+                    tableRows: sessionData.tableRows
                 });
             } catch (e) {
                 console.error("Error sincronizando:", e);
             }
+        }
+
+        // --- VALIDACIÓN DE INTEGRIDAD REFERENCIAL (FK) ---
+        function checkForeignKeyConstraint(exerciseId, targetTableName, insertedValue, fieldIndex) {
+            let tables = extractTablesDataFromDOM(exerciseId);
+            let targetTable = tables.find(t => t.name.toUpperCase() === targetTableName.toUpperCase());
+            if (!targetTable) return true; // Si la tabla aún no existe, dejamos escribir temporalmente
+
+            // Buscamos si existe al menos una fila en esa tabla maestra cuyo PK (columna 0 por lo general) coincida con el valor ingresado
+            let safeName = escapeName(targetTable.name);
+            let tbody = document.getElementById(`preview-tbody-${exerciseId}-${safeName}`);
+            if (!tbody) return false; // La tabla existe pero no tiene registros creados todavía
+
+            let exists = false;
+            tbody.querySelectorAll('.preview-data-row').forEach(row => {
+                let inputs = row.querySelectorAll('.preview-cell-val');
+                if (inputs.length > 0 && inputs[0].value.trim() === insertedValue.trim()) {
+                    exists = true;
+                }
+            });
+
+            return exists;
         }
 
         // --- MANEJO DE REGISTROS ---
@@ -613,8 +645,10 @@
             });
             if(sessionData.isTeacherMode) {
                 document.querySelectorAll('.action-col').forEach(el => el.style.display = 'none');
-                document.getElementById('btn-add-row-ex1').style.display = 'none';
-                document.getElementById('btn-add-row-ex2').style.display = 'none';
+                let btn1 = document.getElementById('btn-add-row-ex1');
+                let btn2 = document.getElementById('btn-add-row-ex2');
+                if(btn1) btn1.style.display = 'none';
+                if(btn2) btn2.style.display = 'none';
             }
         }
 
@@ -638,8 +672,83 @@
             return records;
         }
 
-        // --- VISTA PREVIA CONSOLIDADA ---
-        function updatePreview(exerciseId, tablesArray) {
+        // --- VISTA PREVIA CONSOLIDADA CON TABLAS Y SUS REGISTROS ---
+        window.addPreviewRow = function(exerciseId, tableName) {
+            if (sessionData.isTeacherMode) return;
+            const tbody = document.getElementById(`preview-tbody-${exerciseId}-${escapeName(tableName)}`);
+            if(!tbody) return;
+            
+            const tr = document.createElement('tr');
+            tr.className = "preview-data-row divide-x divide-slate-200";
+            
+            let cellsHTML = '';
+            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
+            cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim();
+                if(tName === tableName) {
+                    card.querySelectorAll('.field-row').forEach((row) => {
+                        let fType = row.querySelector('.f-type').value;
+                        let fRef = row.querySelector('.f-ref') ? row.querySelector('.f-ref').value : '';
+                        
+                        // Si es FK y tiene referencia configurada, validamos integridad
+                        let onInputAttr = "saveToCloud()";
+                        if((fType === 'FK' || fType === 'PK-FK') && fRef) {
+                            let refTable = fRef.split('.')[0];
+                            onInputAttr = `validateFKInput(this, '${exerciseId}', '${refTable}')`;
+                        }
+
+                        cellsHTML += `<td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs preview-cell-val" oninput="${onInputAttr}" placeholder="..."></td>`;
+                    });
+                }
+            });
+
+            tr.innerHTML = cellsHTML + `<td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
+            tbody.appendChild(tr);
+            saveToCloud();
+        };
+
+        window.validateFKInput = function(inputEl, exerciseId, refTableName) {
+            let val = inputEl.value;
+            let isValid = checkForeignKeyConstraint(exerciseId, refTableName, val);
+            if(!isValid && val.trim() !== "") {
+                inputEl.style.borderColor = "#ef4444"; // rojo aviso
+                inputEl.title = `⚠️ Error de integridad referencial: El valor no existe en la tabla principal '${refTableName}'.`;
+            } else {
+                inputEl.style.borderColor = "#cbd5e1";
+                inputEl.title = "";
+            }
+            saveToCloud();
+        };
+
+        function escapeName(name) {
+            return (name || '').replace(/[^a-zA-Z0-9]/g, '_');
+        }
+
+        function extractTableRowsFromDOM(exerciseId) {
+            let tableRowsObj = {};
+            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
+            cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim();
+                if(!tName) return;
+                
+                let safeName = escapeName(tName);
+                let tbody = document.getElementById(`preview-tbody-${exerciseId}-${safeName}`);
+                if(tbody) {
+                    let rowsData = [];
+                    tbody.querySelectorAll('.preview-data-row').forEach(row => {
+                        let rowVals = [];
+                        row.querySelectorAll('.preview-cell-val').forEach(input => {
+                            rowVals.push(input.value);
+                        });
+                        rowsData.push(rowVals);
+                    });
+                    tableRowsObj[tName] = rowsData;
+                }
+            });
+            return tableRowsObj;
+        }
+
+        function updatePreview(exerciseId, tablesArray, tableRowsObj = {}) {
             const container = document.querySelector(`.preview-container-${exerciseId}`);
             if (!container) return;
 
@@ -650,11 +759,15 @@
 
             container.innerHTML = '';
             tablesArray.forEach(tbl => {
+                let tName = tbl.name || 'TABLA_SIN_NOMBRE';
+                let safeName = escapeName(tName);
+                let fields = tbl.fields || [];
+
                 let card = document.createElement('div');
-                card.className = "bg-white border border-slate-300 rounded-lg p-3 shadow-sm space-y-1.5";
+                card.className = "bg-white border border-slate-300 rounded-xl p-4 shadow-sm space-y-3";
                 
                 let fieldsHTML = '';
-                (tbl.fields || []).forEach(f => {
+                fields.forEach(f => {
                     let prefix = "";
                     if (f.type === 'PK') prefix = '<span class="text-amber-600 font-bold">[PK]</span> ';
                     else if (f.type === 'FK') prefix = '<span class="text-blue-600 font-bold">[FK]</span> ';
@@ -666,12 +779,61 @@
                     fieldsHTML += `<div class="text-[11px] text-slate-700 font-mono">${prefix}<strong>${f.name || 'campo'}</strong> : <span class="text-slate-500">${typeStr}</span>${refStr}</div>`;
                 });
 
+                let thsHTML = '';
+                fields.forEach(f => {
+                    thsHTML += `<th class="p-1.5 font-semibold">${f.name || 'col'}</th>`;
+                });
+
+                let savedRows = tableRowsObj[tName] || [];
+                let rowsHTML = '';
+
+                savedRows.forEach(rowVals => {
+                    let tdsHTML = '';
+                    fields.forEach((f, idx) => {
+                        let val = rowVals[idx] || '';
+                        let onInputAttr = "saveToCloud()";
+                        if((f.type === 'FK' || f.type === 'PK-FK') && f.ref) {
+                            let refTable = f.ref.split('.')[0];
+                            onInputAttr = `validateFKInput(this, '${exerciseId}', '${refTable}')`;
+                        }
+
+                        tdsHTML += `<td class="p-1"><input type="text" value="${val}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs preview-cell-val" oninput="${onInputAttr}" placeholder="..."></td>`;
+                    });
+                    let actionTd = sessionData.isTeacherMode ? '' : `<td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
+                    rowsHTML += `<tr class="preview-data-row divide-x divide-slate-200">${tdsHTML}${actionTd}</tr>`;
+                });
+
+                let addRowBtnHTML = sessionData.isTeacherMode ? '' : `<button type="button" onclick="addPreviewRow('${exerciseId}', '${tName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-2.5 py-1 rounded transition">+ Añadir Registro</button>`;
+
                 card.innerHTML = `
-                    <div class="border-b border-slate-200 pb-1 text-xs font-bold text-blue-900 uppercase">${tbl.name || 'TABLA_SIN_NOMBRE'}</div>
-                    <div class="space-y-0.5 pt-1">${fieldsHTML}</div>
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="text-xs font-bold text-blue-900 uppercase">📋 ${tName}</span>
+                        ${addRowBtnHTML}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estructura de la Tabla:</span>
+                            <div class="space-y-0.5">${fieldsHTML || '<span class="text-xs text-slate-400 italic">Sin atributos...</span>'}</div>
+                        </div>
+                        <div class="space-y-1 overflow-x-auto">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Registros de la Entidad:</span>
+                            <table class="w-full text-left text-xs text-slate-700 border border-slate-200 rounded">
+                                <thead class="bg-slate-200 uppercase text-[9px] text-slate-700 border-b border-slate-300">
+                                    <tr>${thsHTML}<th class="p-1.5 text-center action-col ${sessionData.isTeacherMode?'hidden':''}">Acción</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200" id="preview-tbody-${exerciseId}-${safeName}">
+                                    ${rowsHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 `;
                 container.appendChild(card);
             });
+            
+            if(sessionData.isTeacherMode) {
+                document.querySelectorAll('.preview-container-' + exerciseId + ' .action-col').forEach(el => el.style.display = 'none');
+            }
         }
 
         // --- MANEJO DE TABLAS NORMALIZADAS 3FN ---
