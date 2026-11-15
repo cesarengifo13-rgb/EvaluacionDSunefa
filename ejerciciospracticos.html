@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNEFA - Laboratorio y Panel de Profesor</title>
+    <title>UNEFA - Laboratorio de Normalización y Bases de Datos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsPDF -->
@@ -54,7 +54,7 @@
     </header>
 
     <!-- Contenido Principal -->
-    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
+    <main class="max-w-6xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
 
         <!-- VISTA 1: ACCESO GENERAL Y PROFESOR -->
         <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6 max-w-xl mx-auto">
@@ -96,11 +96,11 @@
         </section>
 
         <!-- VISTA 2: ENTORNO DE EJERCICIOS PRÁCTICOS (ESTUDIANTE) -->
-        <section id="view-workspace" class="hidden space-y-6">
+        <section id="view-workspace" class="hidden space-y-8">
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-900">Ejercicios Prácticos de Normalización (3FN)</h2>
-                    <p class="text-xs text-slate-600 mt-0.5">Resuelve los ejercicios estructurando tablas, tipos de datos y relaciones PK/FK.</p>
+                    <h2 class="text-xl font-bold text-slate-900">Laboratorio de Normalización y Registros (3FN)</h2>
+                    <p class="text-xs text-slate-600 mt-0.5">Analiza las tablas planas con registros de ejemplo (10 a 20 filas), diseña las entidades relacionales y define las PK y FK.</p>
                 </div>
                 <button type="button" onclick="generatePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 whitespace-nowrap">
                     📥 Generar e Imprimir PDF
@@ -108,31 +108,97 @@
             </div>
 
             <!-- EJERCICIO 1 -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                    <div>
-                        <h3 class="font-bold text-blue-900 text-base">Ejercicio 1: El Sistema de Préstamos Bibliotecarios</h3>
-                        <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-2 rounded border border-blue-200">
-                            Tabla Plana Inicial: ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo
-                        </p>
-                    </div>
-                    <button type="button" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow whitespace-nowrap">+ Añadir Tabla</button>
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 pb-3">
+                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 1: Sistema de Ventas e Inventario de Tienda (E-commerce)</h3>
+                    <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <strong>Estructura Plana Inicial:</strong> ID_Venta, Fecha_Venta, ID_Cliente, Nombre_Cliente, Direccion_Cliente, Codigo_Producto, Descripcion_Producto, Categoria_Producto, Precio_Unitario, Cantidad_Vendida
+                    </p>
                 </div>
-                <div class="tables-wrapper space-y-4" data-exercise="ex1"></div>
+
+                <!-- Tabla de Registros de Ejemplo (10-20 filas) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana - 10 a 20 filas):</h4>
+                        <button type="button" onclick="addRecordRow('ex1')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Registro</button>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs text-slate-700" id="records-table-ex1">
+                            <thead class="bg-slate-100 uppercase text-[10px] text-slate-600 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2">ID_Venta</th>
+                                    <th class="p-2">Fecha</th>
+                                    <th class="p-2">ID_Cli</th>
+                                    <th class="p-2">Nom_Cliente</th>
+                                    <th class="p-2">Dir_Cliente</th>
+                                    <th class="p-2">Cod_Prod</th>
+                                    <th class="p-2">Desc_Prod</th>
+                                    <th class="p-2">Cat_Prod</th>
+                                    <th class="p-2">Precio</th>
+                                    <th class="p-2">Cant</th>
+                                    <th class="p-2 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200" id="records-tbody-ex1"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Diseño Tablas 3FN -->
+                <div class="space-y-3 pt-4 border-t border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
+                        <button type="button" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
+                    </div>
+                    <div class="tables-wrapper space-y-4" data-exercise="ex1"></div>
+                </div>
             </div>
 
             <!-- EJERCICIO 2 -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                    <div>
-                        <h3 class="font-bold text-blue-900 text-base">Ejercicio 2: El Sistema de Citas Médicas</h3>
-                        <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-2 rounded border border-blue-200">
-                            Tabla Plana Inicial: ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico
-                        </p>
-                    </div>
-                    <button type="button" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow whitespace-nowrap">+ Añadir Tabla</button>
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 pb-3">
+                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 2: Sistema de Control de Inscripciones y Calificaciones Universitarias</h3>
+                    <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <strong>Estructura Plana Inicial:</strong> ID_Inscripcion, Periodo_Academico, Cedula_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Asignatura, Nombre_Asignatura, Creditos_Asignatura, Nombre_Profesor, Calificacion_Final
+                    </p>
                 </div>
-                <div class="tables-wrapper space-y-4" data-exercise="ex2"></div>
+
+                <!-- Tabla de Registros de Ejemplo (10-20 filas) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana - 10 a 20 filas):</h4>
+                        <button type="button" onclick="addRecordRow('ex2')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Registro</button>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs text-slate-700" id="records-table-ex2">
+                            <thead class="bg-slate-100 uppercase text-[10px] text-slate-600 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2">ID_Insc</th>
+                                    <th class="p-2">Periodo</th>
+                                    <th class="p-2">CI_Est</th>
+                                    <th class="p-2">Nom_Estudiante</th>
+                                    <th class="p-2">Carrera</th>
+                                    <th class="p-2">Cod_Asig</th>
+                                    <th class="p-2">Nom_Asignatura</th>
+                                    <th class="p-2">Cred</th>
+                                    <th class="p-2">Profesor</th>
+                                    <th class="p-2">Nota</th>
+                                    <th class="p-2 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200" id="records-tbody-ex2"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Diseño Tablas 3FN -->
+                <div class="space-y-3 pt-4 border-t border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
+                        <button type="button" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
+                    </div>
+                    <div class="tables-wrapper space-y-4" data-exercise="ex2"></div>
+                </div>
             </div>
         </section>
 
@@ -182,6 +248,7 @@
 
         let sessionData = {
             student: null,
+            records: { ex1: [], ex2: [] },
             normalizationTables: { ex1: [], ex2: [] }
         };
 
@@ -302,7 +369,9 @@
                 const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
                 if (snap.exists()) {
-                    sessionData.normalizationTables = snap.data().normalizationTables || { ex1: [], ex2: [] };
+                    let d = snap.data();
+                    sessionData.records = d.records || { ex1: [], ex2: [] };
+                    sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
                 }
             }
 
@@ -311,6 +380,8 @@
             document.getElementById('room-info').classList.remove('hidden');
             document.getElementById('lbl-student-name').textContent = sessionData.student.nombre + " (Modo Docente)";
 
+            renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
+            renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
             renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
             renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
             startRealtimeSync();
@@ -332,7 +403,7 @@
                 const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
                 if (snap.exists()) {
                     let data = snap.data();
-                    generatePDFCustom(data.studentName + " (C.I: " + data.studentCedula + ")", data.normalizationTables || { ex1: [], ex2: [] });
+                    generatePDFCustom(data.studentName + " (C.I: " + data.studentCedula + ")", data.records || { ex1: [], ex2: [] }, data.normalizationTables || { ex1: [], ex2: [] });
                 }
             }
         };
@@ -349,17 +420,26 @@
 
             if (window.firebaseAvailable && window.db) {
                 try {
-                    const { collection, addDoc, getDocs, query, where, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const { collection, addDoc, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     const q = query(collection(window.db, "laboratorio_normalizacion"), where("studentCedula", "==", sessionData.student.cedula));
                     const snap = await getDocs(q);
 
                     if (!snap.empty) {
                         currentDocId = snap.docs[0].id;
-                        sessionData.normalizationTables = snap.docs[0].data().normalizationTables || { ex1: [], ex2: [] };
+                        let d = snap.docs[0].data();
+                        sessionData.records = d.records || { ex1: [], ex2: [] };
+                        sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
                     } else {
+                        // Precargar filas iniciales vacías para los registros (ej. 3 filas de ejemplo iniciales)
+                        let initialEx1Records = Array.from({length: 3}, () => ({c1:'', c2:'', c3:'', c4:'', c5:'', c6:'', c7:'', c8:'', c9:'', c10:''}));
+                        let initialEx2Records = Array.from({length: 3}, () => ({c1:'', c2:'', c3:'', c4:'', c5:'', c6:'', c7:'', c8:'', c9:'', c10:''}));
+                        
+                        sessionData.records = { ex1: initialEx1Records, ex2: initialEx2Records };
+
                         const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
                             studentName: sessionData.student.nombre,
                             studentCedula: sessionData.student.cedula,
+                            records: sessionData.records,
                             normalizationTables: { ex1: [], ex2: [] },
                             timestamp: new Date()
                         });
@@ -379,6 +459,8 @@
             document.getElementById('room-info').classList.remove('hidden');
             document.getElementById('lbl-student-name').textContent = sessionData.student.nombre + ` (C.I: ${sessionData.student.cedula})`;
 
+            renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
+            renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
             renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
             renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
             startRealtimeSync();
@@ -396,26 +478,36 @@
                 unsubscribe = onSnapshot(doc(window.db, "laboratorio_normalizacion", currentDocId), (docSnapshot) => {
                     if (docSnapshot.exists() && !isRemoteUpdating) {
                         const data = docSnapshot.data();
-                        const activeInside = document.querySelector('.tables-wrapper input:focus, .tables-wrapper select:focus');
-                        if (!activeInside && data.normalizationTables) {
-                            sessionData.normalizationTables = data.normalizationTables;
-                            renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
-                            renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+                        const activeInside = document.querySelector('input:focus, select:focus');
+                        if (!activeInside) {
+                            if (data.records) {
+                                sessionData.records = data.records;
+                                renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
+                                renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
+                            }
+                            if (data.normalizationTables) {
+                                sessionData.normalizationTables = data.normalizationTables;
+                                renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+                                renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+                            }
                         }
                     }
                 });
             });
         }
 
-        async function saveNormalizationTablesToCloud() {
+        async function saveToCloud() {
             if (isRemoteUpdating || !window.firebaseAvailable || !window.db || !currentDocId) return;
 
+            sessionData.records.ex1 = extractRecordsDataFromDOM('ex1');
+            sessionData.records.ex2 = extractRecordsDataFromDOM('ex2');
             sessionData.normalizationTables.ex1 = extractTablesDataFromDOM('ex1');
             sessionData.normalizationTables.ex2 = extractTablesDataFromDOM('ex2');
 
             try {
                 const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 await updateDoc(doc(window.db, "laboratorio_normalizacion", currentDocId), {
+                    records: sessionData.records,
                     normalizationTables: sessionData.normalizationTables
                 });
             } catch (e) {
@@ -423,6 +515,74 @@
             }
         }
 
+        // --- MANEJO DE REGISTROS (TABLA PLANA) ---
+        window.addRecordRow = function(exerciseId) {
+            const tbody = document.getElementById(`records-tbody-${exerciseId}`);
+            const tr = document.createElement('tr');
+            tr.className = "record-row divide-x divide-slate-200";
+            tr.innerHTML = `
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c1" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c2" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c3" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c4" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c5" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c6" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c7" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c8" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c9" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c10" oninput="saveToCloud()" placeholder="..."></td>
+                <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>
+            `;
+            tbody.appendChild(tr);
+            saveToCloud();
+        };
+
+        function renderRecordsFromCloud(exerciseId, recordsArray) {
+            const tbody = document.getElementById(`records-tbody-${exerciseId}`);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            recordsArray.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "record-row divide-x divide-slate-200";
+                tr.innerHTML = `
+                    <td class="p-1"><input type="text" value="${r.c1 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c1" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c2 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c2" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c3 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c3" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c4 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c4" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c5 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c5" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c6 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c6" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c7 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c7" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c8 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c8" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c9 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c9" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1"><input type="text" value="${r.c10 || ''}" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c10" oninput="saveToCloud()" placeholder="..."></td>
+                    <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function extractRecordsDataFromDOM(exerciseId) {
+            const rows = document.querySelectorAll(`#records-tbody-${exerciseId} .record-row`);
+            let records = [];
+            rows.forEach(row => {
+                records.push({
+                    c1: row.querySelector('.r-c1').value,
+                    c2: row.querySelector('.r-c2').value,
+                    c3: row.querySelector('.r-c3').value,
+                    c4: row.querySelector('.r-c4').value,
+                    c5: row.querySelector('.r-c5').value,
+                    c6: row.querySelector('.r-c6').value,
+                    c7: row.querySelector('.r-c7').value,
+                    c8: row.querySelector('.r-c8').value,
+                    c9: row.querySelector('.r-c9').value,
+                    c10: row.querySelector('.r-c10').value
+                });
+            });
+            return records;
+        }
+
+        // --- MANEJO DE TABLAS NORMALIZADAS 3FN ---
         function extractTablesDataFromDOM(exerciseId) {
             const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
             let tablesData = [];
@@ -452,19 +612,19 @@
             tablesArray.forEach((tblData, tIdx) => {
                 const tableId = `t_${exerciseId}_${tIdx}`;
                 const tableDiv = document.createElement('div');
-                tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+                tableDiv.className = 'bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
                 tableDiv.id = tableId;
 
                 let fieldsHTML = '';
                 (tblData.fields || []).forEach((f, fIdx) => {
                     let fieldId = `f_${tableId}_${fIdx}`;
                     fieldsHTML += `
-                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200" id="${fieldId}">
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-white p-2 rounded border border-slate-200" id="${fieldId}">
                             <div class="sm:col-span-3">
-                                <input type="text" value="${f.name || ''}" placeholder="Nombre campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                                <input type="text" value="${f.name || ''}" placeholder="Nombre campo" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
                             </div>
                             <div class="sm:col-span-2">
-                                <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveNormalizationTablesToCloud()">
+                                <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveToCloud()">
                                     <option value="INT" ${f.datatype === 'INT' ? 'selected' : ''}>INT</option>
                                     <option value="VARCHAR" ${f.datatype === 'VARCHAR' ? 'selected' : ''}>VARCHAR</option>
                                     <option value="DATE" ${f.datatype === 'DATE' ? 'selected' : ''}>DATE</option>
@@ -473,10 +633,10 @@
                                 </select>
                             </div>
                             <div class="sm:col-span-2">
-                                <input type="text" value="${f.length || ''}" placeholder="Límite" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud()">
+                                <input type="text" value="${f.length || ''}" placeholder="Límite" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud()">
                             </div>
                             <div class="sm:col-span-2">
-                                <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                                <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
                                     <option value="Normal" ${f.type === 'Normal' ? 'selected' : ''}>Normal</option>
                                     <option value="PK" ${f.type === 'PK' ? 'selected' : ''}>PK</option>
                                     <option value="FK" ${f.type === 'FK' ? 'selected' : ''}>FK</option>
@@ -487,7 +647,7 @@
                                 <span class="text-slate-400 text-xs italic">N/A</span>
                             </div>
                             <div class="sm:col-span-1 text-right">
-                                <button type="button" onclick="this.closest('.field-row').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                                <button type="button" onclick="this.closest('.field-row').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
                             </div>
                         </div>
                     `;
@@ -495,14 +655,14 @@
 
                 tableDiv.innerHTML = `
                     <div class="flex justify-between items-center gap-2">
-                        <input type="text" value="${tblData.name || ''}" placeholder="NOMBRE_TABLA" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
-                        <button type="button" onclick="this.closest('.table-card').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                        <input type="text" value="${tblData.name || ''}" placeholder="NOMBRE_TABLA" class="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                        <button type="button" onclick="this.closest('.table-card').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
                     </div>
                     <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
                         <p class="text-xs text-slate-500">Atributos / Columnas:</p>
                         ${fieldsHTML}
                     </div>
-                    <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Columna</button>
+                    <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-medium px-3 py-1.5 rounded transition">+ Añadir Columna</button>
                 `;
                 wrapper.appendChild(tableDiv);
             });
@@ -534,7 +694,7 @@
                 if (typeSelect.value === 'FK' || typeSelect.value === 'PK-FK') {
                     refContainer.innerHTML = '';
                     let selectRef = document.createElement('select');
-                    selectRef.className = 'bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 f-ref w-full focus:ring-1 focus:ring-blue-500 outline-none';
+                    selectRef.className = 'bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 f-ref w-full focus:ring-1 focus:ring-blue-500 outline-none';
                     
                     let defaultOpt = document.createElement('option');
                     defaultOpt.value = '';
@@ -552,7 +712,7 @@
 
                     selectRef.onchange = function() {
                         refContainer.setAttribute('data-selected-ref', this.value);
-                        saveNormalizationTablesToCloud();
+                        saveToCloud();
                     };
 
                     refContainer.appendChild(selectRef);
@@ -567,20 +727,20 @@
             const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
             const tableId = 't_' + Math.random().toString(36).substring(2, 9);
             const tableDiv = document.createElement('div');
-            tableDiv.className = 'bg-white border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+            tableDiv.className = 'bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
             tableDiv.innerHTML = `
                 <div class="flex justify-between items-center gap-2">
-                    <input type="text" placeholder="NOMBRE_TABLA" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
-                    <button type="button" onclick="this.closest('.table-card').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                    <input type="text" placeholder="NOMBRE_TABLA" class="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                    <button type="button" onclick="this.closest('.table-card').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
                 </div>
                 <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
                     <p class="text-xs text-slate-500">Atributos / Columnas:</p>
                 </div>
-                <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Columna</button>
+                <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-medium px-3 py-1.5 rounded transition">+ Añadir Columna</button>
             `;
             tableDiv.id = tableId;
             wrapper.appendChild(tableDiv);
-            saveNormalizationTablesToCloud();
+            saveToCloud();
             updateAllFKDropdowns(exerciseId);
         };
 
@@ -588,13 +748,13 @@
             const tableCard = document.getElementById(tableId);
             const container = tableCard.querySelector('.fields-container');
             const fieldRow = document.createElement('div');
-            fieldRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-slate-50/50 p-2 rounded border border-slate-200';
+            fieldRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-white p-2 rounded border border-slate-200';
             fieldRow.innerHTML = `
                 <div class="sm:col-span-3">
-                    <input type="text" placeholder="Nombre campo" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                    <input type="text" placeholder="Nombre campo" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
                 </div>
                 <div class="sm:col-span-2">
-                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveNormalizationTablesToCloud()">
+                    <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveToCloud()">
                         <option value="INT">INT</option>
                         <option value="VARCHAR">VARCHAR</option>
                         <option value="DATE">DATE</option>
@@ -603,10 +763,10 @@
                     </select>
                 </div>
                 <div class="sm:col-span-2">
-                    <input type="text" placeholder="Límite" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveNormalizationTablesToCloud()">
+                    <input type="text" placeholder="Límite" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud()">
                 </div>
                 <div class="sm:col-span-2">
-                    <select class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                    <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
                         <option value="Normal">Normal</option>
                         <option value="PK">PK</option>
                         <option value="FK">FK</option>
@@ -617,21 +777,23 @@
                     <span class="text-slate-400 text-xs italic">N/A</span>
                 </div>
                 <div class="sm:col-span-1 text-right">
-                    <button type="button" onclick="this.closest('.field-row').remove(); saveNormalizationTablesToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                    <button type="button" onclick="this.closest('.field-row').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
                 </div>
             `;
             container.appendChild(fieldRow);
-            saveNormalizationTablesToCloud();
+            saveToCloud();
             updateAllFKDropdowns(exerciseId);
         };
 
         window.generatePDF = function() {
+            let ex1Records = extractRecordsDataFromDOM('ex1');
+            let ex2Records = extractRecordsDataFromDOM('ex2');
             let ex1Tables = extractTablesDataFromDOM('ex1');
             let ex2Tables = extractTablesDataFromDOM('ex2');
-            generatePDFCustom(sessionData.student.nombre + " (C.I: " + sessionData.student.cedula + ")", { ex1: ex1Tables, ex2: ex2Tables });
+            generatePDFCustom(sessionData.student.nombre + " (C.I: " + sessionData.student.cedula + ")", { ex1: ex1Records, ex2: ex2Records }, { ex1: ex1Tables, ex2: ex2Tables });
         };
 
-        function generatePDFCustom(studentInfo, tablesObj) {
+        function generatePDFCustom(studentInfo, recordsObj, tablesObj) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             let y = 15;
@@ -720,33 +882,42 @@
 
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
-            doc.text("REPORTE DE PRÁCTICA: NORMALIZACIÓN DE BASES DE DATOS", 20, y);
+            doc.text("REPORTE DE PRÁCTICA: NORMALIZACIÓN Y REGISTROS (3FN)", 20, y);
             y += 8;
 
+            // Ejercicio 1
             checkPageSpace(20);
             doc.setFontSize(10);
-            doc.text("• Ejercicio 1: El Sistema de Préstamos Bibliotecarios", 20, y); y += 6;
+            doc.text("• Ejercicio 1: Sistema de Ventas e Inventario de Tienda (E-commerce)", 20, y); y += 6;
+            doc.setFontSize(8);
+            doc.text(`Total de registros de ejemplo ingresados: ${(recordsObj.ex1 || []).length} filas`, 22, y); y += 6;
+            
             let ex1 = tablesObj.ex1 || [];
             if (ex1.length === 0) {
                 doc.setFont("helvetica", "normal");
-                doc.text("   (No se definieron tablas en este ejercicio)", 24, y); y += 8;
+                doc.text("   (No se definieron tablas normalizadas en este ejercicio)", 24, y); y += 8;
             } else {
                 ex1.forEach(tbl => {
-                    drawMySQLTable(`Ej 1 - ${tbl.name}`, tbl.fields);
+                    drawMySQLTable(`Ej 1 [3FN] - ${tbl.name}`, tbl.fields);
                 });
             }
 
             y += 4;
+            // Ejercicio 2
             checkPageSpace(20);
+            doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
-            doc.text("• Ejercicio 2: El Sistema de Citas Médicas", 20, y); y += 6;
+            doc.text("• Ejercicio 2: Control de Inscripciones y Calificaciones Universitarias", 20, y); y += 6;
+            doc.setFontSize(8);
+            doc.text(`Total de registros de ejemplo ingresados: ${(recordsObj.ex2 || []).length} filas`, 22, y); y += 6;
+
             let ex2 = tablesObj.ex2 || [];
             if (ex2.length === 0) {
                 doc.setFont("helvetica", "normal");
-                doc.text("   (No se definieron tablas en este ejercicio)", 24, y); y += 8;
+                doc.text("   (No se definieron tablas normalizadas en este ejercicio)", 24, y); y += 8;
             } else {
                 ex2.forEach(tbl => {
-                    drawMySQLTable(`Ej 2 - ${tbl.name}`, tbl.fields);
+                    drawMySQLTable(`Ej 2 [3FN] - ${tbl.name}`, tbl.fields);
                 });
             }
 
