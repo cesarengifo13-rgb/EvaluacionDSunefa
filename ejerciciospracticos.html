@@ -121,18 +121,18 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-amber-200 pb-3">
                     <div>
                         <h3 class="font-bold text-amber-900 text-base flex items-center gap-2">
-                            <span>💡 Panel de Correcciones y Sugerencias Docentes</span>
+                            <span>📋 Pauta de Corrección y Modelo Ideal (3FN)</span>
                         </h3>
-                        <p class="text-xs text-amber-700 mt-0.5">Diagnóstico y recomendaciones de normalización en tiempo real para este estudiante.</p>
+                        <p class="text-xs text-amber-700 mt-0.5">Tablas, campos, PK, FK y relaciones esperadas para estos ejercicios.</p>
                     </div>
                     <div id="teacher-feedback-action-container" class="hidden">
                         <button type="button" onclick="generateTeacherFeedback()" class="bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-2">
-                            🤖 Generar Diagnóstico y Sugerencias 3FN
+                            🚀 Enviar Solución Modelo al Estudiante
                         </button>
                     </div>
                 </div>
                 <div id="teacher-feedback-display" class="bg-white border border-amber-200 rounded-xl p-4 text-xs text-slate-700 space-y-3 shadow-inner">
-                    <p class="text-slate-400 italic">Sin observaciones registradas todavía. El profesor puede generar el diagnóstico al revisar al estudiante.</p>
+                    <p class="text-slate-400 italic">El profesor aún no ha publicado la pauta de corrección y modelo ideal para este estudiante.</p>
                 </div>
             </div>
 
@@ -260,7 +260,7 @@
             <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold">Panel de Control Docente</h2>
-                    <p class="text-xs text-slate-300 mt-1">Selecciona un estudiante para revisar sus registros, tablas y generar correcciones en tiempo real.</p>
+                    <p class="text-xs text-slate-300 mt-1">Selecciona un estudiante para revisar sus registros, tablas y enviar la pauta de corrección.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="deleteAllFirebaseData()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">🗑️ Eliminar Todos los Datos</button>
@@ -279,7 +279,7 @@
                     </div>
                 </div>
                 <div id="teacher-quick-info" class="text-xs text-slate-500 italic">
-                    Elija un estudiante en el selector superior para ingresar a su espacio de trabajo y enviar observaciones automáticas.
+                    Elija un estudiante en el selector superior para ingresar a su espacio de trabajo y liberar la pauta ideal.
                 </div>
             </div>
         </section>
@@ -327,7 +327,7 @@
             {c1:"INS-505", c2:"2026-1", c3:"31781439", c4:"Eduardo Sifontes", c5:"Ing. de Sistemas", c6:"S-101", c7:"Diseño de Sistemas", c8:"4", c9:"A-10", c10:"Planta Baja - Edif A", c11:"Prof. Cesar Rengifo", c12:"14"},
             {c1:"INS-506", c2:"2026-1", c3:"31791315", c4:"Jorvin Mota", c5:"Ing. Agronómica", c6:"A-301", c7:"Fitopatología", c8:"3", c9:"C-02", c10:"Piso 2 - Edif C", c11:"Prof. Luis Zambrano", c12:"16"},
             {c1:"INS-507", c2:"2026-1", c3:"31791350", c4:"Estefani Itriago", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"19"},
-            {c1:"INS-508", c2:"2026-1", c3:"32679937", c4:"Yean Hernández", c5:"Ing. Civil", c6:"C-201", c7:"Resistencia de Materiales", c8:"4", c9:"B-05", c10:"Planta Baja - Edif B", c11:"Prof. Pedro Infante", c12:"13"},
+            {c1:"INS-508", c2:"2026-1", c3:"32679937", c4:"Yean Hernández", c5:"Ing. Civil", c6:"C-201", c7:"Resistencia de Materiales", c8:"4", c9:"B-05", c10:"Planta Baja - Edif B", c11:"Prof. Pedro Infante", c13:"13"},
             {c1:"INS-509", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"17"},
             {c1:"INS-510", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"15"},
             {c1:"INS-511", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S-103", c7:"Redes de Computadoras", c8:"4", c9:"A-15", c10:"Piso 2 - Edif A", c11:"Prof. Alberto Sosa", c12:"18"},
@@ -612,60 +612,90 @@
             }
         }
 
-        // --- GENERADOR DE CORRECCIONES Y SUGERENCIAS DOCENTES ---
+        // --- PAUTA DE CORRECCIÓN Y MODELO IDEAL (3FN) ---
         window.generateTeacherFeedback = async function() {
             if (!sessionData.isTeacherMode) return;
 
-            // Analizamos el estado de las tablas del estudiante para darle un reporte constructivo
-            let tablesEx1 = extractTablesDataFromDOM('ex1');
-            let tablesEx2 = extractTablesDataFromDOM('ex2');
+            let feedbackHTML = `
+                <div class="space-y-4 text-xs">
+                    <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg space-y-2">
+                        <h4 class="font-bold text-blue-900 text-sm">📌 PAUTA OFICIAL DE CORRECCIÓN - EJERCICIO 1: E-commerce y Facturación</h4>
+                        <p class="text-slate-600">Para descomponer la tabla plana a 3FN, debió crear exactamente las siguientes 3 tablas maestras y relacionales:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                            <div class="bg-white p-2.5 rounded border border-blue-200 space-y-1">
+                                <p class="font-bold text-blue-900">1. CLIENTES (Maestra)</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> ID_Cliente (VARCHAR)</p>
+                                <p>• Nombre_Cliente (VARCHAR)</p>
+                                <p>• Rif_Cliente (VARCHAR)</p>
+                                <p>• Telefono_Cliente (VARCHAR)</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-blue-200 space-y-1">
+                                <p class="font-bold text-blue-900">2. PRODUCTOS (Maestra)</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cod_Producto (VARCHAR)</p>
+                                <p>• Descripcion_Producto (VARCHAR)</p>
+                                <p>• Categoria_Producto (VARCHAR)</p>
+                                <p>• Stock_Actual (INT)</p>
+                                <p>• Precio_Unitario (DECIMAL)</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-blue-200 space-y-1">
+                                <p class="font-bold text-blue-900">3. DETALLE_FACTURA (Transaccional)</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> ID_Factura (VARCHAR)</p>
+                                <p>• Fecha_Emision (DATE)</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> ID_Cliente $\rightarrow$ CLIENTES.ID_Cliente</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cod_Producto $\rightarrow$ PRODUCTOS.Cod_Producto</p>
+                                <p>• Cantidad_Comprada (INT)</p>
+                            </div>
+                        </div>
+                    </div>
 
-            let feedbackHTML = `<div class="space-y-3">`;
-            feedbackHTML += `<p class="font-bold text-amber-900">📋 Diagnóstico Académico Automatizado (UNEFA Tucupido):</p>`;
-
-            // Ejercicio 1 Analysis
-            feedbackHTML += `<div class="bg-amber-50/60 p-2.5 rounded border border-amber-200 space-y-1">`;
-            feedbackHTML += `<p class="font-semibold text-slate-800">Ejercicio 1 (E-commerce / Facturación):</p>`;
-            if(tablesEx1.length === 0) {
-                feedbackHTML += `<p class="text-red-600">⚠️ El estudiante aún no ha definido tablas normalizadas (3FN) para este ejercicio.</p>`;
-            } else {
-                feedbackHTML += `<p class="text-emerald-700">✅ Se detectaron ${tablesEx1.length} tablas creadas.</p>`;
-                let hasPK = tablesEx1.some(t => t.fields.some(f => f.type === 'PK' || f.type === 'PK-FK'));
-                let hasFK = tablesEx1.some(t => t.fields.some(f => f.type === 'FK' || f.type === 'PK-FK'));
-                if(!hasPK) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Asegúrate de declarar correctamente las Claves Primarias (PK) en cada entidad maestra (Clientes, Productos, Facturas).</p>`;
-                if(!hasFK) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Faltan relaciones de Llaves Foráneas (FK) que conecten la tabla de detalles con clientes y productos.</p>`;
-                if(hasPK && hasFK) feedbackHTML += `<p class="text-emerald-700">🌟 Excelente estructuración de entidades y relaciones referenciales en 3FN.</p>`;
-            }
-            feedbackHTML += `</div>`;
-
-            // Ejercicio 2 Analysis
-            feedbackHTML += `<div class="bg-amber-50/60 p-2.5 rounded border border-amber-200 space-y-1">`;
-            feedbackHTML += `<p class="font-semibold text-slate-800">Ejercicio 2 (Control Académico):</p>`;
-            if(tablesEx2.length === 0) {
-                feedbackHTML += `<p class="text-red-600">⚠️ El estudiante aún no ha definido tablas normalizadas (3FN) para este ejercicio.</p>`;
-            } else {
-                feedbackHTML += `<p class="text-emerald-700">✅ Se detectaron ${tablesEx2.length} tablas creadas.</p>`;
-                let hasPK2 = tablesEx2.some(t => t.fields.some(f => f.type === 'PK' || f.type === 'PK-FK'));
-                let hasFK2 = tablesEx2.some(t => t.fields.some(f => f.type === 'FK' || f.type === 'PK-FK'));
-                if(!hasPK2) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Verifica las Claves Primarias para Estudiantes, Asignaturas y Aulas.</p>`;
-                if(!hasFK2) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Conecta la tabla de inscripciones con las FK correspondientes.</p>`;
-                if(hasPK2 && hasFK2) feedbackHTML += `<p class="text-emerald-700">🌟 Muy buen manejo de dependencias transitivas y diseño relacional académico.</p>`;
-            }
-            feedbackHTML += `</div>`;
-            feedbackHTML += `<p class="text-[11px] text-slate-500 italic">Evaluado y enviado por el Docente en tiempo real.</p>`;
-            feedbackHTML += `</div>`;
+                    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-lg space-y-2">
+                        <h4 class="font-bold text-emerald-900 text-sm">📌 PAUTA OFICIAL DE CORRECCIÓN - EJERCICIO 2: Control Académico</h4>
+                        <p class="text-slate-600">Para el sistema universitario en 3FN, el diseño relacional correcto es el siguiente:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-2">
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">1. ESTUDIANTES</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cedula_Estudiante</p>
+                                <p>• Nombre_Estudiante</p>
+                                <p>• Carrera_Estudiante</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">2. ASIGNATURAS</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cod_Asignatura</p>
+                                <p>• Nombre_Asignatura</p>
+                                <p>• Creditos_Asignatura</p>
+                                <p>• Nombre_Profesor</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">3. AULAS</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cod_Aula</p>
+                                <p>• Ubicacion_Aula</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">4. INSCRIPCIONES</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> ID_Inscripcion</p>
+                                <p>• Periodo_Acad</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cedula_Estudiante $\rightarrow$ ESTUDIANTES</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cod_Asignatura $\rightarrow$ ASIGNATURAS</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cod_Aula $\rightarrow$ AULAS</p>
+                                <p>• Calificacion_Final</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
 
             sessionData.feedback = feedbackHTML;
             renderFeedbackDisplay(feedbackHTML);
 
-            // Guardar en Firebase para que el estudiante lo vea en su pantalla inmediatamente
             if (window.firebaseAvailable && window.db && currentDocId) {
                 try {
                     const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     await updateDoc(doc(window.db, "laboratorio_normalizacion", currentDocId), {
                         feedback: feedbackHTML
                     });
-                    alert('✅ Diagnóstico y sugerencias enviadas exitosamente al estudiante.');
+                    alert('✅ Pauta de corrección y modelo ideal enviados con éxito a la pantalla del estudiante.');
                 } catch (e) {
                     console.error("Error enviando feedback:", e);
                 }
@@ -676,7 +706,7 @@
             const container = document.getElementById('teacher-feedback-display');
             if (!container) return;
             if (!htmlContent || htmlContent.trim() === "") {
-                container.innerHTML = '<p class="text-slate-400 italic">Sin observaciones registradas todavía. El profesor puede generar el diagnóstico al revisar al estudiante.</p>';
+                container.innerHTML = '<p class="text-slate-400 italic">El profesor aún no ha publicado la pauta de corrección y modelo ideal para este estudiante.</p>';
             } else {
                 container.innerHTML = htmlContent;
             }
