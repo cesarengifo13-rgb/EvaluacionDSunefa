@@ -38,11 +38,11 @@
 
     <!-- Header Institucional -->
     <header class="bg-blue-900 border-b border-blue-800 py-4 px-6 shadow-md text-white">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold">Laboratorio de Normalización y Bases de Datos</h1>
+                    <h1 class="text-base md:text-lg font-bold">Laboratorio de Normalización y Bases de Datos (Sesión 2 Horas)</h1>
                     <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Módulo Colaborativo</p>
                 </div>
             </div>
@@ -61,7 +61,7 @@
     </header>
 
     <!-- Contenido Principal -->
-    <main class="max-w-6xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
 
         <!-- VISTA 1: ACCESO GENERAL Y PROFESOR -->
         <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6 max-w-xl mx-auto">
@@ -107,7 +107,7 @@
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900">Laboratorio de Normalización y Registros (3FN)</h2>
-                    <p class="text-xs text-slate-600 mt-0.5" id="workspace-subtitle">Analiza las tablas planas, diseña las entidades relacionales y define las PK y FK.</p>
+                    <p class="text-xs text-slate-600 mt-0.5" id="workspace-subtitle">Analiza las tablas planas ampliadas, diseña las entidades relacionales y define las restricciones FK.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="generatePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 whitespace-nowrap">
@@ -116,33 +116,55 @@
                 </div>
             </div>
 
+            <!-- PANEL GLOBAL DE CORRECCIONES Y SUGERENCIAS DEL PROFESOR -->
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 shadow-md space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-amber-200 pb-3">
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-base flex items-center gap-2">
+                            <span>💡 Panel de Correcciones y Sugerencias Docentes</span>
+                        </h3>
+                        <p class="text-xs text-amber-700 mt-0.5">Diagnóstico y recomendaciones de normalización en tiempo real para este estudiante.</p>
+                    </div>
+                    <div id="teacher-feedback-action-container" class="hidden">
+                        <button type="button" onclick="generateTeacherFeedback()" class="bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-2">
+                            🤖 Generar Diagnóstico y Sugerencias 3FN
+                        </button>
+                    </div>
+                </div>
+                <div id="teacher-feedback-display" class="bg-white border border-amber-200 rounded-xl p-4 text-xs text-slate-700 space-y-3 shadow-inner">
+                    <p class="text-slate-400 italic">Sin observaciones registradas todavía. El profesor puede generar el diagnóstico al revisar al estudiante.</p>
+                </div>
+            </div>
+
             <!-- EJERCICIO 1 -->
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
                 <div class="border-b border-slate-200 pb-3">
-                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 1: Sistema de Ventas e Inventario de Tienda (E-commerce)</h3>
+                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 1: Sistema Avanzado de Ventas, Inventario y Facturación (E-commerce)</h3>
                     <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <strong>Estructura Plana Inicial:</strong> ID_Venta, Fecha_Venta, ID_Cliente, Nombre_Cliente, Direccion_Cliente, Codigo_Producto, Descripcion_Producto, Categoria_Producto, Precio_Unitario, Cantidad_Vendida
+                        <strong>Estructura Plana Ampliada (12 Columnas):</strong> ID_Factura, Fecha_Emision, ID_Cliente, Nombre_Cliente, Rif_Cliente, Telefono_Cliente, Cod_Producto, Descripcion_Producto, Categoria_Producto, Stock_Actual, Precio_Unitario, Cantidad_Comprada
                     </p>
                 </div>
 
                 <!-- Tabla de Registros -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana):</h4>
-                        <button type="button" id="btn-add-row-ex1" onclick="addRecordRow('ex1')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Registro</button>
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Práctica (Tabla Plana Ex 1):</h4>
+                        <button type="button" id="btn-add-row-ex1" onclick="addRecordRow('ex1')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Fila</button>
                     </div>
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
                         <table class="w-full text-left text-xs text-slate-700" id="records-table-ex1">
-                            <thead class="bg-slate-100 uppercase text-[10px] text-slate-600 border-b border-slate-200">
+                            <thead class="bg-slate-100 uppercase text-[9px] text-slate-600 border-b border-slate-200">
                                 <tr>
-                                    <th class="p-2">ID_Venta</th>
+                                    <th class="p-2">ID_Fact</th>
                                     <th class="p-2">Fecha</th>
                                     <th class="p-2">ID_Cli</th>
-                                    <th class="p-2">Nom_Cliente</th>
-                                    <th class="p-2">Dir_Cliente</th>
+                                    <th class="p-2">Nom_Cli</th>
+                                    <th class="p-2">RIF</th>
+                                    <th class="p-2">Telf_Cli</th>
                                     <th class="p-2">Cod_Prod</th>
                                     <th class="p-2">Desc_Prod</th>
                                     <th class="p-2">Cat_Prod</th>
+                                    <th class="p-2">Stock</th>
                                     <th class="p-2">Precio</th>
                                     <th class="p-2">Cant</th>
                                     <th class="p-2 text-center action-col">Acción</th>
@@ -153,7 +175,7 @@
                     </div>
                 </div>
 
-                <!-- Diseño Tablas 3FN (Oculto en modo profesor) -->
+                <!-- Diseño Tablas 3FN -->
                 <div id="container-normalizer-ex1" class="space-y-3 pt-4 border-t border-slate-200">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
@@ -176,21 +198,21 @@
             <!-- EJERCICIO 2 -->
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
                 <div class="border-b border-slate-200 pb-3">
-                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 2: Sistema de Control de Inscripciones y Calificaciones Universitarias</h3>
+                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 2: Sistema Académico Integral de Control de Inscripciones, Aulas y Profesores</h3>
                     <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <strong>Estructura Plana Inicial:</strong> ID_Inscripcion, Periodo_Academico, Cedula_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Asignatura, Nombre_Asignatura, Creditos_Asignatura, Nombre_Profesor, Calificacion_Final
+                        <strong>Estructura Plana Ampliada (12 Columnas):</strong> ID_Inscripcion, Periodo_Acad, Cedula_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Cod_Asignatura, Nombre_Asignatura, Creditos_Asignatura, Cod_Aula, Ubicacion_Aula, Nombre_Profesor, Calificacion_Final
                     </p>
                 </div>
 
                 <!-- Tabla de Registros -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Ejemplo (Tabla Plana):</h4>
-                        <button type="button" id="btn-add-row-ex2" onclick="addRecordRow('ex2')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Registro</button>
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Práctica (Tabla Plana Ex 2):</h4>
+                        <button type="button" id="btn-add-row-ex2" onclick="addRecordRow('ex2')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Fila</button>
                     </div>
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
                         <table class="w-full text-left text-xs text-slate-700" id="records-table-ex2">
-                            <thead class="bg-slate-100 uppercase text-[10px] text-slate-600 border-b border-slate-200">
+                            <thead class="bg-slate-100 uppercase text-[9px] text-slate-600 border-b border-slate-200">
                                 <tr>
                                     <th class="p-2">ID_Insc</th>
                                     <th class="p-2">Periodo</th>
@@ -200,6 +222,8 @@
                                     <th class="p-2">Cod_Asig</th>
                                     <th class="p-2">Nom_Asignatura</th>
                                     <th class="p-2">Cred</th>
+                                    <th class="p-2">Cod_Aula</th>
+                                    <th class="p-2">Ubic_Aula</th>
                                     <th class="p-2">Profesor</th>
                                     <th class="p-2">Nota</th>
                                     <th class="p-2 text-center action-col">Acción</th>
@@ -210,7 +234,7 @@
                     </div>
                 </div>
 
-                <!-- Diseño Tablas 3FN (Oculto en modo profesor) -->
+                <!-- Diseño Tablas 3FN -->
                 <div id="container-normalizer-ex2" class="space-y-3 pt-4 border-t border-slate-200">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
@@ -236,7 +260,7 @@
             <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold">Panel de Control Docente</h2>
-                    <p class="text-xs text-slate-300 mt-1">Selecciona un estudiante para revisar sus registros y vistas previas en tiempo real.</p>
+                    <p class="text-xs text-slate-300 mt-1">Selecciona un estudiante para revisar sus registros, tablas y generar correcciones en tiempo real.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="deleteAllFirebaseData()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">🗑️ Eliminar Todos los Datos</button>
@@ -246,7 +270,7 @@
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-b border-slate-200 pb-3">
-                    <h3 class="font-bold text-slate-900 text-base">Seleccione Estudiante a Supervisar:</h3>
+                    <h3 class="font-bold text-slate-900 text-base">Seleccione Estudiante a Supervisar y Evaluar:</h3>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <select id="teacher-student-select" onchange="onTeacherSelectStudent(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-72">
                             <option value="">-- Seleccionar Estudiante --</option>
@@ -255,7 +279,7 @@
                     </div>
                 </div>
                 <div id="teacher-quick-info" class="text-xs text-slate-500 italic">
-                    Elija un estudiante en el selector superior para visualizar su espacio de trabajo en tiempo real.
+                    Elija un estudiante en el selector superior para ingresar a su espacio de trabajo y enviar observaciones automáticas.
                 </div>
             </div>
         </section>
@@ -281,33 +305,33 @@
         ];
 
         const defaultEx1Records = [
-            {c1:"101", c2:"2026-03-01", c3:"1", c4:"Carlos Pérez", c5:"Calle Bolívar, Tucupido", c6:"P01", c7:"Laptop Core i5", c8:"Tecnología", c9:"450.00", c10:"1"},
-            {c1:"102", c2:"2026-03-01", c3:"2", c4:"Ana Gómez", c5:"Av. Principal, Las Mercedes", c6:"P02", c7:"Mouse Inalámbrico", c8:"Accesorios", c9:"15.50", c10:"2"},
-            {c1:"103", c2:"2026-03-02", c3:"1", c4:"Carlos Pérez", c5:"Calle Bolívar, Tucupido", c6:"P03", c7:"Teclado Mecánico", c8:"Accesorios", c9:"35.00", c10:"1"},
-            {c1:"104", c2:"2026-03-02", c3:"3", c4:"Luis Rodríguez", c5:"Sector Centro, Tucupido", c6:"P01", c7:"Laptop Core i5", c8:"Tecnología", c9:"450.00", c10:"1"},
-            {c1:"105", c2:"2026-03-03", c3:"4", c4:"María Silva", c5:"Calle El Carmen", c6:"P04", c7:"Monitor 24\"", c8:"Tecnología", c9:"120.00", c10:"1"},
-            {c1:"106", c2:"2026-03-03", c3:"2", c4:"Ana Gómez", c5:"Av. Principal, Las Mercedes", c6:"P05", c7:"Pendrive 64GB", c8:"Almacenamiento", c9:"10.00", c10:"3"},
-            {c1:"107", c2:"2026-03-04", c3:"5", c4:"José Torres", c5:"Urbanización Sur", c6:"P02", c7:"Mouse Inalámbrico", c8:"Accesorios", c9:"15.50", c10:"1"},
-            {c1:"108", c2:"2026-03-04", c3:"3", c4:"Luis Rodríguez", c5:"Sector Centro, Tucupido", c6:"P06", c7:"Impresora Laser", c8:"Oficina", c9:"210.00", c10:"1"},
-            {c1:"109", c2:"2026-03-05", c3:"6", c4:"Carmen Rivas", c5:"Calle Comercio", c6:"P03", c7:"Teclado Mecánico", c8:"Accesorios", c9:"35.00", c10:"2"},
-            {c1:"110", c2:"2026-03-05", c3:"1", c4:"Carlos Pérez", c5:"Calle Bolívar, Tucupido", c6:"P05", c7:"Pendrive 64GB", c8:"Almacenamiento", c9:"10.00", c10:"1"},
-            {c1:"111", c2:"2026-03-06", c3:"4", c4:"María Silva", c5:"Calle El Carmen", c6:"P01", c7:"Laptop Core i5", c8:"Tecnología", c9:"450.00", c10:"1"},
-            {c1:"112", c2:"2026-03-06", c3:"5", c4:"José Torres", c5:"Urbanización Sur", c6:"P04", c7:"Monitor 24\"", c8:"Tecnología", c9:"120.00", c10:"2"}
+            {c1:"F-101", c2:"2026-03-01", c3:"C-01", c4:"Carlos Pérez", c5:"V-12345678", c6:"0412-1112233", c7:"P-01", c8:"Laptop Core i5", c9:"Tecnología", c10:"12", c11:"450.00", c12:"1"},
+            {c1:"F-102", c2:"2026-03-01", c3:"C-02", c4:"Ana Gómez", c5:"V-23456789", c6:"0414-2223344", c7:"P-02", c8:"Mouse Inalámbrico", c9:"Accesorios", c10:"25", c11:"15.50", c12:"2"},
+            {c1:"F-103", c2:"2026-03-02", c3:"C-01", c4:"Carlos Pérez", c5:"V-12345678", c6:"0412-1112233", c7:"P-03", c8:"Teclado Mecánico", c9:"Accesorios", c10:"15", c11:"35.00", c12:"1"},
+            {c1:"F-104", c2:"2026-03-02", c3:"C-03", c4:"Luis Rodríguez", c5:"V-18765432", c6:"0416-3334455", c7:"P-01", c8:"Laptop Core i5", c9:"Tecnología", c10:"12", c11:"450.00", c12:"1"},
+            {c1:"F-105", c2:"2026-03-03", c3:"C-04", c4:"María Silva", c5:"V-20111222", c6:"0424-5556677", c7:"P-04", c8:"Monitor 24\"", c9:"Tecnología", c10:"8", c11:"120.00", c12:"1"},
+            {c1:"F-106", c2:"2026-03-03", c3:"C-02", c4:"Ana Gómez", c5:"V-23456789", c6:"0414-2223344", c7:"P-05", c8:"Pendrive 64GB", c9:"Almacenamiento", c10:"50", c11:"10.00", c12:"3"},
+            {c1:"F-107", c2:"2026-03-04", c3:"C-05", c4:"José Torres", c5:"V-15444333", c6:"0412-8889900", c7:"P-02", c8:"Mouse Inalámbrico", c9:"Accesorios", c10:"25", c11:"15.50", c12:"1"},
+            {c1:"F-108", c2:"2026-03-04", c3:"C-03", c4:"Luis Rodríguez", c5:"V-18765432", c6:"0416-3334455", c7:"P-06", c8:"Impresora Laser", c9:"Oficina", c10:"5", c11:"210.00", c12:"1"},
+            {c1:"F-109", c2:"2026-03-05", c3:"C-06", c4:"Carmen Rivas", c5:"V-19888777", c6:"0426-4445566", c7:"P-03", c8:"Teclado Mecánico", c9:"Accesorios", c10:"15", c11:"35.00", c12:"2"},
+            {c1:"F-110", c2:"2026-03-05", c3:"C-01", c4:"Carlos Pérez", c5:"V-12345678", c6:"0412-1112233", c7:"P-05", c8:"Pendrive 64GB", c9:"Almacenamiento", c10:"50", c11:"10.00", c12:"1"},
+            {c1:"F-111", c2:"2026-03-06", c3:"C-04", c4:"María Silva", c5:"V-20111222", c6:"0424-5556677", c7:"P-01", c8:"Laptop Core i5", c9:"Tecnología", c10:"12", c11:"450.00", c12:"1"},
+            {c1:"F-112", c2:"2026-03-06", c3:"C-05", c4:"José Torres", c5:"V-15444333", c6:"0412-8889900", c7:"P-04", c8:"Monitor 24\"", c9:"Tecnología", c10:"8", c11:"120.00", c12:"2"}
         ];
 
         const defaultEx2Records = [
-            {c1:"501", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S101", c7:"Diseño de Sistemas", c8:"4", c9:"Prof. Cesar Rengifo", c10:"18"},
-            {c1:"502", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S101", c7:"Diseño de Sistemas", c8:"4", c9:"Prof. Cesar Rengifo", c10:"16"},
-            {c1:"503", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"15"},
-            {c1:"504", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C201", c7:"Resistencia de Materiales", c8:"4", c9:"Prof. Pedro Infante", c10:"17"},
-            {c1:"505", c2:"2026-1", c3:"31781439", c4:"Eduardo Sifontes", c5:"Ing. de Sistemas", c6:"S101", c7:"Diseño de Sistemas", c8:"4", c9:"Prof. Cesar Rengifo", c10:"14"},
-            {c1:"506", c2:"2026-1", c3:"31791315", c4:"Jorvin Mota", c5:"Ing. Agronómica", c6:"A301", c7:"Fitopatología", c8:"3", c9:"Prof. Luis Zambrano", c10:"16"},
-            {c1:"507", c2:"2026-1", c3:"31791350", c4:"Estefani Itriago", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"19"},
-            {c1:"508", c2:"2026-1", c3:"32679937", c4:"Yean Hernández", c5:"Ing. Civil", c6:"C201", c7:"Resistencia de Materiales", c8:"4", c9:"Prof. Pedro Infante", c10:"13"},
-            {c1:"509", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"17"},
-            {c1:"510", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S102", c7:"Base de Datos II", c8:"3", c9:"Prof. María Laya", c10:"15"},
-            {c1:"511", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S103", c7:"Redes de Computadoras", c8:"4", c9:"Prof. Alberto Sosa", c10:"18"},
-            {c1:"512", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C202", c7:"Mecánica de Suelos", c8:"3", c9:"Prof. Carlos Páez", c10:"16"}
+            {c1:"INS-501", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S-101", c7:"Diseño de Sistemas", c8:"4", c9:"A-10", c10:"Planta Baja - Edif A", c11:"Prof. Cesar Rengifo", c12:"18"},
+            {c1:"INS-502", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S-101", c7:"Diseño de Sistemas", c8:"4", c9:"A-10", c10:"Planta Baja - Edif A", c11:"Prof. Cesar Rengifo", c12:"16"},
+            {c1:"INS-503", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"15"},
+            {c1:"INS-504", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C-201", c7:"Resistencia de Materiales", c8:"4", c9:"B-05", c10:"Planta Baja - Edif B", c11:"Prof. Pedro Infante", c12:"17"},
+            {c1:"INS-505", c2:"2026-1", c3:"31781439", c4:"Eduardo Sifontes", c5:"Ing. de Sistemas", c6:"S-101", c7:"Diseño de Sistemas", c8:"4", c9:"A-10", c10:"Planta Baja - Edif A", c11:"Prof. Cesar Rengifo", c12:"14"},
+            {c1:"INS-506", c2:"2026-1", c3:"31791315", c4:"Jorvin Mota", c5:"Ing. Agronómica", c6:"A-301", c7:"Fitopatología", c8:"3", c9:"C-02", c10:"Piso 2 - Edif C", c11:"Prof. Luis Zambrano", c12:"16"},
+            {c1:"INS-507", c2:"2026-1", c3:"31791350", c4:"Estefani Itriago", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"19"},
+            {c1:"INS-508", c2:"2026-1", c3:"32679937", c4:"Yean Hernández", c5:"Ing. Civil", c6:"C-201", c7:"Resistencia de Materiales", c8:"4", c9:"B-05", c10:"Planta Baja - Edif B", c11:"Prof. Pedro Infante", c12:"13"},
+            {c1:"INS-509", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"17"},
+            {c1:"INS-510", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"15"},
+            {c1:"INS-511", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S-103", c7:"Redes de Computadoras", c8:"4", c9:"A-15", c10:"Piso 2 - Edif A", c11:"Prof. Alberto Sosa", c12:"18"},
+            {c1:"INS-512", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C-202", c7:"Mecánica de Suelos", c8:"3", c9:"B-08", c10:"Piso 1 - Edif B", c11:"Prof. Carlos Páez", c12:"16"}
         ];
 
         let sessionData = {
@@ -315,7 +339,8 @@
             isTeacherMode: false,
             records: { ex1: [], ex2: [] },
             normalizationTables: { ex1: [], ex2: [] },
-            tableRows: { ex1: {}, ex2: {} }
+            tableRows: { ex1: {}, ex2: {} },
+            feedback: ""
         };
 
         let currentDocId = null;
@@ -405,6 +430,7 @@
                     sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
                     sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
                     sessionData.tableRows = d.tableRows || { ex1: {}, ex2: {} };
+                    sessionData.feedback = d.feedback || "";
 
                     document.getElementById('view-teacher-dashboard').classList.add('hidden');
                     document.getElementById('view-workspace').classList.remove('hidden');
@@ -414,7 +440,8 @@
                     document.getElementById('lbl-student-name').style.display = 'none';
                     document.getElementById('header-teacher-select').value = docId;
 
-                    document.getElementById('workspace-subtitle').textContent = `Supervisando al estudiante ${sessionData.student.nombre} (Modo Docente).`;
+                    document.getElementById('workspace-subtitle').textContent = `Supervisando y evaluando al estudiante ${sessionData.student.nombre} (Modo Docente).`;
+                    document.getElementById('teacher-feedback-action-container').classList.remove('hidden');
 
                     document.getElementById('container-normalizer-ex1').style.display = 'none';
                     document.getElementById('container-normalizer-ex2').style.display = 'none';
@@ -423,6 +450,7 @@
                     renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
                     updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
                     updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
+                    renderFeedbackDisplay(sessionData.feedback);
 
                     startRealtimeSync();
                 }
@@ -471,15 +499,18 @@
                         sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
                         sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
                         sessionData.tableRows = d.tableRows || { ex1: {}, ex2: {} };
+                        sessionData.feedback = d.feedback || "";
                     } else {
                         sessionData.records = { ex1: defaultEx1Records, ex2: defaultEx2Records };
                         sessionData.tableRows = { ex1: {}, ex2: {} };
+                        sessionData.feedback = "";
                         const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
                             studentName: sessionData.student.nombre,
                             studentCedula: sessionData.student.cedula,
                             records: sessionData.records,
                             normalizationTables: { ex1: [], ex2: [] },
                             tableRows: { ex1: {}, ex2: {} },
+                            feedback: "",
                             timestamp: new Date()
                         });
                         currentDocId = docRef.id;
@@ -497,9 +528,10 @@
             document.getElementById('view-workspace').classList.remove('hidden');
             document.getElementById('room-info').classList.remove('hidden');
             document.getElementById('teacher-quick-switch-container').style.display = 'none';
+            document.getElementById('teacher-feedback-action-container').classList.add('hidden');
             document.getElementById('lbl-student-name').style.display = 'inline';
             document.getElementById('lbl-student-name').textContent = sessionData.student.nombre + ` (C.I: ${sessionData.student.cedula})`;
-            document.getElementById('workspace-subtitle').textContent = "Analiza las tablas planas, diseña las entidades relacionales y define las PK y FK.";
+            document.getElementById('workspace-subtitle').textContent = "Analiza las tablas planas ampliadas, diseña las entidades relacionales y define las restricciones FK.";
 
             document.getElementById('container-normalizer-ex1').style.display = 'block';
             document.getElementById('container-normalizer-ex2').style.display = 'block';
@@ -510,6 +542,7 @@
             renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
             updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
             updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
+            renderFeedbackDisplay(sessionData.feedback);
             startRealtimeSync();
         }
 
@@ -541,6 +574,10 @@
                             }
                             if (data.tableRows) {
                                 sessionData.tableRows = data.tableRows;
+                            }
+                            if (data.feedback !== undefined) {
+                                sessionData.feedback = data.feedback;
+                                renderFeedbackDisplay(sessionData.feedback);
                             }
                             updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
                             updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
@@ -575,16 +612,85 @@
             }
         }
 
+        // --- GENERADOR DE CORRECCIONES Y SUGERENCIAS DOCENTES ---
+        window.generateTeacherFeedback = async function() {
+            if (!sessionData.isTeacherMode) return;
+
+            // Analizamos el estado de las tablas del estudiante para darle un reporte constructivo
+            let tablesEx1 = extractTablesDataFromDOM('ex1');
+            let tablesEx2 = extractTablesDataFromDOM('ex2');
+
+            let feedbackHTML = `<div class="space-y-3">`;
+            feedbackHTML += `<p class="font-bold text-amber-900">📋 Diagnóstico Académico Automatizado (UNEFA Tucupido):</p>`;
+
+            // Ejercicio 1 Analysis
+            feedbackHTML += `<div class="bg-amber-50/60 p-2.5 rounded border border-amber-200 space-y-1">`;
+            feedbackHTML += `<p class="font-semibold text-slate-800">Ejercicio 1 (E-commerce / Facturación):</p>`;
+            if(tablesEx1.length === 0) {
+                feedbackHTML += `<p class="text-red-600">⚠️ El estudiante aún no ha definido tablas normalizadas (3FN) para este ejercicio.</p>`;
+            } else {
+                feedbackHTML += `<p class="text-emerald-700">✅ Se detectaron ${tablesEx1.length} tablas creadas.</p>`;
+                let hasPK = tablesEx1.some(t => t.fields.some(f => f.type === 'PK' || f.type === 'PK-FK'));
+                let hasFK = tablesEx1.some(t => t.fields.some(f => f.type === 'FK' || f.type === 'PK-FK'));
+                if(!hasPK) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Asegúrate de declarar correctamente las Claves Primarias (PK) en cada entidad maestra (Clientes, Productos, Facturas).</p>`;
+                if(!hasFK) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Faltan relaciones de Llaves Foráneas (FK) que conecten la tabla de detalles con clientes y productos.</p>`;
+                if(hasPK && hasFK) feedbackHTML += `<p class="text-emerald-700">🌟 Excelente estructuración de entidades y relaciones referenciales en 3FN.</p>`;
+            }
+            feedbackHTML += `</div>`;
+
+            // Ejercicio 2 Analysis
+            feedbackHTML += `<div class="bg-amber-50/60 p-2.5 rounded border border-amber-200 space-y-1">`;
+            feedbackHTML += `<p class="font-semibold text-slate-800">Ejercicio 2 (Control Académico):</p>`;
+            if(tablesEx2.length === 0) {
+                feedbackHTML += `<p class="text-red-600">⚠️ El estudiante aún no ha definido tablas normalizadas (3FN) para este ejercicio.</p>`;
+            } else {
+                feedbackHTML += `<p class="text-emerald-700">✅ Se detectaron ${tablesEx2.length} tablas creadas.</p>`;
+                let hasPK2 = tablesEx2.some(t => t.fields.some(f => f.type === 'PK' || f.type === 'PK-FK'));
+                let hasFK2 = tablesEx2.some(t => t.fields.some(f => f.type === 'FK' || f.type === 'PK-FK'));
+                if(!hasPK2) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Verifica las Claves Primarias para Estudiantes, Asignaturas y Aulas.</p>`;
+                if(!hasFK2) feedbackHTML += `<p class="text-amber-700">💡 Sugerencia: Conecta la tabla de inscripciones con las FK correspondientes.</p>`;
+                if(hasPK2 && hasFK2) feedbackHTML += `<p class="text-emerald-700">🌟 Muy buen manejo de dependencias transitivas y diseño relacional académico.</p>`;
+            }
+            feedbackHTML += `</div>`;
+            feedbackHTML += `<p class="text-[11px] text-slate-500 italic">Evaluado y enviado por el Docente en tiempo real.</p>`;
+            feedbackHTML += `</div>`;
+
+            sessionData.feedback = feedbackHTML;
+            renderFeedbackDisplay(feedbackHTML);
+
+            // Guardar en Firebase para que el estudiante lo vea en su pantalla inmediatamente
+            if (window.firebaseAvailable && window.db && currentDocId) {
+                try {
+                    const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    await updateDoc(doc(window.db, "laboratorio_normalizacion", currentDocId), {
+                        feedback: feedbackHTML
+                    });
+                    alert('✅ Diagnóstico y sugerencias enviadas exitosamente al estudiante.');
+                } catch (e) {
+                    console.error("Error enviando feedback:", e);
+                }
+            }
+        };
+
+        function renderFeedbackDisplay(htmlContent) {
+            const container = document.getElementById('teacher-feedback-display');
+            if (!container) return;
+            if (!htmlContent || htmlContent.trim() === "") {
+                container.innerHTML = '<p class="text-slate-400 italic">Sin observaciones registradas todavía. El profesor puede generar el diagnóstico al revisar al estudiante.</p>';
+            } else {
+                container.innerHTML = htmlContent;
+            }
+        }
+
         // --- VALIDACIÓN DE INTEGRIDAD REFERENCIAL (FK) ---
-        function checkForeignKeyConstraint(exerciseId, targetTableName, insertedValue, fieldIndex) {
+        function checkForeignKeyConstraint(exerciseId, targetTableName, insertedValue) {
             let tables = extractTablesDataFromDOM(exerciseId);
             let targetTable = tables.find(t => t.name.toUpperCase() === targetTableName.toUpperCase());
-            if (!targetTable) return true; // Si la tabla aún no existe, dejamos escribir temporalmente
+            if (!targetTable) return true;
 
-            // Buscamos si existe al menos una fila en esa tabla maestra cuyo PK (columna 0 por lo general) coincida con el valor ingresado
             let safeName = escapeName(targetTable.name);
             let tbody = document.getElementById(`preview-tbody-${exerciseId}-${safeName}`);
-            if (!tbody) return false; // La tabla existe pero no tiene registros creados todavía
+            if (!tbody) return false;
 
             let exists = false;
             tbody.querySelectorAll('.preview-data-row').forEach(row => {
@@ -597,25 +703,17 @@
             return exists;
         }
 
-        // --- MANEJO DE REGISTROS ---
+        // --- MANEJO DE REGISTROS (12 Columnas) ---
         window.addRecordRow = function(exerciseId) {
             if (sessionData.isTeacherMode) return;
             const tbody = document.getElementById(`records-tbody-${exerciseId}`);
             const tr = document.createElement('tr');
             tr.className = "record-row divide-x divide-slate-200";
-            tr.innerHTML = `
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c1" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c2" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c3" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c4" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c5" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c6" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c7" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c8" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c9" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c10" oninput="saveToCloud()" placeholder="..."></td>
-                <td class="p-1 text-center action-col"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>
-            `;
+            let tds = '';
+            for(let i=1; i<=12; i++) {
+                tds += `<td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c${i}" oninput="saveToCloud()" placeholder="..."></td>`;
+            }
+            tr.innerHTML = tds + `<td class="p-1 text-center action-col"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
             tbody.appendChild(tr);
             saveToCloud();
         };
@@ -628,19 +726,12 @@
             recordsArray.forEach(r => {
                 const tr = document.createElement('tr');
                 tr.className = "record-row divide-x divide-slate-200";
-                tr.innerHTML = `
-                    <td class="p-1"><input type="text" value="${r.c1 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c1" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c2 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c2" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c3 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c3" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c4 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c4" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c5 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c5" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c6 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c6" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c7 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c7" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c8 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c8" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c9 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c9" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1"><input type="text" value="${r.c10 || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c10" oninput="saveToCloud()" placeholder="..."></td>
-                    <td class="p-1 text-center action-col">${sessionData.isTeacherMode ? '' : '<button type="button" onclick="this.closest(\'tr\').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button>'}</td>
-                `;
+                let tds = '';
+                for(let i=1; i<=12; i++) {
+                    tds += `<td class="p-1"><input type="text" value="${r['c'+i] || ''}" ${sessionData.isTeacherMode?'disabled':''} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c${i}" oninput="saveToCloud()" placeholder="..."></td>`;
+                }
+                let actionTd = sessionData.isTeacherMode ? '' : `<td class="p-1 text-center action-col"><button type="button" onclick="this.closest(\'tr\').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
+                tr.innerHTML = tds + actionTd;
                 tbody.appendChild(tr);
             });
             if(sessionData.isTeacherMode) {
@@ -656,18 +747,12 @@
             const rows = document.querySelectorAll(`#records-tbody-${exerciseId} .record-row`);
             let records = [];
             rows.forEach(row => {
-                records.push({
-                    c1: row.querySelector('.r-c1').value,
-                    c2: row.querySelector('.r-c2').value,
-                    c3: row.querySelector('.r-c3').value,
-                    c4: row.querySelector('.r-c4').value,
-                    c5: row.querySelector('.r-c5').value,
-                    c6: row.querySelector('.r-c6').value,
-                    c7: row.querySelector('.r-c7').value,
-                    c8: row.querySelector('.r-c8').value,
-                    c9: row.querySelector('.r-c9').value,
-                    c10: row.querySelector('.r-c10').value
-                });
+                let obj = {};
+                for(let i=1; i<=12; i++) {
+                    let input = row.querySelector(`.r-c${i}`);
+                    obj['c'+i] = input ? input.value : '';
+                }
+                records.push(obj);
             });
             return records;
         }
@@ -690,7 +775,6 @@
                         let fType = row.querySelector('.f-type').value;
                         let fRef = row.querySelector('.f-ref') ? row.querySelector('.f-ref').value : '';
                         
-                        // Si es FK y tiene referencia configurada, validamos integridad
                         let onInputAttr = "saveToCloud()";
                         if((fType === 'FK' || fType === 'PK-FK') && fRef) {
                             let refTable = fRef.split('.')[0];
@@ -711,7 +795,7 @@
             let val = inputEl.value;
             let isValid = checkForeignKeyConstraint(exerciseId, refTableName, val);
             if(!isValid && val.trim() !== "") {
-                inputEl.style.borderColor = "#ef4444"; // rojo aviso
+                inputEl.style.borderColor = "#ef4444";
                 inputEl.title = `⚠️ Error de integridad referencial: El valor no existe en la tabla principal '${refTableName}'.`;
             } else {
                 inputEl.style.borderColor = "#cbd5e1";
@@ -1145,7 +1229,7 @@
             // Ejercicio 1
             checkPageSpace(20);
             doc.setFontSize(10);
-            doc.text("• Ejercicio 1: Sistema de Ventas e Inventario de Tienda (E-commerce)", 20, y); y += 6;
+            doc.text("• Ejercicio 1: Sistema de Ventas, Inventario y Facturación", 20, y); y += 6;
             doc.setFontSize(8);
             doc.text(`Total de registros en tabla plana: ${(recordsObj.ex1 || []).length} filas`, 22, y); y += 6;
             
@@ -1164,7 +1248,7 @@
             checkPageSpace(20);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
-            doc.text("• Ejercicio 2: Control de Inscripciones y Calificaciones Universitarias", 20, y); y += 6;
+            doc.text("• Ejercicio 2: Control Académico de Inscripciones y Aulas", 20, y); y += 6;
             doc.setFontSize(8);
             doc.text(`Total de registros en tabla plana: ${(recordsObj.ex2 || []).length} filas`, 22, y); y += 6;
 
