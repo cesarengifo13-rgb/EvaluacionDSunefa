@@ -69,13 +69,13 @@
             <div class="text-center">
                 <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Portal de Acceso</span>
                 <h2 class="text-2xl font-bold mt-3 text-slate-900">Seleccione su Perfil</h2>
-                <p class="text-sm text-slate-600 mt-1">Seleccione su nombre para ingresar directamente o ingrese como docente.</p>
+                <p class="text-sm text-slate-600 mt-1">Seleccione su nombre para ingresar directamente o abra el módulo docente.</p>
             </div>
 
             <!-- Selector de Perfil -->
             <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
                 <button type="button" id="tab-student" onclick="switchProfile('student')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">Estudiante</button>
-                <button type="button" id="tab-teacher" onclick="switchProfile('teacher');" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Acceso Profesor</button>
+                <button type="button" id="tab-teacher" onclick="openTeacherDirect()" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Acceso Profesor</button>
             </div>
 
             <!-- PERFIL ESTUDIANTE -->
@@ -88,17 +88,6 @@
                 </div>
                 <button type="button" onclick="loginStudent()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm">
                     Ingresar al Laboratorio de Práctica
-                </button>
-            </div>
-
-            <!-- PERFIL PROFESOR -->
-            <div id="profile-teacher-container" class="hidden space-y-4">
-                <div class="space-y-2">
-                    <label class="block text-slate-700 font-medium text-xs">Contraseña de Profesor:</label>
-                    <input type="password" id="teacher-password" placeholder="Ingrese contraseña docente" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <button type="button" onclick="verifyTeacher()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
-                    Acceder al Panel Docente
                 </button>
             </div>
         </section>
@@ -362,30 +351,17 @@
             const btnStudent = document.getElementById('tab-student');
             const btnTeacher = document.getElementById('tab-teacher');
             const boxStudent = document.getElementById('profile-student-container');
-            const boxTeacher = document.getElementById('profile-teacher-container');
 
-            if (profile === 'student') {
-                btnStudent.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
-                btnTeacher.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
-                boxStudent.classList.remove('hidden');
-                boxTeacher.classList.add('hidden');
-            } else {
-                btnTeacher.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-slate-900 text-white shadow";
-                btnStudent.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
-                boxTeacher.classList.remove('hidden');
-                boxStudent.classList.add('hidden');
-            }
+            btnStudent.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
+            btnTeacher.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+            boxStudent.classList.remove('hidden');
         };
 
-        window.verifyTeacher = function() {
-            const pass = document.getElementById('teacher-password').value;
-            if (pass === "unefa2026" || pass === "admin123") {
-                document.getElementById('view-setup').classList.add('hidden');
-                document.getElementById('view-teacher-dashboard').classList.remove('hidden');
-                loadTeacherDashboard();
-            } else {
-                alert('⚠️ Contraseña de profesor incorrecta.');
-            }
+        window.openTeacherDirect = function() {
+            sessionData.isTeacherMode = true;
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-teacher-dashboard').classList.remove('hidden');
+            loadTeacherDashboard();
         };
 
         async function loadTeacherDashboard() {
@@ -419,13 +395,11 @@
             document.getElementById('workspace-subtitle').textContent = `Supervisando en tiempo real a ${sessionData.student.nombre} (C.I: ${sessionData.student.cedula}) — Modo Solo Lectura.`;
             document.getElementById('teacher-feedback-action-container').classList.remove('hidden');
 
-            // Ocultar botones de edición para el profesor
             ['btn-add-row-ex1', 'btn-add-row-ex2', 'btn-add-table-ex1', 'btn-add-table-ex2'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) btn.classList.add('hidden');
             });
 
-            // Mostrar estructura y vista previa en solo lectura
             document.getElementById('container-normalizer-ex1').style.display = 'block';
             document.getElementById('container-normalizer-ex2').style.display = 'block';
         }
