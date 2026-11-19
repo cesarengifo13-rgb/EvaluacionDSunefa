@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNEFA - Evaluación de Diseño de Sistemas (Taller N° 1)</title>
+    <title>UNEFA - Módulo Profesor (Evaluación Taller N° 1)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Firebase SDKs con URLs de CDN oficiales -->
+    <!-- Firebase SDKs (Primera Base de Datos: evaluaciondsunefa) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCQzRYL2PhgAFtcZlgsX69ooVmcuP-7bqM",
@@ -26,7 +25,6 @@
 
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
-        window.analytics = getAnalytics(app);
         window.firebaseAvailable = true;
     </script>
     <style>
@@ -42,268 +40,93 @@
             <div class="flex items-center gap-3">
                 <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold">Diseño de Sistemas - Taller N° 1 (10%)</h1>
-                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Prof. Cesar E. Rengifo S.</p>
+                    <h1 class="text-base md:text-lg font-bold">Módulo Profesor · Diseño de Sistemas (Taller N° 1)</h1>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Supervisión en Tiempo Real (Solo Lectura)</p>
                 </div>
             </div>
-
-            <div class="flex flex-wrap items-center gap-3">
-                <button type="button" onclick="openTeacherModule()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow">
-                    👁️ Módulo Profesor (Solo Lectura)
-                </button>
-
-                <div id="header-timer-container" class="hidden flex items-center gap-4 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl shadow-inner text-white">
-                    <div class="text-right">
-                        <p class="text-xs text-blue-300 uppercase tracking-wider font-semibold">Tiempo Restante (Grupo)</p>
-                        <p id="timer-display" class="text-xl font-mono font-bold text-amber-400">01:30:00</p>
-                    </div>
-                </div>
+            <div id="live-status-badge" class="hidden items-center gap-3 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl text-xs">
+                <span class="bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded uppercase">Solo Lectura</span>
+                <span class="font-mono text-amber-300" id="live-timer-text">01:30:00</span>
             </div>
         </div>
     </header>
 
-    <!-- Contenido Principal -->
-    <main class="max-w-4xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
+    <main class="max-w-6xl w-full mx-auto p-4 md:p-6 my-auto flex-grow space-y-6">
 
-        <!-- VISTA 1: CONFIGURACIÓN Y ACCESO A GRUPOS -->
-        <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-            <div class="text-center">
-                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Evaluación Colaborativa en Tiempo Real</span>
-                <h2 class="text-2xl font-bold mt-3 text-slate-900">Acceso a la Evaluación</h2>
-                <p class="text-sm text-slate-600 mt-1">Cree un grupo nuevo o seleccione uno existente de la lista para unirse.</p>
+        <!-- PANEL DE GRUPOS -->
+        <section id="section-groups" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-5">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Grupos en Evaluación</h2>
+                    <p class="text-xs text-slate-600 mt-0.5">Selecciona un grupo para observar en tiempo real lo que están realizando y acceder a su PDF.</p>
+                </div>
+                <button type="button" onclick="loadGroups()" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow">
+                    🔄 Actualizar Grupos
+                </button>
             </div>
 
-            <!-- Selector de Modo: Crear o Unirse -->
-            <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-                <button type="button" id="tab-create" onclick="switchMode('create')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">1. Crear Nuevo Grupo (Líder)</button>
-                <button type="button" id="tab-join" onclick="switchMode('join'); loadExistingGroups();" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">2. Unirse a Grupo Existente</button>
-            </div>
-
-            <!-- MODO 1: CREAR GRUPO -->
-            <div id="mode-create-container" class="space-y-4">
-                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-                    <label class="block text-slate-700 mb-1 font-medium text-xs">Cree un Código o Nombre de Grupo único:</label>
-                    <input type="text" id="create-group-code" placeholder="Ej. Grupo_Sistemas_01" class="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-                    <label class="block text-slate-700 mb-1 font-medium text-xs">Seleccione su nombre personal (Líder):</label>
-                    <select id="create-student-select" class="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="">-- Seleccione su nombre de la nómina --</option>
-                    </select>
-                </div>
-
-                <div class="pt-2 text-center">
-                    <button type="button" id="btn-create-group" onclick="createGroupAndStart()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg w-full md:w-auto text-sm tracking-wide">
-                        Crear Grupo e Iniciar Examen
-                    </button>
-                </div>
-            </div>
-
-            <!-- MODO 2: UNIRSE A GRUPO -->
-            <div id="mode-join-container" class="hidden space-y-4">
-                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-slate-700 font-medium text-xs">Seleccione el Grupo existente:</label>
-                        <button type="button" onclick="loadExistingGroups()" class="text-xs text-blue-600 hover:underline font-semibold">🔄 Actualizar Lista</button>
-                    </div>
-                    <select id="select-existing-group" class="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="">-- Cargando grupos creados... --</option>
-                    </select>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-                    <label class="block text-slate-700 mb-1 font-medium text-xs">Seleccione su nombre personal:</label>
-                    <select id="join-student-select" class="w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="">-- Seleccione su nombre de la nómina --</option>
-                    </select>
-                </div>
-
-                <div class="pt-2 text-center">
-                    <button type="button" id="btn-join-group" onclick="joinGroupAndStart()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg w-full md:w-auto text-sm tracking-wide">
-                        Unirse al Grupo e Iniciar Examen
-                    </button>
-                </div>
+            <div id="groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                <p class="text-slate-400 italic">Cargando grupos...</p>
             </div>
         </section>
 
-        <!-- VISTA 2: EXAMEN EN CURSO -->
-        <section id="view-exam" class="hidden space-y-6">
-            <div id="exam-security-banner" class="bg-amber-50 border border-amber-300 p-4 rounded-xl text-amber-900 text-xs md:text-sm flex flex-col md:flex-row items-center justify-between gap-2 shadow-sm">
-                <span>⚠️ <strong>Aviso de Seguridad:</strong> Si algún miembro abandona la pantalla, la prueba se cerrará automáticamente para todo el grupo indicando al infractor.</span>
-                <span id="tab-warnings" class="font-bold bg-amber-200 px-3 py-1 rounded-lg text-xs whitespace-nowrap text-amber-900">Advertencias Grupo: 0/2</span>
-            </div>
-
-            <!-- Barra de Solo Lectura para el Profesor -->
-            <div id="teacher-readonly-banner" class="hidden bg-slate-900 text-white p-4 rounded-xl shadow flex flex-col md:flex-row justify-between items-center gap-3">
-                <div class="text-xs space-y-0.5">
-                    <div class="flex items-center gap-2">
-                        <span class="bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded uppercase">Solo Lectura</span>
-                        <strong id="teacher-watching-group-name" class="text-sm text-amber-300"></strong>
+        <!-- VISTA EN TIEMPO REAL DEL GRUPO (SOLO LECTURA) -->
+        <section id="section-live-group" class="hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase">👁️ Solo Lectura · En Vivo</span>
+                        <h2 id="selected-group-title" class="text-lg font-bold text-slate-900">Grupo</h2>
                     </div>
-                    <p id="teacher-watching-members" class="text-slate-300"></p>
+                    <p id="selected-group-meta" class="text-xs text-slate-600"></p>
+                    <p id="selected-group-warnings" class="text-xs font-semibold text-amber-800"></p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="downloadTeacherGroupPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="downloadGroupPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">
                         📥 Descargar PDF del Grupo
                     </button>
-                    <button type="button" onclick="openTeacherModule()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
-                        ← Cambiar Grupo
+                    <button type="button" onclick="backToGroupsList()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold px-4 py-2.5 rounded-xl transition">
+                        ← Todos los Grupos
                     </button>
                 </div>
             </div>
 
-            <!-- PARTE I: COMPLETACIÓN -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="border-b border-slate-200 pb-2">
-                    <h3 class="text-base font-bold text-slate-900">I PARTE: COMPLETACIÓN (Valor: 4 Puntos)</h3>
-                    <p class="text-xs text-slate-600 mt-1">A continuación se le presenta una serie de proposiciones con un espacio en blanco que debe completar con la palabra que le dé sentido lógico a la oración. (1 punto c/u)</p>
+            <!-- Contenedor de solo lectura (sin posibilidad de editar) -->
+            <fieldset disabled class="space-y-6 opacity-95">
+                <!-- PARTE I -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow space-y-3">
+                    <h3 class="text-sm font-bold text-blue-900 border-b border-slate-200 pb-2">I PARTE: COMPLETACIÓN</h3>
+                    <div id="readonly-p1" class="space-y-2 text-xs"></div>
                 </div>
-                <div class="space-y-4 pt-2">
-                    <div>
-                        <label class="block text-sm text-slate-700 mb-2 font-medium">1. Un campo es la unidad mínima de datos con significado _____________________. Representa una característica o propiedad de una entidad.</label>
-                        <input type="text" data-part="1" data-q="4" class="sync-input w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-slate-700 mb-2 font-medium">2. La capa de datos es una Base de datos _______________________ en la red interna (Backend).</label>
-                        <input type="text" data-part="1" data-q="1" class="sync-input w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-slate-700 mb-2 font-medium">3. Un archivo es una colección estructurada de registros _______________________ del mismo tipo que se almacenan en un medio secundario.</label>
-                        <input type="text" data-part="1" data-q="2" class="sync-input w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-slate-700 mb-2 font-medium">4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina _________________________.</label>
-                        <input type="text" data-part="1" data-q="3" class="sync-input w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Escriba la respuesta...">
-                    </div>
-                </div>
-            </div>
 
-            <!-- PARTE II: SELECCIÓN SIMPLE -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="border-b border-slate-200 pb-2">
-                    <h3 class="text-base font-bold text-slate-900">II PARTE: SELECCIÓN SIMPLE (Valor: 2 Puntos)</h3>
-                    <p class="text-xs text-slate-600 mt-1">A continuación se le presentan proposiciones con varias alternativas de solución; seleccione la respuesta correcta. (1 punto c/u)</p>
+                <!-- PARTE II -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow space-y-3">
+                    <h3 class="text-sm font-bold text-blue-900 border-b border-slate-200 pb-2">II PARTE: SELECCIÓN SIMPLE</h3>
+                    <div id="readonly-p2" class="space-y-2 text-xs"></div>
                 </div>
-                <div class="space-y-4 pt-2">
-                    <div class="space-y-2">
-                        <p class="text-sm font-medium text-slate-800">1. ¿Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
-                        <div class="space-y-1.5 pl-2">
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="a" class="sync-radio"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="b" class="sync-radio"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="c" class="sync-radio"> c) Conectar dos tablas mediante llaves foráneas.</label>
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q1" value="d" class="sync-radio"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
+
+                <!-- PARTE III -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow space-y-3">
+                    <h3 class="text-sm font-bold text-blue-900 border-b border-slate-200 pb-2">III PARTE: DESARROLLO</h3>
+                    <div id="readonly-p3" class="space-y-3 text-xs"></div>
+                </div>
+
+                <!-- PARTE IV -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow space-y-4">
+                    <h3 class="text-sm font-bold text-blue-900 border-b border-slate-200 pb-2">IV PARTE: EJERCICIOS PRÁCTICOS (NORMALIZACIÓN 3FN)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                            <h4 class="font-bold text-blue-900">Ejercicio 1: Préstamos Bibliotecarios</h4>
+                            <div id="readonly-ex1" class="space-y-2"></div>
                         </div>
-                    </div>
-                    <div class="space-y-2 pt-3 border-t border-slate-200">
-                        <p class="text-sm font-medium text-slate-800">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
-                        <div class="space-y-1.5 pl-2">
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="a" class="sync-radio"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="b" class="sync-radio"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="c" class="sync-radio"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
-                            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="p2_q2" value="d" class="sync-radio"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                            <h4 class="font-bold text-blue-900">Ejercicio 2: Citas Médicas</h4>
+                            <div id="readonly-ex2" class="space-y-2"></div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- PARTE III: DESARROLLO -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="border-b border-slate-200 pb-2">
-                    <h3 class="text-base font-bold text-slate-900">III PARTE: DESARROLLO (Valor: 4 Puntos)</h3>
-                    <p class="text-xs text-slate-600 mt-1">Defina los siguientes conceptos, basado en la teoría desarrollada en clase. (2 puntos c/u)</p>
-                </div>
-                <div class="space-y-4 pt-2">
-                    <div>
-                        <label class="block text-sm text-slate-700 mb-2 font-medium">1. ¿Qué es una Base de Datos?</label>
-                        <textarea data-part="3" data-q="1" rows="3" class="sync-textarea w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-slate-700 mb-2 font-medium">2. ¿Qué es un registro?</label>
-                        <textarea data-part="3" data-q="2" rows="3" class="sync-textarea w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Redacte su respuesta aquí..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PARTE IV: EJERCICIOS PRÁCTICOS -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
-                <div class="border-b border-slate-200 pb-2">
-                    <h3 class="text-base font-bold text-slate-900">IV PARTE: EJERCICIOS PRÁCTICOS (Valor: 10 Puntos)</h3>
-                    <p class="text-xs text-slate-600 mt-1">Aplique el proceso de normalización paso a paso y entregue el diseño final estructurado en tablas independientes hasta la Tercera Forma Normal (3FN). Identifique claramente las (PK) y las (FK) en cada tabla resultante.</p>
-                </div>
-
-                <!-- Ejercicio 1 -->
-                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3" id="ex1-container">
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-blue-900 text-sm">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</h4>
-                        <button type="button" id="btn-add-table-ex1" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
-                    </div>
-                    <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-200 space-y-1">
-                        <p class="text-xs font-bold text-blue-900">Estructura Base Original (Tabla Plana Inicial):</p>
-                        <p class="text-xs text-blue-800 font-mono">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</p>
-                    </div>
-                    <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex1"></div>
-                </div>
-
-                <!-- Ejercicio 2 -->
-                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3" id="ex2-container">
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-blue-900 text-sm">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</h4>
-                        <button type="button" id="btn-add-table-ex2" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow">+ Crear Tabla (3FN)</button>
-                    </div>
-                    <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-200 space-y-1">
-                        <p class="text-xs font-bold text-blue-900">Estructura Base Original (Tabla Plana Inicial):</p>
-                        <p class="text-xs text-blue-800 font-mono">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</p>
-                    </div>
-                    <div class="tables-wrapper space-y-4 mt-3" data-exercise="ex2"></div>
-                </div>
-            </div>
-
-            <!-- BOTÓN FINALIZAR -->
-            <div id="finish-exam-container" class="text-center pt-4 pb-12">
-                <button type="button" id="btn-finish-exam" onclick="finishExam()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-10 py-4 rounded-xl transition shadow-xl text-base tracking-wide">
-                    Finalizar y Enviar Evaluación Automáticamente
-                </button>
-            </div>
-        </section>
-
-        <!-- VISTA MÓDULO PROFESOR (SOLO LECTURA) -->
-        <section id="view-teacher" class="hidden bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
-                <div>
-                    <span class="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-full uppercase">Módulo Profesor · Solo Lectura</span>
-                    <h2 class="text-xl font-bold text-slate-900 mt-2">Supervisión de Grupos en Tiempo Real</h2>
-                    <p class="text-xs text-slate-600 mt-0.5">Observa el avance de los grupos en vivo sin modificar sus respuestas y descarga su PDF.</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="loadTeacherGroups()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl transition">
-                        🔄 Actualizar Grupos
-                    </button>
-                    <button type="button" onclick="location.reload()" class="bg-blue-900 hover:bg-blue-800 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition">
-                        ← Volver al Acceso
-                    </button>
-                </div>
-            </div>
-
-            <div id="teacher-groups-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <p class="text-slate-400 italic">Cargando grupos desde Firebase...</p>
-            </div>
-        </section>
-
-        <!-- VISTA 3: RESULTADOS Y DESCARGA DE PDF -->
-        <section id="view-results" class="hidden bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl text-center space-y-6">
-            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">✓</div>
-            <h2 class="text-2xl font-bold text-slate-900">¡Evaluación Registrada y Guardada en Firebase!</h2>
-            <p id="closure-notice" class="text-xs text-amber-700 font-semibold mt-1"></p>
-            <p class="text-sm text-slate-600">El grupo ha finalizado su participación. Puede descargar el comprobante en PDF a continuación.</p>
-            <div class="pt-2 flex flex-wrap justify-center gap-3">
-                <button type="button" onclick="downloadStudentPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg text-sm">
-                    📥 Descargar PDF de la Evaluación
-                </button>
-                <button type="button" onclick="location.reload()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-6 py-3.5 rounded-xl transition text-sm">
-                    Volver al Inicio
-                </button>
-            </div>
+            </fieldset>
         </section>
 
     </main>
@@ -315,178 +138,17 @@
 
     <script>
         const GROUP_COLLECTION = "evaluaciones_grupos";
-        const EXAM_DURATION_SECONDS = 90 * 60;
-
-        const nominaEstudiantes = [
-            "ALVARADO JOSÉ", "BLANCO MARÍA", "CASTILLO CARLOS", "DELGADO ANA",
-            "ESPINOZA LUIS", "FLORES SOFÍA", "GARCÍA PEDRO", "HERRERA VALERIA",
-            "LÓPEZ MIGUEL", "MENDOZA ELENA", "MORALES DIEGO", "OROZCO CAMILA",
-            "PÉREZ ANDRÉS", "RAMÍREZ LAURA", "RODRÍGUEZ JORGE", "SÁNCHEZ ISABELA"
-        ];
-
-        let groupDocId = null;
-        let unsubscribeGroup = null;
-        let timerInterval = null;
-        let isTeacherReadOnly = false;
-        let isRemoteSyncing = false;
-        let currentGroupSnapshotData = null;
-
-        let examState = {
-            groupCode: "",
-            leader: "",
-            members: [],
-            timeRemaining: EXAM_DURATION_SECONDS,
-            warnings: 0,
-            status: "en_curso",
-            closureReason: "",
-            answers: { p1: {}, p2: {}, p3: {} },
-            tables: { ex1: [], ex2: [] }
-        };
+        let currentGroupData = null;
+        let unsubscribeCurrentGroup = null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            populateStudentSelects();
+            loadGroups();
         });
 
-        function populateStudentSelects() {
-            const createSel = document.getElementById("create-student-select");
-            const joinSel = document.getElementById("join-student-select");
-            nominaEstudiantes.forEach((est) => {
-                const o1 = document.createElement("option");
-                o1.value = est;
-                o1.textContent = est;
-                createSel.appendChild(o1);
-
-                const o2 = document.createElement("option");
-                o2.value = est;
-                o2.textContent = est;
-                joinSel.appendChild(o2);
-            });
-        }
-
-        window.switchMode = function(mode) {
-            const tabCreate = document.getElementById("tab-create");
-            const tabJoin = document.getElementById("tab-join");
-            const boxCreate = document.getElementById("mode-create-container");
-            const boxJoin = document.getElementById("mode-join-container");
-
-            if (mode === "create") {
-                tabCreate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
-                tabJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
-                boxCreate.classList.remove("hidden");
-                boxJoin.classList.add("hidden");
-            } else {
-                tabJoin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
-                tabCreate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
-                boxJoin.classList.remove("hidden");
-                boxCreate.classList.add("hidden");
-            }
-        };
-
-        window.loadExistingGroups = async function() {
-            const sel = document.getElementById("select-existing-group");
+        window.loadGroups = async function() {
+            const grid = document.getElementById("groups-grid");
             if (!window.firebaseAvailable || !window.db) {
-                setTimeout(loadExistingGroups, 300);
-                return;
-            }
-            try {
-                const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                const snap = await getDocs(collection(window.db, GROUP_COLLECTION));
-                let html = '<option value="">-- Seleccione un grupo --</option>';
-                snap.forEach((d) => {
-                    const data = d.data();
-                    if (data.status !== "finalizado") {
-                        html += `<option value="${d.id}">${data.groupCode || d.id} (Líder: ${data.leader || "N/A"})</option>`;
-                    }
-                });
-                sel.innerHTML = html;
-            } catch (e) {
-                console.error("Error cargando grupos:", e);
-            }
-        };
-
-        window.createGroupAndStart = async function() {
-            const code = document.getElementById("create-group-code").value.trim();
-            const leader = document.getElementById("create-student-select").value;
-            if (!code || !leader) {
-                alert("Debe ingresar un código de grupo y seleccionar su nombre.");
-                return;
-            }
-
-            isTeacherReadOnly = false;
-            examState = {
-                groupCode: code,
-                leader: leader,
-                members: [leader],
-                timeRemaining: EXAM_DURATION_SECONDS,
-                warnings: 0,
-                status: "en_curso",
-                closureReason: "",
-                answers: { p1: {}, p2: {}, p3: {} },
-                tables: { ex1: [], ex2: [] }
-            };
-
-            if (window.firebaseAvailable && window.db) {
-                const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                const ref = await addDoc(collection(window.db, GROUP_COLLECTION), {
-                    ...examState,
-                    createdAt: new Date().toISOString()
-                });
-                groupDocId = ref.id;
-            }
-
-            enterExamScreen(false);
-        };
-
-        window.joinGroupAndStart = async function() {
-            const docId = document.getElementById("select-existing-group").value;
-            const student = document.getElementById("join-student-select").value;
-            if (!docId || !student) {
-                alert("Seleccione un grupo existente y su nombre.");
-                return;
-            }
-
-            isTeacherReadOnly = false;
-            groupDocId = docId;
-
-            if (window.firebaseAvailable && window.db) {
-                const { doc, getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                const ref = doc(window.db, GROUP_COLLECTION, docId);
-                const snap = await getDoc(ref);
-                if (snap.exists()) {
-                    const d = snap.data();
-                    const members = Array.from(new Set([...(d.members || []), student]));
-                    await updateDoc(ref, { members });
-                }
-            }
-
-            enterExamScreen(false);
-        };
-
-        // --- MÓDULO PROFESOR (ACCESO DIRECTO, SOLO LECTURA) ---
-        window.openTeacherModule = async function() {
-            if (unsubscribeGroup) {
-                unsubscribeGroup();
-                unsubscribeGroup = null;
-            }
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-
-            isTeacherReadOnly = true;
-            document.getElementById("view-setup").classList.add("hidden");
-            document.getElementById("view-exam").classList.add("hidden");
-            document.getElementById("view-results").classList.add("hidden");
-            document.getElementById("header-timer-container").classList.add("hidden");
-            document.getElementById("view-teacher").classList.remove("hidden");
-
-            await loadTeacherGroups();
-        };
-
-        window.loadTeacherGroups = async function() {
-            const container = document.getElementById("teacher-groups-list");
-            if (!window.firebaseAvailable || !window.db) {
-                setTimeout(loadTeacherGroups, 300);
+                setTimeout(loadGroups, 300);
                 return;
             }
 
@@ -495,360 +157,139 @@
                 const snap = await getDocs(collection(window.db, GROUP_COLLECTION));
 
                 if (snap.empty) {
-                    container.innerHTML = '<p class="text-slate-400 italic">No hay grupos registrados en la evaluación todavía.</p>';
+                    grid.innerHTML = '<p class="text-slate-400 italic">No hay grupos creados en la base de datos todavía.</p>';
                     return;
                 }
 
                 let html = "";
                 snap.forEach((docSnap) => {
                     const d = docSnap.data();
-                    const members = (d.members || []).join(", ") || "Sin integrantes";
-                    const estado = d.status === "finalizado" ? "Finalizado" : "En curso";
-                    const badgeColor = d.status === "finalizado" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800";
+                    const isFinished = d.status === "finalizado";
+                    const statusBadge = isFinished
+                        ? '<span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[11px]">Finalizado</span>'
+                        : '<span class="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-bold text-[11px]">En curso</span>';
 
                     html += `
-                        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col justify-between gap-3">
+                        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col justify-between gap-3 shadow-sm">
                             <div class="space-y-1">
                                 <div class="flex justify-between items-center gap-2">
                                     <h3 class="font-bold text-slate-900 text-sm">${d.groupCode || docSnap.id}</h3>
-                                    <span class="${badgeColor} px-2.5 py-0.5 rounded-full font-bold text-[11px]">${estado}</span>
+                                    ${statusBadge}
                                 </div>
                                 <p class="text-slate-600"><strong>Líder:</strong> ${d.leader || "N/A"}</p>
-                                <p class="text-slate-500"><strong>Integrantes:</strong> ${members}</p>
+                                <p class="text-slate-500"><strong>Integrantes:</strong> ${(d.members || []).join(", ") || "N/A"}</p>
                             </div>
-                            <button type="button" onclick="watchGroupReadOnly('${docSnap.id}')" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded-xl transition text-xs">
-                                👁️ Observar en Tiempo Real (Solo Lectura)
+                            <button type="button" onclick="openGroupRealtime('${docSnap.id}')" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded-xl transition text-xs">
+                                👁️ Ver en Tiempo Real y PDF
                             </button>
                         </div>
                     `;
                 });
 
-                container.innerHTML = html;
+                grid.innerHTML = html;
             } catch (e) {
-                console.error("Error cargando grupos para el profesor:", e);
-                container.innerHTML = '<p class="text-red-600">Error al consultar los grupos en Firebase.</p>';
+                console.error("Error cargando grupos:", e);
+                grid.innerHTML = '<p class="text-red-600">Error al conectar con Firebase.</p>';
             }
         };
 
-        window.watchGroupReadOnly = function(docId) {
-            groupDocId = docId;
-            isTeacherReadOnly = true;
-            document.getElementById("view-teacher").classList.add("hidden");
-            enterExamScreen(true);
-        };
-
-        function applyReadOnlyModeToExam() {
-            document.getElementById("exam-security-banner").classList.add("hidden");
-            document.getElementById("finish-exam-container").classList.add("hidden");
-            document.getElementById("btn-add-table-ex1").classList.add("hidden");
-            document.getElementById("btn-add-table-ex2").classList.add("hidden");
-            document.getElementById("teacher-readonly-banner").classList.remove("hidden");
-            document.getElementById("header-timer-container").classList.remove("hidden");
-
-            document.querySelectorAll("#view-exam input, #view-exam textarea, #view-exam select").forEach((el) => {
-                el.disabled = true;
-                el.classList.add("cursor-not-allowed", "opacity-90");
-            });
-
-            document.querySelectorAll("#view-exam .btn-remove-item").forEach((btn) => {
-                btn.classList.add("hidden");
-            });
-        }
-
-        function enterExamScreen(readOnlyMode) {
-            document.getElementById("view-setup").classList.add("hidden");
-            document.getElementById("view-exam").classList.remove("hidden");
-            document.getElementById("header-timer-container").classList.remove("hidden");
-
-            if (!readOnlyMode) {
-                attachStudentListeners();
-                startGroupTimer();
-            } else {
-                applyReadOnlyModeToExam();
+        window.openGroupRealtime = async function(docId) {
+            if (unsubscribeCurrentGroup) {
+                unsubscribeCurrentGroup();
+                unsubscribeCurrentGroup = null;
             }
 
-            subscribeToGroupDoc();
-        }
+            document.getElementById("section-groups").classList.add("hidden");
+            document.getElementById("section-live-group").classList.remove("hidden");
+            document.getElementById("live-status-badge").classList.remove("hidden");
+            document.getElementById("live-status-badge").classList.add("flex");
 
-        function attachStudentListeners() {
-            document.querySelectorAll(".sync-input").forEach((inp) => {
-                inp.addEventListener("input", syncStateToFirebase);
+            const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            unsubscribeCurrentGroup = onSnapshot(doc(window.db, GROUP_COLLECTION, docId), (snap) => {
+                if (!snap.exists()) return;
+                currentGroupData = { id: snap.id, ...snap.data() };
+                renderGroupReadOnly(currentGroupData);
             });
-            document.querySelectorAll(".sync-textarea").forEach((ta) => {
-                ta.addEventListener("input", syncStateToFirebase);
-            });
-            document.querySelectorAll(".sync-radio").forEach((rad) => {
-                rad.addEventListener("change", syncStateToFirebase);
-            });
-        }
+        };
 
-        function collectExamDataFromDOM() {
-            const p1 = {};
-            document.querySelectorAll(".sync-input").forEach((inp) => {
-                p1[`q${inp.dataset.q}`] = inp.value;
-            });
-
-            const p2 = {};
-            ["p2_q1", "p2_q2"].forEach((name) => {
-                const checked = document.querySelector(`input[name="${name}"]:checked`);
-                p2[name] = checked ? checked.value : "";
-            });
-
-            const p3 = {};
-            document.querySelectorAll(".sync-textarea").forEach((ta) => {
-                p3[`q${ta.dataset.q}`] = ta.value;
-            });
-
-            const tables = {
-                ex1: extractTables("ex1"),
-                ex2: extractTables("ex2")
-            };
-
-            return { p1, p2, p3, tables };
-        }
-
-        async function syncStateToFirebase() {
-            if (isTeacherReadOnly || isRemoteSyncing || !window.firebaseAvailable || !window.db || !groupDocId) return;
-            const collected = collectExamDataFromDOM();
-            examState.answers = { p1: collected.p1, p2: collected.p2, p3: collected.p3 };
-            examState.tables = collected.tables;
-
-            try {
-                const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                await updateDoc(doc(window.db, GROUP_COLLECTION, groupDocId), {
-                    answers: examState.answers,
-                    tables: examState.tables,
-                    timeRemaining: examState.timeRemaining
-                });
-            } catch (e) {
-                console.error("Error sincronizando:", e);
+        window.backToGroupsList = function() {
+            if (unsubscribeCurrentGroup) {
+                unsubscribeCurrentGroup();
+                unsubscribeCurrentGroup = null;
             }
-        }
-
-        function subscribeToGroupDoc() {
-            if (!window.firebaseAvailable || !window.db || !groupDocId) return;
-            if (unsubscribeGroup) unsubscribeGroup();
-
-            import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js").then(({ doc, onSnapshot }) => {
-                unsubscribeGroup = onSnapshot(doc(window.db, GROUP_COLLECTION, groupDocId), (snap) => {
-                    if (!snap.exists()) return;
-                    const data = snap.data();
-                    currentGroupSnapshotData = data;
-                    examState = { ...examState, ...data };
-
-                    updateTimerText(data.timeRemaining ?? EXAM_DURATION_SECONDS);
-                    document.getElementById("tab-warnings").textContent = `Advertencias Grupo: ${data.warnings || 0}/2`;
-
-                    if (isTeacherReadOnly) {
-                        document.getElementById("teacher-watching-group-name").textContent = `Grupo: ${data.groupCode || groupDocId} (${data.status === "finalizado" ? "Finalizado" : "En curso"})`;
-                        document.getElementById("teacher-watching-members").textContent = `Líder: ${data.leader || "N/A"} · Integrantes: ${(data.members || []).join(", ")}`;
-                    }
-
-                    const activeEl = document.activeElement;
-                    const isTyping = !isTeacherReadOnly && activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA");
-                    if (!isTyping) {
-                        isRemoteSyncing = true;
-                        applyRemoteAnswersToDOM(data.answers || {});
-                        renderRemoteTables("ex1", (data.tables && data.tables.ex1) || []);
-                        renderRemoteTables("ex2", (data.tables && data.tables.ex2) || []);
-                        if (isTeacherReadOnly) applyReadOnlyModeToExam();
-                        isRemoteSyncing = false;
-                    }
-
-                    if (!isTeacherReadOnly && data.status === "finalizado") {
-                        showFinalizedView(data.closureReason || "");
-                    }
-                });
-            });
-        }
-
-        function applyRemoteAnswersToDOM(answers) {
-            const p1 = answers.p1 || {};
-            document.querySelectorAll(".sync-input").forEach((inp) => {
-                const val = p1[`q${inp.dataset.q}`];
-                if (val !== undefined && inp.value !== val) inp.value = val;
-            });
-
-            const p2 = answers.p2 || {};
-            Object.entries(p2).forEach(([name, val]) => {
-                if (val) {
-                    const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
-                    if (radio) radio.checked = true;
-                }
-            });
-
-            const p3 = answers.p3 || {};
-            document.querySelectorAll(".sync-textarea").forEach((ta) => {
-                const val = p3[`q${ta.dataset.q}`];
-                if (val !== undefined && ta.value !== val) ta.value = val;
-            });
-        }
-
-        function renderRemoteTables(exerciseId, tablesList) {
-            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
-            if (!wrapper) return;
-            wrapper.innerHTML = "";
-
-            tablesList.forEach((t) => {
-                const card = createTableCardElement(exerciseId, t.name || "", t.fields || []);
-                wrapper.appendChild(card);
-            });
-        }
-
-        function createTableCardElement(exerciseId, tableName = "", fields = []) {
-            const tableId = "tbl_" + Math.random().toString(36).substring(2, 9);
-            const card = document.createElement("div");
-            card.className = "bg-white border border-slate-300 rounded-xl p-4 space-y-3 table-card shadow-sm";
-            card.id = tableId;
-
-            const disAttr = isTeacherReadOnly ? "disabled" : "";
-            const hideRemove = isTeacherReadOnly ? "hidden" : "";
-
-            card.innerHTML = `
-                <div class="flex justify-between items-center gap-2">
-                    <input type="text" value="${tableName}" ${disAttr} placeholder="NOMBRE_TABLA (3FN)" class="tbl-name flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold uppercase text-slate-900 outline-none focus:ring-2 focus:ring-blue-500" oninput="syncStateToFirebase()">
-                    <button type="button" onclick="this.closest('.table-card').remove(); syncStateToFirebase();" class="btn-remove-item ${hideRemove} text-red-600 hover:text-red-800 text-xs font-bold px-2">✕ Eliminar</button>
-                </div>
-                <div class="fields-list space-y-2 pl-2 border-l-2 border-blue-600"></div>
-                <button type="button" onclick="addFieldToTable('${tableId}', '${exerciseId}')" class="btn-remove-item ${hideRemove} bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold px-3 py-1.5 rounded-lg transition">+ Añadir Campo (PK / FK / Atributo)</button>
-            `;
-
-            const fieldsList = card.querySelector(".fields-list");
-            fields.forEach((f) => {
-                fieldsList.appendChild(createFieldRowElement(f));
-            });
-
-            return card;
-        }
-
-        function createFieldRowElement(field = {}) {
-            const row = document.createElement("div");
-            row.className = "field-row grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-slate-50 p-2 rounded-lg border border-slate-200";
-            const disAttr = isTeacherReadOnly ? "disabled" : "";
-            const hideRemove = isTeacherReadOnly ? "hidden" : "";
-
-            row.innerHTML = `
-                <div class="sm:col-span-4">
-                    <input type="text" value="${field.name || ""}" ${disAttr} placeholder="Nombre del campo" class="f-name w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs" oninput="syncStateToFirebase()">
-                </div>
-                <div class="sm:col-span-3">
-                    <select ${disAttr} class="f-role w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs" onchange="syncStateToFirebase()">
-                        <option value="Atributo" ${field.role === "Atributo" ? "selected" : ""}>Atributo Normal</option>
-                        <option value="PK" ${field.role === "PK" ? "selected" : ""}>PK (Clave Primaria)</option>
-                        <option value="FK" ${field.role === "FK" ? "selected" : ""}>FK (Clave Foránea)</option>
-                        <option value="PK+FK" ${field.role === "PK+FK" ? "selected" : ""}>PK + FK</option>
-                    </select>
-                </div>
-                <div class="sm:col-span-4">
-                    <input type="text" value="${field.ref || ""}" ${disAttr} placeholder="Referencia FK (Ej. TABLA.ID)" class="f-ref w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs" oninput="syncStateToFirebase()">
-                </div>
-                <div class="sm:col-span-1 text-right">
-                    <button type="button" onclick="this.closest('.field-row').remove(); syncStateToFirebase();" class="btn-remove-item ${hideRemove} text-red-600 text-xs font-bold">🗑</button>
-                </div>
-            `;
-            return row;
-        }
-
-        window.addTable = function(exerciseId) {
-            if (isTeacherReadOnly) return;
-            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
-            if (!wrapper) return;
-            wrapper.appendChild(createTableCardElement(exerciseId, "", []));
-            syncStateToFirebase();
+            currentGroupData = null;
+            document.getElementById("section-live-group").classList.add("hidden");
+            document.getElementById("live-status-badge").classList.add("hidden");
+            document.getElementById("live-status-badge").classList.remove("flex");
+            document.getElementById("section-groups").classList.remove("hidden");
+            loadGroups();
         };
 
-        window.addFieldToTable = function(tableId) {
-            if (isTeacherReadOnly) return;
-            const card = document.getElementById(tableId);
-            if (!card) return;
-            card.querySelector(".fields-list").appendChild(createFieldRowElement({}));
-            syncStateToFirebase();
-        };
+        function renderGroupReadOnly(data) {
+            const secs = Math.max(0, Number(data.timeRemaining ?? 5400));
+            const hrs = String(Math.floor(secs / 3600)).padStart(2, "0");
+            const mins = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
+            const remSecs = String(secs % 60).padStart(2, "0");
+            document.getElementById("live-timer-text").textContent = `${hrs}:${mins}:${remSecs}`;
 
-        function extractTables(exerciseId) {
-            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
-            const result = [];
-            cards.forEach((card) => {
-                const name = card.querySelector(".tbl-name").value.trim();
-                const fields = [];
-                card.querySelectorAll(".field-row").forEach((r) => {
-                    fields.push({
-                        name: r.querySelector(".f-name").value.trim(),
-                        role: r.querySelector(".f-role").value,
-                        ref: r.querySelector(".f-ref").value.trim()
-                    });
-                });
-                result.push({ name, fields });
-            });
-            return result;
+            document.getElementById("selected-group-title").textContent = `${data.groupCode || data.id} · ${data.status === "finalizado" ? "Finalizado" : "En curso"}`;
+            document.getElementById("selected-group-meta").textContent = `Líder: ${data.leader || "N/A"} | Integrantes: ${(data.members || []).join(", ") || "N/A"}`;
+            document.getElementById("selected-group-warnings").textContent = `Advertencias del grupo: ${data.warnings || 0}/2${data.closureReason ? ` | Motivo cierre: ${data.closureReason}` : ""}`;
+
+            const ans = data.answers || {};
+            const p1 = ans.p1 || {};
+            document.getElementById("readonly-p1").innerHTML = ["q4", "q1", "q2", "q3"].map((qKey, idx) => `
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                    <span class="font-bold text-slate-700">Pregunta ${idx + 1} (${qKey.toUpperCase()}):</span>
+                    <span class="text-slate-900 ml-1">${p1[qKey] || "(Sin responder)"}</span>
+                </div>
+            `).join("");
+
+            const p2 = ans.p2 || {};
+            document.getElementById("readonly-p2").innerHTML = ["p2_q1", "p2_q2"].map((k, idx) => `
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                    <span class="font-bold text-slate-700">Selección ${idx + 1}:</span>
+                    <span class="text-slate-900 uppercase ml-1">${p2[k] || "(Sin seleccionar)"}</span>
+                </div>
+            `).join("");
+
+            const p3 = ans.p3 || {};
+            document.getElementById("readonly-p3").innerHTML = ["q1", "q2"].map((qKey, idx) => `
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1">
+                    <div class="font-bold text-slate-700">Desarrollo ${idx + 1}:</div>
+                    <div class="text-slate-900 whitespace-pre-wrap">${p3[qKey] || "(Sin responder)"}</div>
+                </div>
+            `).join("");
+
+            const tables = data.tables || {};
+            document.getElementById("readonly-ex1").innerHTML = renderTablesSummary(tables.ex1 || []);
+            document.getElementById("readonly-ex2").innerHTML = renderTablesSummary(tables.ex2 || []);
         }
 
-        function startGroupTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(async () => {
-                if (examState.status === "finalizado") {
-                    clearInterval(timerInterval);
-                    return;
-                }
-                examState.timeRemaining = Math.max(0, (examState.timeRemaining || EXAM_DURATION_SECONDS) - 1);
-                updateTimerText(examState.timeRemaining);
-
-                if (examState.timeRemaining <= 0) {
-                    clearInterval(timerInterval);
-                    await finishExam("Tiempo reglamentario agotado.");
-                }
-            }, 1000);
-        }
-
-        function updateTimerText(seconds) {
-            const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
-            const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-            const secs = String(seconds % 60).padStart(2, "0");
-            document.getElementById("timer-display").textContent = `${hrs}:${mins}:${secs}`;
-        }
-
-        window.finishExam = async function(reason = "Evaluación enviada por el grupo.") {
-            if (isTeacherReadOnly) return;
-            const collected = collectExamDataFromDOM();
-            examState.answers = { p1: collected.p1, p2: collected.p2, p3: collected.p3 };
-            examState.tables = collected.tables;
-            examState.status = "finalizado";
-            examState.closureReason = reason;
-
-            if (window.firebaseAvailable && window.db && groupDocId) {
-                const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                await updateDoc(doc(window.db, GROUP_COLLECTION, groupDocId), {
-                    answers: examState.answers,
-                    tables: examState.tables,
-                    timeRemaining: examState.timeRemaining,
-                    status: "finalizado",
-                    closureReason: reason
-                });
+        function renderTablesSummary(tablesList) {
+            if (!tablesList.length) {
+                return '<p class="text-slate-400 italic">No hay tablas normalizadas creadas todavía.</p>';
             }
-
-            showFinalizedView(reason);
-        };
-
-        function showFinalizedView(reason) {
-            if (timerInterval) clearInterval(timerInterval);
-            document.getElementById("view-exam").classList.add("hidden");
-            document.getElementById("view-results").classList.remove("hidden");
-            document.getElementById("closure-notice").textContent = reason ? `Motivo: ${reason}` : "";
+            return tablesList.map((tbl) => {
+                const fieldsHtml = (tbl.fields || []).map((f) => {
+                    const refTxt = f.ref ? ` → <span class="text-blue-700">${f.ref}</span>` : "";
+                    return `<li class="font-mono text-[11px]">[${f.role || "Atributo"}] <strong>${f.name || "campo"}</strong>${refTxt}</li>`;
+                }).join("");
+                return `
+                    <div class="bg-white border border-slate-300 rounded-lg p-3 space-y-1">
+                        <div class="font-bold text-slate-900 uppercase">${tbl.name || "TABLA_SIN_NOMBRE"}</div>
+                        <ul class="list-disc pl-4 space-y-0.5 text-slate-700">${fieldsHtml || "<li>(Sin campos)</li>"}</ul>
+                    </div>
+                `;
+            }).join("");
         }
 
-        window.downloadStudentPDF = function() {
-            buildEvaluationPDF(currentGroupSnapshotData || examState);
-        };
-
-        window.downloadTeacherGroupPDF = function() {
-            if (!currentGroupSnapshotData) {
-                alert("No hay datos cargados del grupo todavía.");
+        window.downloadGroupPDF = function() {
+            if (!currentGroupData) {
+                alert("Selecciona un grupo primero.");
                 return;
             }
-            buildEvaluationPDF(currentGroupSnapshotData);
-        };
 
-        function buildEvaluationPDF(data) {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
             let y = 20;
@@ -867,12 +308,14 @@
 
             pdf.setFont("helvetica", "normal");
             pdf.setFontSize(9.5);
-            pdf.text(`Grupo: ${data.groupCode || "N/A"} | Líder: ${data.leader || "N/A"}`, 20, y);
+            pdf.text(`Grupo: ${currentGroupData.groupCode || "N/A"} | Líder: ${currentGroupData.leader || "N/A"}`, 20, y);
             y += 6;
-            pdf.text(`Integrantes: ${(data.members || []).join(", ") || "N/A"}`, 20, y);
+            pdf.text(`Integrantes: ${(currentGroupData.members || []).join(", ") || "N/A"}`, 20, y);
+            y += 6;
+            pdf.text(`Estado: ${currentGroupData.status || "en_curso"}`, 20, y);
             y += 10;
 
-            const ans = data.answers || {};
+            const ans = currentGroupData.answers || {};
             const sections = [
                 ["I PARTE - COMPLETACIÓN", ans.p1 || {}],
                 ["II PARTE - SELECCIÓN SIMPLE", ans.p2 || {}],
@@ -894,7 +337,7 @@
                 y += 4;
             });
 
-            const tables = data.tables || {};
+            const tables = currentGroupData.tables || {};
             ["ex1", "ex2"].forEach((exKey, idx) => {
                 ensureSpace(16);
                 pdf.setFont("helvetica", "bold");
@@ -923,9 +366,9 @@
                 }
             });
 
-            const safeGroup = (data.groupCode || "Grupo").replace(/[^a-zA-Z0-9_-]/g, "_");
-            pdf.save(`Evaluacion_UNEFA_${safeGroup}.pdf`);
-        }
+            const safeName = (currentGroupData.groupCode || "Grupo").replace(/[^a-zA-Z0-9_-]/g, "_");
+            pdf.save(`Evaluacion_UNEFA_${safeName}.pdf`);
+        };
     </script>
 </body>
 </html>
