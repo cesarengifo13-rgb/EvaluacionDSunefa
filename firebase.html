@@ -3,205 +3,821 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración y Descarga de PDFs - UNEFA</title>
-    <!-- Tailwind CSS -->
+    <title>Taller N° 1 (10%) - Diseño de Sistemas & Panel Docente en Vivo - UNEFA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF por si es necesario regenerar -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Firebase SDKs con URLs de CDN oficiales -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCQzRYL2PhgAFtcZlgsX69ooVmcuP-7bqM",
-            authDomain: "evaluaciondsunefa.firebaseapp.com",
-            projectId: "evaluaciondsunefa",
-            storageBucket: "evaluaciondsunefa.firebasestorage.app",
-            messagingSenderId: "901181829694",
-            appId: "1:901181829694:web:3eea56237de2dc81c2d76f",
-            measurementId: "G-ZPMJF8NVQ4"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        window.db = getFirestore(app);
-
-        window.loadDatabaseRecords = loadDatabaseRecords;
-        window.deleteGroupDoc = deleteGroupDoc;
-        window.updateGroupRecord = updateGroupRecord;
-        window.deleteAllRecords = deleteAllRecords;
-        window.downloadStudentPDF = downloadStudentPDF;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDatabaseRecords();
-        });
-
-        async function loadDatabaseRecords() {
-            const container = document.getElementById('records-table-body');
-            container.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">Cargando registros de Firebase...</td></tr>`;
-
-            try {
-                const querySnapshot = await getDocs(collection(window.db, "evaluacion_taller1"));
-                container.innerHTML = '';
-
-                if (querySnapshot.empty) {
-                    container.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">No hay registros almacenados en la base de datos.</td></tr>`;
-                    return;
-                }
-
-                querySnapshot.forEach((docSnap) => {
-                    let data = docSnap.data();
-                    let docId = docSnap.id;
-                    let studentsList = (data.students || []).map(s => `${s.nombre} (${s.cedula})`).join('<br>');
-                    let statusBadge = data.status === 'finalizado' 
-                        ? '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-bold">Finalizado</span>' 
-                        : '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-bold">En Proceso</span>';
-
-                    // Guardamos el base64 de manera segura en un atributo data para usarlo al descargar
-                    let pdfBase64 = data.pdfBase64 || '';
-
-                    let tr = document.createElement('tr');
-                    tr.className = "border-b border-slate-200 hover:bg-slate-50";
-                    tr.innerHTML = `
-                        <td class="p-3 font-bold text-slate-900">${data.groupName || 'Sin Nombre'}</td>
-                        <td class="p-3 text-xs text-slate-700">${studentsList || 'Sin integrantes'}</td>
-                        <td class="p-3 text-center">${statusBadge}</td>
-                        <td class="p-3 text-center font-mono font-bold text-blue-900">
-                            <input type="number" step="0.5" id="score_${docId}" value="${data.score !== undefined ? data.score : 0}" class="w-16 border border-slate-300 rounded px-1 py-1 text-center text-xs"> / 20
-                        </td>
-                        <td class="p-3 text-center text-xs font-mono text-slate-600">${data.groupWarnings || 0}</td>
-                        <td class="p-3 text-right space-x-2 whitespace-nowrap">
-                            <button onclick="downloadStudentPDF('${data.groupName}', '${pdfBase64}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow">📥 Descargar PDF</button>
-                            <button onclick="updateGroupRecord('${docId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow">💾 Guardar</button>
-                            <button onclick="deleteGroupDoc('${docId}', '${data.groupName}')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow">🗑️ Eliminar</button>
-                        </td>
-                    `;
-                    container.appendChild(tr);
-                });
-            } catch (e) {
-                console.error("Error cargando base de datos:", e);
-                container.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-600 font-semibold">Error al conectar con Firestore.</td></tr>`;
-            }
-        }
-
-        async function updateGroupRecord(docId) {
-            let newScore = parseFloat(document.getElementById(`score_${docId}`).value);
-            if (isNaN(newScore) || newScore < 0 || newScore > 20) {
-                alert('Ingrese una calificación válida entre 0 y 20.');
-                return;
-            }
-
-            try {
-                await updateDoc(doc(window.db, "evaluacion_taller1", docId), {
-                    score: newScore
-                });
-                alert('¡Calificación actualizada con éxito en Firebase!');
-                loadDatabaseRecords();
-            } catch (e) {
-                console.error("Error actualizando registro:", e);
-                alert('Error al actualizar el registro.');
-            }
-        }
-
-        async function deleteGroupDoc(docId, groupName) {
-            if (confirm(`¿Está seguro de eliminar permanentemente el grupo "${groupName}"?`)) {
-                try {
-                    await deleteDoc(doc(window.db, "evaluacion_taller1", docId));
-                    alert('Registro eliminado correctamente.');
-                    loadDatabaseRecords();
-                } catch (e) {
-                    console.error("Error eliminando documento:", e);
-                    alert('Error al intentar eliminar el registro.');
-                }
-            }
-        }
-
-        async function deleteAllRecords() {
-            if (confirm('⚠️ PELIGRO: ¿Está completamente seguro de ELIMINAR TODOS LOS DATOS de la colección de evaluaciones?')) {
-                try {
-                    const querySnapshot = await getDocs(collection(window.db, "evaluacion_taller1"));
-                    let deletePromises = [];
-                    querySnapshot.forEach((docSnap) => {
-                        deletePromises.push(deleteDoc(doc(window.db, "evaluacion_taller1", docSnap.id)));
-                    });
-                    await Promise.all(deletePromises);
-                    alert('¡Todos los registros de Firebase han sido borrados con éxito!');
-                    loadDatabaseRecords();
-                } catch (e) {
-                    console.error("Error vaciando la base de datos:", e);
-                    alert('Ocurrió un error al vaciar la base de datos.');
-                }
-            }
-        }
-
-        // Descarga directa del PDF idéntico que vio el estudiante
-        function downloadStudentPDF(groupName, pdfBase64) {
-            if (!pdfBase64 || pdfBase64.length < 100) {
-                alert('⚠️ Este grupo aún no ha finalizado su examen o no tiene un PDF generado todavía.');
-                return;
-            }
-
-            // Crear un link temporal para descargar el archivo base64 como PDF real
-            const link = document.createElement('a');
-            link.href = pdfBase64;
-            link.download = `Planilla_Prueba_Taller1_${groupName || 'Grupo'}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("WN1xWLVSZhHOF9qTv");
+        })();
     </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+        }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 md:p-6">
 
-    <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 shadow-md text-white">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-lg font-bold">Panel de Administración y Descarga de PDFs</h1>
-                <p class="text-xs text-slate-400">UNEFA - Taller N° 1 (Diseño de Sistemas)</p>
-            </div>
-            <button onclick="loadDatabaseRecords()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-4 py-2 rounded-lg border border-slate-700 transition">
-                🔄 Refrescar Datos
-            </button>
+    <!-- PANTALLA DE ACCESO (ESTUDIANTE O DOCENTE) -->
+    <div id="pantalla-login" class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 mt-6">
+        <div class="text-center mb-6">
+            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">UNEFA • Núcleo Guárico Sede Tucupido</span>
+            <h1 class="text-2xl font-black text-white mt-3">Taller N° 1: Diseño de Sistemas (10%)</h1>
+            <p class="text-slate-400 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633</p>
         </div>
-    </header>
 
-    <main class="max-w-6xl w-full mx-auto p-4 md:p-6 my-auto flex-grow space-y-6">
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-200 pb-4">
+        <div class="space-y-5">
+            <!-- Selector de Rol / Modo -->
+            <div class="grid grid-cols-3 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                <button type="button" onclick="cambiarModo('crear')" id="btn-modo-crear" class="py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow">Crear Sala</button>
+                <button type="button" onclick="cambiarModo('unirse')" id="btn-modo-unirse" class="py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-slate-400 hover:text-white">Unirse a Sala</button>
+                <button type="button" onclick="cambiarModo('docente')" id="btn-modo-docente" class="py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-amber-400 hover:text-amber-300">👁️ Panel Docente</button>
+            </div>
+
+            <!-- Panel Crear Sala -->
+            <div id="seccion-crear" class="space-y-4">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900">Registros y Planillas Guardadas en Firebase</h2>
-                    <p class="text-xs text-slate-600">Descargue el PDF original generado por los estudiantes, modifique notas o elimine registros individualmente.</p>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Tamaño del Grupo y Dispositivos:</label>
+                    <select id="tamano-grupo" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
+                        <option value="2">2 Integrantes (Máximo 2 Dispositivos)</option>
+                        <option value="3">3 Integrantes (Máximo 3 Dispositivos)</option>
+                    </select>
                 </div>
-                <button onclick="deleteAllRecords()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
-                    🗑️ Borrar TODA la Base de Datos
+
+                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Datos del Líder (Integrante 1)</h3>
+                    <input type="text" id="crear-est1-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                    <input type="text" id="crear-est1-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                </div>
+
+                <button type="button" onclick="crearSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
+                    🚀 Generar Código de Sala y Comenzar
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-100 border-b border-slate-300 text-xs font-bold text-slate-700 uppercase tracking-wider">
-                            <th class="p-3">Grupo / Sala</th>
-                            <th class="p-3">Integrantes</th>
-                            <th class="p-3 text-center">Estado</th>
-                            <th class="p-3 text-center">Calificación</th>
-                            <th class="p-3 text-center">Advertencias</th>
-                            <th class="p-3 text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="records-table-body">
-                        <tr>
-                            <td colspan="6" class="text-center py-6 text-slate-500">Cargando registros...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Panel Unirse a Sala -->
+            <div id="seccion-unirse" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Código de Sala (Ej. UNEFA-1234):</label>
+                    <input type="text" id="join-codigo" placeholder="Ej. UNEFA-1234" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono uppercase tracking-widest text-emerald-400 font-bold text-center focus:border-emerald-500 outline-none">
+                </div>
+
+                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Tus Datos (Integrante 2 o 3)</h3>
+                    <input type="text" id="join-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                    <input type="text" id="join-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+                </div>
+
+                <button type="button" onclick="unirseSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
+                    🔗 Unirse a la Sesión Grupal
+                </button>
+            </div>
+
+            <!-- Panel Acceso Docente -->
+            <div id="seccion-docente-login" class="space-y-4 hidden">
+                <div class="p-4 bg-amber-950/20 rounded-xl border border-amber-500/30 space-y-3">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Monitoreo en Tiempo Real (Solo Docente)</h3>
+                    <p class="text-xs text-slate-300">Supervise en vivo todas las salas activas, dispositivos conectados, respuestas escritas segundo a segundo y alertas antifraude.</p>
+                    <input type="password" id="docente-clave" placeholder="Clave de Acceso Docente (UNEFA2026)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-amber-500 outline-none">
+                </div>
+
+                <button type="button" onclick="entrarPanelDocente()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
+                    📡 Conectar al Monitor en Vivo
+                </button>
             </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-400">
-        Panel de Administración Interno - Universidad Nacional Experimental Politécnica de la Fuerza Armada Nacional Bolivariana (UNEFA)
-    </footer>
+    <!-- ========================================================================= -->
+    <!-- MÓDULO DOCENTE EN TIEMPO REAL (MONITOR DE SALAS Y RESPUESTAS EN VIVO)     -->
+    <!-- ========================================================================= -->
+    <div id="pantalla-docente" class="max-w-7xl mx-auto hidden space-y-6">
+        <!-- Barra Superior Docente -->
+        <div class="bg-slate-900 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Centro de Control Docente en Vivo</span>
+                </div>
+                <h2 class="text-2xl font-black text-white mt-1">Monitor de Evaluación: Diseño de Sistemas</h2>
+                <p class="text-xs text-slate-400">Sincronización instantánea con los dispositivos de cada grupo</p>
+            </div>
 
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <span class="text-[10px] text-slate-400 uppercase block">Salas Activas</span>
+                    <span id="doc-total-salas" class="text-lg font-black text-emerald-400">0</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <span class="text-[10px] text-slate-400 uppercase block">Alertas Fuga</span>
+                    <span id="doc-total-alertas" class="text-lg font-black text-red-400">0</span>
+                </div>
+                <button type="button" onclick="cerrarSesionDocente()" class="bg-slate-800 hover:bg-slate-700 text-xs font-bold px-4 py-3 rounded-xl text-slate-300 cursor-pointer">
+                    Salir
+                </button>
+            </div>
+        </div>
+
+        <!-- Grid Principal: Lista de Salas a la izquierda, Inspector en Vivo a la derecha -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Columna Izquierda: Tarjetas de Grupos Activos -->
+            <div class="lg:col-span-4 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Grupos en Evaluación</h3>
+                    <span class="text-[11px] text-emerald-400">● En línea</span>
+                </div>
+                <div id="lista-salas-docente" class="space-y-3 max-h-[75vh] overflow-y-auto pr-1">
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 text-center text-xs text-slate-500">
+                        Esperando que los estudiantes creen salas...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Inspector Detallado en Tiempo Real -->
+            <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl min-h-[75vh]">
+                <div id="inspector-vacio" class="h-full flex flex-col items-center justify-center text-center py-20 text-slate-500">
+                    <span class="text-4xl mb-3">🖥️</span>
+                    <p class="text-sm font-semibold text-slate-300">Seleccione un grupo a la izquierda para ver su pantalla en vivo</p>
+                    <p class="text-xs max-w-md mt-1">Podrá leer cada respuesta mientras los estudiantes escriben, ver qué integrante está conectado y detectar si algún equipo abandona la ventana.</p>
+                </div>
+
+                <div id="inspector-detalle" class="hidden space-y-6">
+                    <!-- Cabecera del Grupo Seleccionado -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-4 gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span id="insp-codigo" class="font-mono text-sm font-bold bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-lg border border-emerald-500/20">UNEFA-0000</span>
+                                <span id="insp-estado-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300">En Progreso</span>
+                            </div>
+                            <p id="insp-integrantes" class="text-xs text-slate-300 mt-2 font-medium">Integrantes...</p>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="button" onclick="forzarCierreSalaDocente()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-700/50 text-xs font-bold px-3 py-2 rounded-lg cursor-pointer">
+                                🛑 Bloquear Sala
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Progreso en Vivo -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Avance de respuestas completadas:</span>
+                        <span id="insp-progreso-texto" class="font-bold text-emerald-400">0 / 10 ítems</span>
+                    </div>
+
+                    <!-- Vista en Vivo de las Respuestas -->
+                    <div class="space-y-5 text-xs max-h-[58vh] overflow-y-auto pr-2">
+                        
+                        <!-- I Parte -->
+                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <h4 class="font-bold text-amber-400 uppercase">I Parte: Completación (En vivo)</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">1. Unidad mínima con significado:</span>
+                                    <span id="live_c1" class="text-white font-semibold">---</span>
+                                </div>
+                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">2. Capa de datos (Backend):</span>
+                                    <span id="live_c2" class="text-white font-semibold">---</span>
+                                </div>
+                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">3. Colección de registros:</span>
+                                    <span id="live_c3" class="text-white font-semibold">---</span>
+                                </div>
+                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">4. Reconstruir modelo lógico:</span>
+                                    <span id="live_c4" class="text-white font-semibold">---</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- II Parte -->
+                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <h4 class="font-bold text-amber-400 uppercase">II Parte: Selección Simple (En vivo)</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">1. Propiedad 1FN (Correcta: B):</span>
+                                    <span id="live_sel1" class="text-white font-bold uppercase">Sin responder</span>
+                                </div>
+                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">2. Data Warehouse (Correcta: C):</span>
+                                    <span id="live_sel2" class="text-white font-bold uppercase">Sin responder</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- III Parte -->
+                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                            <h4 class="font-bold text-amber-400 uppercase">III Parte: Desarrollo (Escribiendo en tiempo real)</h4>
+                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
+                                <span class="text-slate-400 block text-[10px] mb-1">1. ¿Qué es una Base de Datos?</span>
+                                <p id="live_d1" class="text-slate-200 whitespace-pre-wrap italic">Esperando respuesta...</p>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
+                                <span class="text-slate-400 block text-[10px] mb-1">2. ¿Qué es un registro?</span>
+                                <p id="live_d2" class="text-slate-200 whitespace-pre-wrap italic">Esperando respuesta...</p>
+                            </div>
+                        </div>
+
+                        <!-- IV Parte -->
+                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                            <h4 class="font-bold text-amber-400 uppercase">IV Parte: Ejercicios Prácticos 3FN (En vivo)</h4>
+                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
+                                <span class="text-emerald-400 font-bold block text-[10px] mb-1">Ejercicio 1: Préstamos Bibliotecarios (3FN)</span>
+                                <p id="live_e1" class="text-slate-200 whitespace-pre-wrap font-mono text-[11px]">Esperando desarrollo...</p>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
+                                <span class="text-emerald-400 font-bold block text-[10px] mb-1">Ejercicio 2: Citas Médicas (3FN)</span>
+                                <p id="live_e2" class="text-slate-200 whitespace-pre-wrap font-mono text-[11px]">Esperando desarrollo...</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- PANTALLA DE EVALUACIÓN DEL ESTUDIANTE                                     -->
+    <!-- ========================================================================= -->
+    <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 hidden select-none">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-6 mb-8 gap-4">
+            <div>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Sala Activa: <strong id="lbl-codigo-sala" class="text-white">------</strong></span>
+                <h2 class="text-xl md:text-2xl font-black text-white mt-2">Taller N° 1: Diseño de Sistemas</h2>
+                <p class="text-slate-400 text-xs mt-1">Grupo: <span id="lbl-integrantes-resumen" class="text-slate-200 font-semibold">Cargando...</span></p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <span class="text-[10px] text-slate-400 uppercase block tracking-wider">Dispositivos</span>
+                    <span id="lbl-contador-dispositivos" class="text-sm font-bold text-emerald-400">1 / 2</span>
+                </div>
+                <div class="bg-slate-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
+                    <span class="text-[10px] text-red-400 uppercase block tracking-wider">Tiempo Restante</span>
+                    <span id="timer" class="text-sm font-mono font-bold text-white">90:00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
+            <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES:</p>
+            <p>1. Llene todos los datos en letra imprenta | 2. Tiempo límite: 90 minutos | 3. Valor total: 20 puntos (10% de la nota final).</p>
+            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA ANTI-FRAUDE: El docente supervisa esta sala en tiempo real. Si abandona la pantalla o cambia de pestaña, la prueba finalizará automáticamente.</p>
+        </div>
+
+        <form id="formTaller" class="space-y-10" onsubmit="return false;">
+
+            <!-- I PARTE -->
+            <div class="space-y-4">
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN</h3>
+                    <p class="text-xs text-slate-400">Valor: 4 puntos (1 punto c/u). Complete con la palabra que le dé sentido lógico.</p>
+                </div>
+                
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
+                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" oninput="sincronizarCampo('resp_c1')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
+                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" oninput="sincronizarCampo('resp_c2')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> en la red interna (Backend)</p>
+                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" oninput="sincronizarCampo('resp_c3')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario.</p>
+                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" oninput="sincronizarCampo('resp_c4')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
+                </div>
+            </div>
+
+            <!-- II PARTE -->
+            <div class="space-y-4">
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE</h3>
+                    <p class="text-xs text-slate-400">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta.</p>
+                </div>
+                
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div>
+                        <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
+                        <div class="space-y-2 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="a" onchange="sincronizarRadio('p_sel1', 'a')"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="b" onchange="sincronizarRadio('p_sel1', 'b')"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="c" onchange="sincronizarRadio('p_sel1', 'c')"> c) Conectar dos tablas mediante llaves foráneas.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="d" onchange="sincronizarRadio('p_sel1', 'd')"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-3">
+                        <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
+                        <div class="space-y-2 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a" onchange="sincronizarRadio('p_sel2', 'a')"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="b" onchange="sincronizarRadio('p_sel2', 'b')"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="c" onchange="sincronizarRadio('p_sel2', 'c')"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="d" onchange="sincronizarRadio('p_sel2', 'd')"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- III PARTE -->
+            <div class="space-y-4">
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO</h3>
+                    <p class="text-xs text-slate-400">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados.</p>
+                </div>
+                
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div>
+                        <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?</label>
+                        <textarea id="resp_d1" rows="3" oninput="sincronizarCampo('resp_d1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?</label>
+                        <textarea id="resp_d2" rows="3" oninput="sincronizarCampo('resp_d2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IV PARTE -->
+            <div class="space-y-4">
+                <div class="border-l-4 border-emerald-500 pl-3">
+                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN</h3>
+                    <p class="text-xs text-slate-400">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK.</p>
+                </div>
+                
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <p class="font-bold text-sm text-emerald-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</p>
+                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</code></p>
+                    <textarea id="resp_e1" rows="4" oninput="sincronizarCampo('resp_e1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                </div>
+
+                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <p class="font-bold text-sm text-emerald-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</p>
+                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</code></p>
+                    <textarea id="resp_e2" rows="4" oninput="sincronizarCampo('resp_e2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
+                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
+                    📤 Enviar Evaluación Grupal Oficial
+                </button>
+                <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
+                    🖨️ Imprimir Acta PDF con Calificación
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- SCRIPT DE CONTROL, SINCRONIZACIÓN Y MONITOR DOCENTE EN TIEMPO REAL -->
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://evaluaciones-unefa-default-rtdb.firebaseio.com/"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let salaActual = null;
+        let maxDispositivos = 2;
+        let miIdDispositivo = 'dev_' + Math.random().toString(36).substring(2, 9);
+        let tiempoRestante = 90 * 60;
+        let timerInterval = null;
+        let examenEntregado = false;
+        let actualizandoRemoto = false;
+        let esModoDocente = false;
+        let salaSeleccionadaDocente = null;
+        let todasLasSalasCache = {};
+
+        function cambiarModo(modo) {
+            document.getElementById('seccion-crear').classList.add('hidden');
+            document.getElementById('seccion-unirse').classList.add('hidden');
+            document.getElementById('seccion-docente-login').classList.add('hidden');
+
+            document.getElementById('btn-modo-crear').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+            document.getElementById('btn-modo-unirse').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+            document.getElementById('btn-modo-docente').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-amber-400 hover:text-amber-300";
+
+            if(modo === 'crear') {
+                document.getElementById('seccion-crear').classList.remove('hidden');
+                document.getElementById('btn-modo-crear').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+            } else if(modo === 'unirse') {
+                document.getElementById('seccion-unirse').classList.remove('hidden');
+                document.getElementById('btn-modo-unirse').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
+            } else if(modo === 'docente') {
+                document.getElementById('seccion-docente-login').classList.remove('hidden');
+                document.getElementById('btn-modo-docente').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-amber-600 text-white shadow";
+            }
+        }
+
+        // =====================================================================
+        // LÓGICA DEL MÓDULO DOCENTE EN TIEMPO REAL
+        // =====================================================================
+        function entrarPanelDocente() {
+            const clave = document.getElementById('docente-clave').value.trim();
+            if(clave !== "UNEFA2026" && clave !== "1234") {
+                alert("Clave incorrecta. Use UNEFA2026.");
+                return;
+            }
+
+            esModoDocente = true;
+            document.getElementById('pantalla-login').classList.add('hidden');
+            document.getElementById('pantalla-docente').classList.remove('hidden');
+
+            db.ref('salas').on('value', (snapshot) => {
+                todasLasSalasCache = snapshot.val() || {};
+                renderizarListaSalasDocente();
+                if(salaSeleccionadaDocente && todasLasSalasCache[salaSeleccionadaDocente]) {
+                    actualizarInspectorDocente(salaSeleccionadaDocente);
+                }
+            });
+        }
+
+        function cerrarSesionDocente() {
+            esModoDocente = false;
+            db.ref('salas').off();
+            document.getElementById('pantalla-docente').classList.add('hidden');
+            document.getElementById('pantalla-login').classList.remove('hidden');
+        }
+
+        function renderizarListaSalasDocente() {
+            const contenedor = document.getElementById('lista-salas-docente');
+            const codigos = Object.keys(todasLasSalasCache);
+            
+            document.getElementById('doc-total-salas').textContent = codigos.length;
+            
+            let alertasCount = 0;
+            codigos.forEach(c => {
+                if(todasLasSalasCache[c].estado === 'finalizado_por_infraccion') alertasCount++;
+            });
+            document.getElementById('doc-total-alertas').textContent = alertasCount;
+
+            if(codigos.length === 0) {
+                contenedor.innerHTML = `<div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 text-center text-xs text-slate-500">No hay grupos conectados aún.</div>`;
+                return;
+            }
+
+            contenedor.innerHTML = "";
+            codigos.reverse().forEach(codigo => {
+                const sala = todasLasSalasCache[codigo];
+                const integrantes = Object.values(sala.integrantes || {});
+                const nombres = integrantes.map(i => i.nombre).join(', ') || 'Sin nombres';
+                const maxDev = sala.config?.tamanoGrupo || 2;
+                const activos = Object.keys(sala.dispositivosActivos || {}).length;
+                const respCount = Object.keys(sala.respuestas || {}).filter(k => sala.respuestas[k]).length;
+
+                let estadoBadge = `<span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">● En Curso</span>`;
+                let bordeClase = salaSeleccionadaDocente === codigo ? "border-amber-500 bg-slate-800/80" : "border-slate-800 bg-slate-900 hover:border-slate-700";
+
+                if(sala.estado === 'finalizado_por_infraccion') {
+                    estadoBadge = `<span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-bold">⚠️ Fuga Detectada</span>`;
+                    bordeClase = "border-red-500/60 bg-red-950/20";
+                } else if(sala.estado === 'entregado') {
+                    estadoBadge = `<span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-bold">✅ Entregado</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = `border rounded-xl p-4 cursor-pointer transition ${bordeClase}`;
+                card.onclick = () => seleccionarSalaDocente(codigo);
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-black text-white">${codigo}</span>
+                        ${estadoBadge}
+                    </div>
+                    <p class="text-xs text-slate-300 font-semibold truncate">${nombres}</p>
+                    <div class="flex justify-between items-center mt-3 text-[11px] text-slate-400">
+                        <span>Dispositivos: <strong class="text-slate-200">${activos}/${maxDev}</strong></span>
+                        <span>Avance: <strong class="text-emerald-400">${respCount}/10</strong></span>
+                    </div>
+                `;
+                contenedor.appendChild(card);
+            });
+        }
+
+        function seleccionarSalaDocente(codigo) {
+            salaSeleccionadaDocente = codigo;
+            document.getElementById('inspector-vacio').classList.add('hidden');
+            document.getElementById('inspector-detalle').classList.remove('hidden');
+            renderizarListaSalasDocente();
+            actualizarInspectorDocente(codigo);
+        }
+
+        function actualizarInspectorDocente(codigo) {
+            const sala = todasLasSalasCache[codigo];
+            if(!sala) return;
+
+            document.getElementById('insp-codigo').textContent = codigo;
+            const integrantes = Object.values(sala.integrantes || {});
+            document.getElementById('insp-integrantes').textContent = integrantes.map(i => `${i.nombre} (${i.ci})`).join(' | ');
+
+            const badge = document.getElementById('insp-estado-badge');
+            if(sala.estado === 'finalizado_por_infraccion') {
+                badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/20 text-red-300";
+                badge.textContent = "⚠️ Finalizado por Salida de Pantalla";
+            } else if(sala.estado === 'entregado') {
+                badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300";
+                badge.textContent = "✅ Evaluación Entregada";
+            } else {
+                badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300";
+                badge.textContent = "● Resolviendo en Tiempo Real";
+            }
+
+            const resp = sala.respuestas || {};
+            const campos = ['resp_c1', 'resp_c2', 'resp_c3', 'resp_c4', 'p_sel1', 'p_sel2', 'resp_d1', 'resp_d2', 'resp_e1', 'resp_e2'];
+            let completados = campos.filter(c => resp[c] && resp[c].trim() !== "").length;
+            document.getElementById('insp-progreso-texto').textContent = `${completados} / 10 ítems respondidos`;
+
+            document.getElementById('live_c1').textContent = resp.resp_c1 || "---";
+            document.getElementById('live_c2').textContent = resp.resp_c2 || "---";
+            document.getElementById('live_c3').textContent = resp.resp_c3 || "---";
+            document.getElementById('live_c4').textContent = resp.resp_c4 || "---";
+
+            document.getElementById('live_sel1').textContent = resp.p_sel1 ? `Opción ${resp.p_sel1.toUpperCase()} ${resp.p_sel1 === 'b' ? '✅' : '❌'}` : "Sin responder";
+            document.getElementById('live_sel2').textContent = resp.p_sel2 ? `Opción ${resp.p_sel2.toUpperCase()} ${resp.p_sel2 === 'c' ? '✅' : '❌'}` : "Sin responder";
+
+            document.getElementById('live_d1').textContent = resp.resp_d1 || "Esperando respuesta...";
+            document.getElementById('live_d2').textContent = resp.resp_d2 || "Esperando respuesta...";
+            document.getElementById('live_e1').textContent = resp.resp_e1 || "Esperando desarrollo...";
+            document.getElementById('live_e2').textContent = resp.resp_e2 || "Esperando desarrollo...";
+        }
+
+        async function forzarCierreSalaDocente() {
+            if(!salaSeleccionadaDocente) return;
+            if(!confirm(`¿Desea bloquear y finalizar inmediatamente la sala ${salaSeleccionadaDocente}?`)) return;
+            await db.ref(`salas/${salaSeleccionadaDocente}/estado`).set('finalizado_por_infraccion');
+        }
+
+        // =====================================================================
+        // LÓGICA DEL ESTUDIANTE (COLABORATIVA MULTI-DISPOSITIVO)
+        // =====================================================================
+        async function crearSalaGrupo() {
+            const tamano = parseInt(document.getElementById('tamano-grupo').value);
+            const nombre1 = document.getElementById('crear-est1-nombre').value.trim();
+            const ci1 = document.getElementById('crear-est1-ci').value.trim();
+
+            if(!nombre1 || !ci1) {
+                alert("Por favor ingrese los datos del Líder (Integrante 1).");
+                return;
+            }
+
+            const codigoSala = 'UNEFA-' + Math.floor(1000 + Math.random() * 9000);
+            salaActual = codigoSala;
+            maxDispositivos = tamano;
+
+            const datosSala = {
+                config: { tamanoGrupo: tamano },
+                integrantes: {
+                    [miIdDispositivo]: { nombre: nombre1, ci: ci1, rol: 'Líder' }
+                },
+                dispositivosActivos: {
+                    [miIdDispositivo]: true
+                },
+                respuestas: {},
+                estado: 'en_progreso'
+            };
+
+            try {
+                await db.ref('salas/' + codigoSala).set(datosSala);
+                iniciarInterfazEvaluacion(codigoSala, `${nombre1} (C.I: ${ci1})`);
+                activarSeguridadAntifuga();
+            } catch(e) {
+                alert("Error al conectar con la sala. Verifique su conexión a internet.");
+            }
+        }
+
+        async function unirseSalaGrupo() {
+            const codigo = document.getElementById('join-codigo').value.trim().toUpperCase();
+            const nombre = document.getElementById('join-nombre').value.trim();
+            const ci = document.getElementById('join-ci').value.trim();
+
+            if(!codigo || !nombre || !ci) {
+                alert("Por favor complete todos los campos de acceso.");
+                return;
+            }
+
+            try {
+                const refSala = db.ref('salas/' + codigo);
+                const snapshot = await refSala.once('value');
+
+                if(!snapshot.exists()) {
+                    alert("El código de sala no existe o ha expirado.");
+                    return;
+                }
+
+                const data = snapshot.val();
+                const maxPermitido = data.config.tamanoGrupo;
+                const integrantesActuales = data.integrantes || {};
+                const numIntegrantes = Object.keys(integrantesActuales).length;
+
+                for(let dev in integrantesActuales) {
+                    if(integrantesActuales[dev].ci === ci) {
+                        alert("Esta cédula ya está registrada en este grupo.");
+                        return;
+                    }
+                }
+
+                if(numIntegrantes >= maxPermitido) {
+                    alert(`Acceso denegado: Este grupo ya alcanzó el límite máximo de ${maxPermitido} dispositivos.`);
+                    return;
+                }
+
+                salaActual = codigo;
+                maxDispositivos = maxPermitido;
+
+                await db.ref(`salas/${codigo}/integrantes/${miIdDispositivo}`).set({ nombre: nombre, ci: ci, rol: `Integrante ${numIntegrantes + 1}` });
+                await db.ref(`salas/${codigo}/dispositivosActivos/${miIdDispositivo}`).set(true);
+
+                let resumenNombres = Object.values({...integrantesActuales, [miIdDispositivo]: {nombre}}).map(i => i.nombre).join(', ');
+
+                iniciarInterfazEvaluacion(codigo, resumenNombres);
+                activarSeguridadAntifuga();
+            } catch(e) {
+                alert("Error al unirse a la sala.");
+            }
+        }
+
+        function iniciarInterfazEvaluacion(codigo, resumenIntegrantes) {
+            document.getElementById('pantalla-login').classList.add('hidden');
+            document.getElementById('pantalla-evaluacion').classList.remove('hidden');
+            document.getElementById('lbl-codigo-sala').textContent = codigo;
+            document.getElementById('lbl-integrantes-resumen').textContent = resumenIntegrantes;
+
+            iniciarCronometrosYListeners();
+        }
+
+        function iniciarCronometrosYListeners() {
+            db.ref(`salas/${salaActual}/respuestas`).on('value', (snapshot) => {
+                const resp = snapshot.val() || {};
+                actualizandoRemoto = true;
+                for (let key in resp) {
+                    if(key === 'p_sel1' || key === 'p_sel2') {
+                        const radio = document.querySelector(`input[name="${key}"][value="${resp[key]}"]`);
+                        if (radio) radio.checked = true;
+                    } else {
+                        const el = document.getElementById(key);
+                        if (el && el !== document.activeElement) {
+                            el.value = resp[key];
+                        }
+                    }
+                }
+                actualizandoRemoto = false;
+            });
+
+            db.ref(`salas/${salaActual}/integrantes`).on('value', (snapshot) => {
+                const integ = snapshot.val() || {};
+                const lista = Object.values(integ).map(i => `${i.nombre} (${i.ci})`).join(' | ');
+                document.getElementById('lbl-integrantes-resumen').textContent = lista;
+            });
+
+            db.ref(`salas/${salaActual}/dispositivosActivos`).on('value', (snapshot) => {
+                const activos = snapshot.val() || {};
+                const count = Object.keys(activos).length;
+                document.getElementById('lbl-contador-dispositivos').textContent = `${count} / ${maxDispositivos}`;
+            });
+
+            db.ref(`salas/${salaActual}/estado`).on('value', (snapshot) => {
+                if(snapshot.val() === 'finalizado_por_infraccion' && !examenEntregado) {
+                    alert("⚠️ ALERTA: La evaluación ha sido bloqueada por salida de pantalla o por orden del docente.");
+                    bloquearExamenInfraccion();
+                }
+            });
+
+            timerInterval = setInterval(() => {
+                if(tiempoRestante > 0) {
+                    tiempoRestante--;
+                    let m = Math.floor(tiempoRestante / 60);
+                    let s = tiempoRestante % 60;
+                    document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                } else {
+                    clearInterval(timerInterval);
+                    if(!examenEntregado) entregarEvaluacion();
+                }
+            }, 1000);
+        }
+
+        function sincronizarCampo(id) {
+            if(actualizandoRemoto || !salaActual) return;
+            const val = document.getElementById(id).value;
+            db.ref(`salas/${salaActual}/respuestas/${id}`).set(val);
+        }
+
+        function sincronizarRadio(nombreGrupo, valor) {
+            if(actualizandoRemoto || !salaActual) return;
+            db.ref(`salas/${salaActual}/respuestas/${nombreGrupo}`).set(valor);
+        }
+
+        function activarSeguridadAntifuga() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && !examenEntregado && !esModoDocente) {
+                    reportarInfraccionYTerminar();
+                }
+            });
+
+            window.addEventListener('blur', () => {
+                if (!examenEntregado && !esModoDocente) {
+                    reportarInfraccionYTerminar();
+                }
+            });
+        }
+
+        async function reportarInfraccionYTerminar() {
+            if(examenEntregado) return;
+            examenEntregado = true;
+            await db.ref(`salas/${salaActual}/estado`).set('finalizado_por_infraccion');
+            bloquearExamenInfraccion();
+        }
+
+        function bloquearExamenInfraccion() {
+            const inputs = document.querySelectorAll('input, textarea, button');
+            inputs.forEach(i => i.disabled = true);
+            document.body.style.backgroundColor = '#450a0a';
+        }
+
+        function calcularCalificacion(resp) {
+            const c1 = (resp.resp_c1 || "").toLowerCase().trim();
+            const c2 = (resp.resp_c2 || "").toLowerCase().trim();
+            const c3 = (resp.resp_c3 || "").toLowerCase().trim();
+            const c4 = (resp.resp_c4 || "").toLowerCase().trim();
+
+            let eval_c1 = c1.includes("campo") || c1.includes("atributo") || c1.includes("lógico") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
+            let eval_c2 = c2.includes("centralizada") || c2.includes("relacional") || c2.includes("almacenada") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
+            let eval_c3 = c3.includes("lógicos") || c3.includes("relacionados") || c3.includes("estructurada") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
+            let eval_c4 = c4.includes("inversa") || c4.includes("reverse") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
+
+            let eval_s1 = resp.p_sel1 === 'b' ? "Correcto [Opción B] (1/1 pt)" : "Incorrecto (0/1 pt)";
+            let eval_s2 = resp.p_sel2 === 'c' ? "Correcto [Opción C] (1/1 pt)" : "Incorrecto (0/1 pt)";
+
+            return `
+            === AUTOEVALUACIÓN AUTOMÁTICA ===
+            - C1: ${resp.resp_c1 || 'N/R'} -> ${eval_c1}
+            - C2: ${resp.resp_c2 || 'N/R'} -> ${eval_c2}
+            - C3: ${resp.resp_c3 || 'N/R'} -> ${eval_c3}
+            - C4: ${resp.resp_c4 || 'N/R'} -> ${eval_c4}
+            - Selección 1: ${resp.p_sel1 || 'N/R'} -> ${eval_s1}
+            - Selección 2: ${resp.p_sel2 || 'N/R'} -> ${eval_s2}
+            - Desarrollo y 3FN: (Revisión Docente Manual)
+            `;
+        }
+
+        async function entregarEvaluacion() {
+            if(examenEntregado) return;
+            if(!confirm("¿Está seguro de finalizar y enviar la evaluación grupal?")) return;
+            
+            examenEntregado = true;
+            clearInterval(timerInterval);
+
+            await db.ref(`salas/${salaActual}/estado`).set('entregado');
+
+            const snapshot = await db.ref(`salas/${salaActual}`).once('value');
+            const data = snapshot.val() || {};
+            const integrantes = data.integrantes || {};
+            
+            const resp = {
+                resp_c1: document.getElementById('resp_c1').value,
+                resp_c2: document.getElementById('resp_c2').value,
+                resp_c3: document.getElementById('resp_c3').value,
+                resp_c4: document.getElementById('resp_c4').value,
+                p_sel1: document.querySelector('input[name="p_sel1"]:checked')?.value || '',
+                p_sel2: document.querySelector('input[name="p_sel2"]:checked')?.value || '',
+                resp_d1: document.getElementById('resp_d1').value,
+                resp_d2: document.getElementById('resp_d2').value,
+                resp_e1: document.getElementById('resp_e1').value,
+                resp_e2: document.getElementById('resp_e2').value
+            };
+
+            let textoIntegrantes = Object.values(integrantes).map(i => `${i.nombre} (C.I: ${i.ci})`).join(' | ');
+            let detalleCalificacion = calcularCalificacion(resp);
+
+            const templateParams = {
+                sala: salaActual,
+                integrantes: textoIntegrantes,
+                c1: resp.resp_c1,
+                c2: resp.resp_c2,
+                c3: resp.resp_c3,
+                c4: resp.resp_c4,
+                sel1: resp.p_sel1,
+                sel2: resp.p_sel2,
+                d1: resp.resp_d1,
+                d2: resp.resp_d2,
+                e1: resp.resp_e1,
+                e2: resp.resp_e2,
+                calificacion: detalleCalificacion
+            };
+
+            emailjs.send('service_uiz1wpi', 'Template_sw2of9p', templateParams)
+                .then(function(response) {
+                    alert('¡Evaluación entregada, autoevaluada y enviada al correo del profesor con éxito!');
+                    window.print();
+                }, function(error) {
+                    alert('Evaluación finalizada. Imprima su acta en PDF como comprobante.');
+                    window.print();
+                });
+        }
+    </script>
 </body>
 </html>
