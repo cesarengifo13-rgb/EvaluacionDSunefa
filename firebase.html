@@ -3,820 +3,1324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taller N° 1 (10%) - Diseño de Sistemas & Panel Docente en Vivo - UNEFA</title>
+    <title>UNEFA - Laboratorio y Panel de Profesor</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script type="text/javascript">
-        (function() {
-            emailjs.init("WN1xWLVSZhHOF9qTv");
-        })();
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Firebase SDKs (CDN oficiales) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBRoNV1cbplpWMiW8gnymQkLz_GJkLiIiA",
+          authDomain: "ejerciciospracticos-6f20e.firebaseapp.com",
+          projectId: "ejerciciospracticos-6f20e",
+          storageBucket: "ejerciciospracticos-6f20e.firebasestorage.app",
+          messagingSenderId: "349441493609",
+          appId: "1:349441493609:web:e0466c55996a01853cf0f8",
+          measurementId: "G-DNK5G2C687"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.analytics = getAnalytics(app);
+        window.firebaseAvailable = true;
     </script>
     <style>
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 md:p-6">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
 
-    <!-- PANTALLA DE ACCESO (ESTUDIANTE O DOCENTE) -->
-    <div id="pantalla-login" class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 mt-6">
-        <div class="text-center mb-6">
-            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">UNEFA • Núcleo Guárico Sede Tucupido</span>
-            <h1 class="text-2xl font-black text-white mt-3">Taller N° 1: Diseño de Sistemas (10%)</h1>
-            <p class="text-slate-400 text-sm mt-1">Docente: Cesar E. Rengifo S. | Sección: 06S-2633</p>
-        </div>
-
-        <div class="space-y-5">
-            <!-- Selector de Rol / Modo -->
-            <div class="grid grid-cols-3 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
-                <button type="button" onclick="cambiarModo('crear')" id="btn-modo-crear" class="py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow">Crear Sala</button>
-                <button type="button" onclick="cambiarModo('unirse')" id="btn-modo-unirse" class="py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-slate-400 hover:text-white">Unirse a Sala</button>
-                <button type="button" onclick="cambiarModo('docente')" id="btn-modo-docente" class="py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-amber-400 hover:text-amber-300">👁️ Panel Docente</button>
-            </div>
-
-            <!-- Panel Crear Sala -->
-            <div id="seccion-crear" class="space-y-4">
+    <!-- Header Institucional -->
+    <header class="bg-blue-900 border-b border-blue-800 py-4 px-6 shadow-md text-white">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-blue-900 font-bold p-2.5 rounded-xl text-xl tracking-wider shadow">UNEFA</div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Tamaño del Grupo y Dispositivos:</label>
-                    <select id="tamano-grupo" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none">
-                        <option value="2">2 Integrantes (Máximo 2 Dispositivos)</option>
-                        <option value="3">3 Integrantes (Máximo 3 Dispositivos)</option>
+                    <h1 class="text-base md:text-lg font-bold">Laboratorio de Normalización y Bases de Datos (Sesión 2 Horas)</h1>
+                    <p class="text-xs text-blue-200">Núcleo Guárico Sede Tucupido | Módulo Colaborativo</p>
+                </div>
+            </div>
+            <div id="room-info" class="hidden flex items-center gap-3 bg-blue-950 border border-blue-700 px-4 py-2 rounded-xl text-xs text-white">
+                <span id="label-sesion-text">Sesión: <strong id="lbl-student-name" class="text-amber-400"></strong></span>
+                <!-- Selector rápido para profesor en la cabecera -->
+                <div id="teacher-quick-switch-container" class="hidden items-center gap-2">
+                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-semibold">👁️ Solo Lectura</span>
+                    <span class="text-slate-300">Cambiar:</span>
+                    <select id="header-teacher-select" onchange="onTeacherSelectStudent(this.value)" class="bg-slate-900 border border-blue-600 rounded px-2 py-1 text-xs text-white outline-none">
+                        <option value="">-- Estudiante --</option>
                     </select>
                 </div>
+                <button type="button" onclick="leaveRoom()" class="text-red-400 hover:underline font-semibold ml-2">Salir</button>
+            </div>
+        </div>
+    </header>
 
-                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Datos del Líder (Integrante 1)</h3>
-                    <input type="text" id="crear-est1-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                    <input type="text" id="crear-est1-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 my-auto flex-grow">
+
+        <!-- VISTA 1: ACCESO GENERAL Y PROFESOR -->
+        <section id="view-setup" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xl space-y-6 max-w-xl mx-auto">
+            <div class="text-center">
+                <span class="bg-blue-100 text-blue-800 border border-blue-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Portal de Acceso</span>
+                <h2 class="text-2xl font-bold mt-3 text-slate-900">Seleccione su Perfil</h2>
+                <p class="text-sm text-slate-600 mt-1">Seleccione su nombre para ingresar directamente o ingrese como docente.</p>
+            </div>
+
+            <!-- Selector de Perfil -->
+            <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                <button type="button" id="tab-student" onclick="switchProfile('student')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow">Estudiante</button>
+                <button type="button" id="tab-teacher" onclick="switchProfile('teacher');" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900">Acceso Profesor</button>
+            </div>
+
+            <!-- PERFIL ESTUDIANTE -->
+            <div id="profile-student-container" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="block text-slate-700 font-medium text-xs">Selecciona tu nombre y cédula (Nómina Oficial):</label>
+                    <select id="select-student" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">-- Selecciona tu nombre de la lista --</option>
+                    </select>
                 </div>
-
-                <button type="button" onclick="crearSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
-                    🚀 Generar Código de Sala y Comenzar
+                <button type="button" onclick="loginStudent()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm">
+                    Ingresar al Laboratorio de Práctica
                 </button>
             </div>
 
-            <!-- Panel Unirse a Sala -->
-            <div id="seccion-unirse" class="space-y-4 hidden">
+            <!-- PERFIL PROFESOR -->
+            <div id="profile-teacher-container" class="hidden space-y-4">
+                <div class="space-y-2">
+                    <label class="block text-slate-700 font-medium text-xs">Contraseña de Profesor:</label>
+                    <input type="password" id="teacher-password" placeholder="Ingrese contraseña docente" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <button type="button" onclick="verifyTeacher()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
+                    Acceder al Panel Docente
+                </button>
+            </div>
+        </section>
+
+        <!-- VISTA 2: ENTORNO DE EJERCICIOS PRÁCTICOS -->
+        <section id="view-workspace" class="hidden space-y-8">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Código de Sala (Ej. UNEFA-1234):</label>
-                    <input type="text" id="join-codigo" placeholder="Ej. UNEFA-1234" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono uppercase tracking-widest text-emerald-400 font-bold text-center focus:border-emerald-500 outline-none">
+                    <h2 class="text-xl font-bold text-slate-900">Laboratorio de Normalización y Registros (3FN)</h2>
+                    <p class="text-xs text-slate-600 mt-0.5" id="workspace-subtitle">Analiza las tablas planas ampliadas, diseña las entidades relacionales y define las restricciones FK.</p>
                 </div>
-
-                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Tus Datos (Integrante 2 o 3)</h3>
-                    <input type="text" id="join-nombre" placeholder="Nombre y Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                    <input type="text" id="join-ci" placeholder="Cédula de Identidad (Ej. V-12345678)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-emerald-500 outline-none">
-                </div>
-
-                <button type="button" onclick="unirseSalaGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
-                    🔗 Unirse a la Sesión Grupal
-                </button>
-            </div>
-
-            <!-- Panel Acceso Docente -->
-            <div id="seccion-docente-login" class="space-y-4 hidden">
-                <div class="p-4 bg-amber-950/20 rounded-xl border border-amber-500/30 space-y-3">
-                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Monitoreo en Tiempo Real (Solo Docente)</h3>
-                    <p class="text-xs text-slate-300">Supervise en vivo todas las salas activas, dispositivos conectados, respuestas escritas segundo a segundo y alertas antifraude.</p>
-                    <input type="password" id="docente-clave" placeholder="Clave de Acceso Docente (UNEFA2026)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-amber-500 outline-none">
-                </div>
-
-                <button type="button" onclick="entrarPanelDocente()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition cursor-pointer">
-                    📡 Conectar al Monitor en Vivo
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- MÓDULO DOCENTE EN TIEMPO REAL (MONITOR DE SALAS Y RESPUESTAS EN VIVO)     -->
-    <!-- ========================================================================= -->
-    <div id="pantalla-docente" class="max-w-7xl mx-auto hidden space-y-6">
-        <!-- Barra Superior Docente -->
-        <div class="bg-slate-900 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
-            <div>
                 <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Centro de Control Docente en Vivo</span>
-                </div>
-                <h2 class="text-2xl font-black text-white mt-1">Monitor de Evaluación: Diseño de Sistemas</h2>
-                <p class="text-xs text-slate-400">Sincronización instantánea con los dispositivos de cada grupo</p>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-slate-400 uppercase block">Salas Activas</span>
-                    <span id="doc-total-salas" class="text-lg font-black text-emerald-400">0</span>
-                </div>
-                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-slate-400 uppercase block">Alertas Fuga</span>
-                    <span id="doc-total-alertas" class="text-lg font-black text-red-400">0</span>
-                </div>
-                <button type="button" onclick="cerrarSesionDocente()" class="bg-slate-800 hover:bg-slate-700 text-xs font-bold px-4 py-3 rounded-xl text-slate-300 cursor-pointer">
-                    Salir
-                </button>
-            </div>
-        </div>
-
-        <!-- Grid Principal: Lista de Salas a la izquierda, Inspector en Vivo a la derecha -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- Columna Izquierda: Tarjetas de Grupos Activos -->
-            <div class="lg:col-span-4 space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Grupos en Evaluación</h3>
-                    <span class="text-[11px] text-emerald-400">● En línea</span>
-                </div>
-                <div id="lista-salas-docente" class="space-y-3 max-h-[75vh] overflow-y-auto pr-1">
-                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 text-center text-xs text-slate-500">
-                        Esperando que los estudiantes creen salas...
-                    </div>
+                    <button type="button" onclick="generatePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 whitespace-nowrap">
+                        📥 Generar e Imprimir PDF
+                    </button>
                 </div>
             </div>
 
-            <!-- Columna Derecha: Inspector Detallado en Tiempo Real -->
-            <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl min-h-[75vh]">
-                <div id="inspector-vacio" class="h-full flex flex-col items-center justify-center text-center py-20 text-slate-500">
-                    <span class="text-4xl mb-3">🖥️</span>
-                    <p class="text-sm font-semibold text-slate-300">Seleccione un grupo a la izquierda para ver su pantalla en vivo</p>
-                    <p class="text-xs max-w-md mt-1">Podrá leer cada respuesta mientras los estudiantes escriben, ver qué integrante está conectado y detectar si algún equipo abandona la ventana.</p>
-                </div>
-
-                <div id="inspector-detalle" class="hidden space-y-6">
-                    <!-- Cabecera del Grupo Seleccionado -->
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-4 gap-3">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span id="insp-codigo" class="font-mono text-sm font-bold bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-lg border border-emerald-500/20">UNEFA-0000</span>
-                                <span id="insp-estado-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300">En Progreso</span>
-                            </div>
-                            <p id="insp-integrantes" class="text-xs text-slate-300 mt-2 font-medium">Integrantes...</p>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button type="button" onclick="forzarCierreSalaDocente()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-700/50 text-xs font-bold px-3 py-2 rounded-lg cursor-pointer">
-                                🛑 Bloquear Sala
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Barra de Progreso en Vivo -->
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-                        <span class="text-slate-400">Avance de respuestas completadas:</span>
-                        <span id="insp-progreso-texto" class="font-bold text-emerald-400">0 / 10 ítems</span>
-                    </div>
-
-                    <!-- Vista en Vivo de las Respuestas -->
-                    <div class="space-y-5 text-xs max-h-[58vh] overflow-y-auto pr-2">
-                        
-                        <!-- I Parte -->
-                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
-                            <h4 class="font-bold text-amber-400 uppercase">I Parte: Completación (En vivo)</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
-                                    <span class="text-slate-400 block text-[10px]">1. Unidad mínima con significado:</span>
-                                    <span id="live_c1" class="text-white font-semibold">---</span>
-                                </div>
-                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
-                                    <span class="text-slate-400 block text-[10px]">2. Capa de datos (Backend):</span>
-                                    <span id="live_c2" class="text-white font-semibold">---</span>
-                                </div>
-                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
-                                    <span class="text-slate-400 block text-[10px]">3. Colección de registros:</span>
-                                    <span id="live_c3" class="text-white font-semibold">---</span>
-                                </div>
-                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
-                                    <span class="text-slate-400 block text-[10px]">4. Reconstruir modelo lógico:</span>
-                                    <span id="live_c4" class="text-white font-semibold">---</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- II Parte -->
-                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
-                            <h4 class="font-bold text-amber-400 uppercase">II Parte: Selección Simple (En vivo)</h4>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
-                                    <span class="text-slate-400 block text-[10px]">1. Propiedad 1FN (Correcta: B):</span>
-                                    <span id="live_sel1" class="text-white font-bold uppercase">Sin responder</span>
-                                </div>
-                                <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
-                                    <span class="text-slate-400 block text-[10px]">2. Data Warehouse (Correcta: C):</span>
-                                    <span id="live_sel2" class="text-white font-bold uppercase">Sin responder</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- III Parte -->
-                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="font-bold text-amber-400 uppercase">III Parte: Desarrollo (Escribiendo en tiempo real)</h4>
-                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
-                                <span class="text-slate-400 block text-[10px] mb-1">1. ¿Qué es una Base de Datos?</span>
-                                <p id="live_d1" class="text-slate-200 whitespace-pre-wrap italic">Esperando respuesta...</p>
-                            </div>
-                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
-                                <span class="text-slate-400 block text-[10px] mb-1">2. ¿Qué es un registro?</span>
-                                <p id="live_d2" class="text-slate-200 whitespace-pre-wrap italic">Esperando respuesta...</p>
-                            </div>
-                        </div>
-
-                        <!-- IV Parte -->
-                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="font-bold text-amber-400 uppercase">IV Parte: Ejercicios Prácticos 3FN (En vivo)</h4>
-                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
-                                <span class="text-emerald-400 font-bold block text-[10px] mb-1">Ejercicio 1: Préstamos Bibliotecarios (3FN)</span>
-                                <p id="live_e1" class="text-slate-200 whitespace-pre-wrap font-mono text-[11px]">Esperando desarrollo...</p>
-                            </div>
-                            <div class="bg-slate-900 p-3 rounded border border-slate-800">
-                                <span class="text-emerald-400 font-bold block text-[10px] mb-1">Ejercicio 2: Citas Médicas (3FN)</span>
-                                <p id="live_e2" class="text-slate-200 whitespace-pre-wrap font-mono text-[11px]">Esperando desarrollo...</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- PANTALLA DE EVALUACIÓN DEL ESTUDIANTE                                     -->
-    <!-- ========================================================================= -->
-    <div id="pantalla-evaluacion" class="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 hidden select-none">
-        
-        <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-6 mb-8 gap-4">
-            <div>
-                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Sala Activa: <strong id="lbl-codigo-sala" class="text-white">------</strong></span>
-                <h2 class="text-xl md:text-2xl font-black text-white mt-2">Taller N° 1: Diseño de Sistemas</h2>
-                <p class="text-slate-400 text-xs mt-1">Grupo: <span id="lbl-integrantes-resumen" class="text-slate-200 font-semibold">Cargando...</span></p>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-slate-400 uppercase block tracking-wider">Dispositivos</span>
-                    <span id="lbl-contador-dispositivos" class="text-sm font-bold text-emerald-400">1 / 2</span>
-                </div>
-                <div class="bg-slate-950 border border-red-500/30 px-4 py-2 rounded-xl text-center">
-                    <span class="text-[10px] text-red-400 uppercase block tracking-wider">Tiempo Restante</span>
-                    <span id="timer" class="text-sm font-mono font-bold text-white">90:00</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 mb-8 text-xs text-slate-300 space-y-1">
-            <p class="font-bold text-emerald-400 mb-1">INSTRUCCIONES INSTITUCIONALES:</p>
-            <p>1. Llene todos los datos en letra imprenta | 2. Tiempo límite: 90 minutos | 3. Valor total: 20 puntos (10% de la nota final).</p>
-            <p class="text-red-400 font-semibold">⚠️ ADVERTENCIA ANTI-FRAUDE: El docente supervisa esta sala en tiempo real. Si abandona la pantalla o cambia de pestaña, la prueba finalizará automáticamente.</p>
-        </div>
-
-        <form id="formTaller" class="space-y-10" onsubmit="return false;">
-
-            <!-- I PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">I PARTE: COMPLETACIÓN</h3>
-                    <p class="text-xs text-slate-400">Valor: 4 puntos (1 punto c/u). Complete con la palabra que le dé sentido lógico.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3 text-sm">
-                    <p>1. Un campo es la unidad mínima de datos con significado <input type="text" id="resp_c1" oninput="sincronizarCampo('resp_c1')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
-                    <p>2. La capa de datos es una Base de datos <input type="text" id="resp_c2" oninput="sincronizarCampo('resp_c2')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> en la red interna (Backend)</p>
-                    <p>3. Un archivo es una colección estructurada de registros <input type="text" id="resp_c3" oninput="sincronizarCampo('resp_c3')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."> del mismo tipo que se almacenan en un medio secundario.</p>
-                    <p>4. El proceso metodológico que analiza una base de datos física existente para reconstruir su modelo lógico y conceptual se denomina <input type="text" id="resp_c4" oninput="sincronizarCampo('resp_c4')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white inline-block w-48 focus:border-emerald-500 outline-none" placeholder="Respuesta..."></p>
-                </div>
-            </div>
-
-            <!-- II PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">II PARTE: SELECCIÓN SIMPLE</h3>
-                    <p class="text-xs text-slate-400">Valor: 2 puntos (1 punto c/u). Seleccione la respuesta correcta.</p>
-                </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
+            <!-- PANEL GLOBAL DE CORRECCIONES Y SUGERENCIAS DEL PROFESOR -->
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 shadow-md space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-amber-200 pb-3">
                     <div>
-                        <p class="font-medium text-sm mb-2">1. Qué propiedad fundamental garantiza la Primera Forma Normal (1FN)?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="a" onchange="sincronizarRadio('p_sel1', 'a')"> a) Eliminar las dependencias transitivas entre atributos no clave.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="b" onchange="sincronizarRadio('p_sel1', 'b')"> b) Asegurar la atomicidad de los datos, eliminando grupos repetitivos o listas en una misma celda.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="c" onchange="sincronizarRadio('p_sel1', 'c')"> c) Conectar dos tablas mediante llaves foráneas.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel1" value="d" onchange="sincronizarRadio('p_sel1', 'd')"> d) Optimizar las consultas analíticas masivas (OLAP).</label>
-                        </div>
+                        <h3 class="font-bold text-amber-900 text-base flex items-center gap-2">
+                            <span>📋 Pauta de Corrección y Modelo Ideal (3FN)</span>
+                        </h3>
+                        <p class="text-xs text-amber-700 mt-0.5">Tablas, campos, PK, FK y relaciones esperadas para estos ejercicios.</p>
                     </div>
+                    <div id="teacher-feedback-action-container" class="hidden">
+                        <button type="button" onclick="generateTeacherFeedback()" class="bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-2">
+                            🚀 Enviar Solución Modelo al Estudiante
+                        </button>
+                    </div>
+                </div>
+                <div id="teacher-feedback-display" class="bg-white border border-amber-200 rounded-xl p-4 text-xs text-slate-700 space-y-3 shadow-inner">
+                    <p class="text-slate-400 italic">El profesor aún no ha publicado la pauta de corrección y modelo ideal para este estudiante.</p>
+                </div>
+            </div>
 
-                    <div class="border-t border-slate-800 pt-3">
-                        <p class="font-medium text-sm mb-2">2. ¿Cuál de las siguientes características describe mejor a un Almacén de Datos (Data Warehouse) según la teoría estudiada?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="a" onchange="sincronizarRadio('p_sel2', 'a')"> a) Está optimizado para transacciones rápidas segundo a segundo (OLTP).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="b" onchange="sincronizarRadio('p_sel2', 'b')"> b) Contiene datos altamente normalizados para inserciones masivas de cajeros.</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="c" onchange="sincronizarRadio('p_sel2', 'c')"> c) Es un repositorio centralizado, histórico y de solo lectura optimizado para la toma de decisiones gerenciales (OLAP).</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="p_sel2" value="d" onchange="sincronizarRadio('p_sel2', 'd')"> d) Permite modificar los datos históricos libremente para corregir errores operativos diarios.</label>
-                        </div>
+            <!-- EJERCICIO 1 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 pb-3">
+                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 1: Sistema Avanzado de Ventas, Inventario y Facturación (E-commerce)</h3>
+                    <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <strong>Estructura Plana Ampliada (12 Columnas):</strong> ID_Factura, Fecha_Emision, ID_Cliente, Nombre_Cliente, Rif_Cliente, Telefono_Cliente, Cod_Producto, Descripcion_Producto, Categoria_Producto, Stock_Actual, Precio_Unitario, Cantidad_Comprada
+                    </p>
+                </div>
+
+                <!-- Tabla de Registros -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Práctica (Tabla Plana Ex 1):</h4>
+                        <button type="button" id="btn-add-row-ex1" onclick="addRecordRow('ex1')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Fila</button>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs text-slate-700" id="records-table-ex1">
+                            <thead class="bg-slate-100 uppercase text-[9px] text-slate-600 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2">ID_Fact</th>
+                                    <th class="p-2">Fecha</th>
+                                    <th class="p-2">ID_Cli</th>
+                                    <th class="p-2">Nom_Cli</th>
+                                    <th class="p-2">RIF</th>
+                                    <th class="p-2">Telf_Cli</th>
+                                    <th class="p-2">Cod_Prod</th>
+                                    <th class="p-2">Desc_Prod</th>
+                                    <th class="p-2">Cat_Prod</th>
+                                    <th class="p-2">Stock</th>
+                                    <th class="p-2">Precio</th>
+                                    <th class="p-2">Cant</th>
+                                    <th class="p-2 text-center action-col">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200" id="records-tbody-ex1"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Diseño Tablas 3FN -->
+                <div id="container-normalizer-ex1" class="space-y-3 pt-4 border-t border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
+                        <button type="button" id="btn-add-table-ex1" onclick="addTable('ex1')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
+                    </div>
+                    <div class="tables-wrapper space-y-4" data-exercise="ex1"></div>
+                </div>
+
+                <!-- VISTA PREVIA CONSOLIDADA CON REGISTROS EX1 -->
+                <div class="bg-slate-50 border border-slate-300 p-4 rounded-xl space-y-4">
+                    <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        👁️ Vista Previa Consolidada (Tablas Normalizadas y Registros - Ejercicio 1):
+                    </h5>
+                    <div class="preview-container-ex1 space-y-6">
+                        <p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- III PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">III PARTE: DESARROLLO</h3>
-                    <p class="text-xs text-slate-400">Valor: 4 puntos (2 puntos c/u). Defina los conceptos solicitados.</p>
+            <!-- EJERCICIO 2 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 pb-3">
+                    <h3 class="font-bold text-blue-900 text-base">Ejercicio 2: Sistema Académico Integral de Control de Inscripciones, Aulas y Profesores</h3>
+                    <p class="text-xs text-slate-600 mt-1 font-mono bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <strong>Estructura Plana Ampliada (12 Columnas):</strong> ID_Inscripcion, Periodo_Acad, Cedula_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Cod_Asignatura, Nombre_Asignatura, Creditos_Asignatura, Cod_Aula, Ubicacion_Aula, Nombre_Profesor, Calificacion_Final
+                    </p>
                 </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-4">
-                    <div>
-                        <label class="block font-medium text-sm mb-1">1. ¿Qué es una Base de Datos?</label>
-                        <textarea id="resp_d1" rows="3" oninput="sincronizarCampo('resp_d1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+
+                <!-- Tabla de Registros -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Registros de Práctica (Tabla Plana Ex 2):</h4>
+                        <button type="button" id="btn-add-row-ex2" onclick="addRecordRow('ex2')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded transition">+ Añadir Fila</button>
                     </div>
-                    <div>
-                        <label class="block font-medium text-sm mb-1">2. ¿Qué es un registro?</label>
-                        <textarea id="resp_d2" rows="3" oninput="sincronizarCampo('resp_d2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Redacte su respuesta técnica aquí..."></textarea>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs text-slate-700" id="records-table-ex2">
+                            <thead class="bg-slate-100 uppercase text-[9px] text-slate-600 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2">ID_Insc</th>
+                                    <th class="p-2">Periodo</th>
+                                    <th class="p-2">CI_Est</th>
+                                    <th class="p-2">Nom_Estudiante</th>
+                                    <th class="p-2">Carrera</th>
+                                    <th class="p-2">Cod_Asig</th>
+                                    <th class="p-2">Nom_Asignatura</th>
+                                    <th class="p-2">Cred</th>
+                                    <th class="p-2">Cod_Aula</th>
+                                    <th class="p-2">Ubic_Aula</th>
+                                    <th class="p-2">Profesor</th>
+                                    <th class="p-2">Nota</th>
+                                    <th class="p-2 text-center action-col">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200" id="records-tbody-ex2"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Diseño Tablas 3FN -->
+                <div id="container-normalizer-ex2" class="space-y-3 pt-4 border-t border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-900 text-sm">Diseño Normalizado (Tablas 3FN y Relaciones):</h4>
+                        <button type="button" id="btn-add-table-ex2" onclick="addTable('ex2')" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">+ Añadir Tabla Normalizada</button>
+                    </div>
+                    <div class="tables-wrapper space-y-4" data-exercise="ex2"></div>
+                </div>
+
+                <!-- VISTA PREVIA CONSOLIDADA CON REGISTROS EX2 -->
+                <div class="bg-slate-50 border border-slate-300 p-4 rounded-xl space-y-4">
+                    <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        👁️ Vista Previa Consolidada (Tablas Normalizadas y Registros - Ejercicio 2):
+                    </h5>
+                    <div class="preview-container-ex2 space-y-6">
+                        <p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <!-- IV PARTE -->
-            <div class="space-y-4">
-                <div class="border-l-4 border-emerald-500 pl-3">
-                    <h3 class="text-base font-bold text-white">IV PARTE: EJERCICIOS PRÁCTICOS DE NORMALIZACIÓN</h3>
-                    <p class="text-xs text-slate-400">Valor: 10 puntos (5 puntos c/u). Estructure hasta la 3FN indicando PK y FK.</p>
+        <!-- VISTA 3: PANEL DE CONTROL DOCENTE -->
+        <section id="view-teacher-dashboard" class="hidden space-y-6">
+            <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold">Panel de Control Docente</h2>
+                    <p class="text-xs text-slate-300 mt-1">Selecciona un estudiante para supervisar su trabajo en tiempo real (solo lectura), generar su PDF o enviar la pauta de corrección.</p>
                 </div>
-                
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 1: El Sistema de Préstamos Bibliotecarios (5 Puntos)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Prestamo, Fecha_Prestamo, ID_Estudiante, Nombre_Estudiante, Carrera_Estudiante, Codigo_Libro, Titulo_Libro, Autor_Libro, Dias_Prestamo</code></p>
-                    <textarea id="resp_e1" rows="4" oninput="sincronizarCampo('resp_e1')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
-                </div>
-
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <p class="font-bold text-sm text-emerald-300">Ejercicio 2: El Sistema de Citas Médicas (5 Puntos)</p>
-                    <p class="text-xs text-slate-400">Campos originales: <code class="text-emerald-400">ID_Cita, Fecha_Hora, ID_Medico, Nombre_Medico, Especialidad_Medico, Consultorio_Medico, ID_Paciente, Nombre_Paciente, Telefono_Paciente, Diagnostico</code></p>
-                    <textarea id="resp_e2" rows="4" oninput="sincronizarCampo('resp_e2')" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-emerald-500 outline-none" placeholder="Desarrolle sus tablas en 3FN especificando PK y FK..."></textarea>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="deleteAllFirebaseData()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">🗑️ Eliminar Todos los Datos</button>
+                    <button type="button" onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">Cerrar Sesión</button>
                 </div>
             </div>
 
-            <!-- Botones -->
-            <div class="pt-4 border-t border-slate-800 flex flex-col md:flex-row gap-4">
-                <button type="button" onclick="entregarEvaluacion()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-xl transition cursor-pointer text-center">
-                    📤 Enviar Evaluación Grupal Oficial
-                </button>
-                <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-4 px-6 rounded-xl transition cursor-pointer text-center">
-                    🖨️ Imprimir Acta PDF con Calificación
-                </button>
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-b border-slate-200 pb-3">
+                    <h3 class="font-bold text-slate-900 text-base">Seleccione Estudiante a Supervisar (Solo Lectura):</h3>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="teacher-student-select" onchange="onTeacherSelectStudent(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-72">
+                            <option value="">-- Seleccionar Estudiante --</option>
+                        </select>
+                        <button type="button" onclick="loadTeacherDashboard()" class="text-xs text-blue-600 hover:underline font-semibold whitespace-nowrap">🔄 Actualizar</button>
+                    </div>
+                </div>
+                <div id="teacher-quick-info" class="text-xs text-slate-500 italic">
+                    Elija un estudiante en el selector superior para ver en tiempo real lo que está realizando sin modificar sus datos.
+                </div>
             </div>
+        </section>
 
-        </form>
-    </div>
+    </main>
 
-    <!-- SCRIPT DE CONTROL, SINCRONIZACIÓN Y MONITOR DOCENTE EN TIEMPO REAL -->
+    <!-- Footer -->
+    <footer class="bg-blue-950 border-t border-blue-900 py-4 text-center text-xs text-blue-300 mt-12">
+        Universidad Nacional Experimental Politécnica de la Fuerza Armada Nacional Bolivariana (UNEFA) - Núcleo Guárico Sede Tucupido
+    </footer>
+
+    <!-- Lógica y Sincronización -->
     <script>
-        const firebaseConfig = {
-            databaseURL: "https://evaluaciones-unefa-default-rtdb.firebaseio.com/"
+        const estudiantesSeccion = [
+            { nombre: "MOTARPON VICTOR MANUEL", cedula: "26.166.763" },
+            { nombre: "JIMÉNEZ SIFONTES JOSÉ LEONARDO", cedula: "27.664.252" },
+            { nombre: "OJEDA GONZÁLEZ JUAN DE JESÚS", cedula: "31.464.928" },
+            { nombre: "JIMÉNEZ JIMÉNEZ REYMARI", cedula: "31.537.865" },
+            { nombre: "SIFONTES CAMPOS EDUARDO ANDRÉS", cedula: "31.781.439" },
+            { nombre: "MOTA SEGOVIA JORVIN ANDRÉS", cedula: "31.791.315" },
+            { nombre: "ITRIAGO LEON ESTEFANI ALEXANDRA", cedula: "31.791.350" },
+            { nombre: "HERNÁNDEZ HERNÁNDEZ YEAN MANUEL", cedula: "32.679.937" }
+        ];
+
+        const defaultEx1Records = [
+            {c1:"F-101", c2:"2026-03-01", c3:"C-01", c4:"Carlos Pérez", c5:"V-12345678", c6:"0412-1112233", c7:"P-01", c8:"Laptop Core i5", c9:"Tecnología", c10:"12", c11:"450.00", c12:"1"},
+            {c1:"F-102", c2:"2026-03-01", c3:"C-02", c4:"Ana Gómez", c5:"V-23456789", c6:"0414-2223344", c7:"P-02", c8:"Mouse Inalámbrico", c9:"Accesorios", c10:"25", c11:"15.50", c12:"2"},
+            {c1:"F-103", c2:"2026-03-02", c3:"C-01", c4:"Carlos Pérez", c5:"V-12345678", c6:"0412-1112233", c7:"P-03", c8:"Teclado Mecánico", c9:"Accesorios", c10:"15", c11:"35.00", c12:"1"},
+            {c1:"F-104", c2:"2026-03-02", c3:"C-03", c4:"Luis Rodríguez", c5:"V-18765432", c6:"0416-3334455", c7:"P-01", c8:"Laptop Core i5", c9:"Tecnología", c10:"12", c11:"450.00", c12:"1"},
+            {c1:"F-105", c2:"2026-03-03", c3:"C-04", c4:"María Silva", c5:"V-20111222", c6:"0424-5556677", c7:"P-04", c8:"Monitor 24\"", c9:"Tecnología", c10:"8", c11:"120.00", c12:"1"},
+            {c1:"F-106", c2:"2026-03-03", c3:"C-02", c4:"Ana Gómez", c5:"V-23456789", c6:"0414-2223344", c7:"P-05", c8:"Pendrive 64GB", c9:"Almacenamiento", c10:"50", c11:"10.00", c12:"3"},
+            {c1:"F-107", c2:"2026-03-04", c3:"C-05", c4:"José Torres", c5:"V-15444333", c6:"0412-8889900", c7:"P-02", c8:"Mouse Inalámbrico", c9:"Accesorios", c10:"25", c11:"15.50", c12:"1"},
+            {c1:"F-108", c2:"2026-03-04", c3:"C-03", c4:"Luis Rodríguez", c5:"V-18765432", c6:"0416-3334455", c7:"P-06", c8:"Impresora Laser", c9:"Oficina", c10:"5", c11:"210.00", c12:"1"},
+            {c1:"F-109", c2:"2026-03-05", c3:"C-06", c4:"Carmen Rivas", c5:"V-19888777", c6:"0426-4445566", c7:"P-03", c8:"Teclado Mecánico", c9:"Accesorios", c10:"15", c11:"35.00", c12:"2"},
+            {c1:"F-110", c2:"2026-03-05", c3:"C-01", c4:"Carlos Pérez", c5:"V-12345678", c6:"0412-1112233", c7:"P-05", c8:"Pendrive 64GB", c9:"Almacenamiento", c10:"50", c11:"10.00", c12:"1"},
+            {c1:"F-111", c2:"2026-03-06", c3:"C-04", c4:"María Silva", c5:"V-20111222", c6:"0424-5556677", c7:"P-01", c8:"Laptop Core i5", c9:"Tecnología", c10:"12", c11:"450.00", c12:"1"},
+            {c1:"F-112", c2:"2026-03-06", c3:"C-05", c4:"José Torres", c5:"V-15444333", c6:"0412-8889900", c7:"P-04", c8:"Monitor 24\"", c9:"Tecnología", c10:"8", c11:"120.00", c12:"2"}
+        ];
+
+        const defaultEx2Records = [
+            {c1:"INS-501", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S-101", c7:"Diseño de Sistemas", c8:"4", c9:"A-10", c10:"Planta Baja - Edif A", c11:"Prof. Cesar Rengifo", c12:"18"},
+            {c1:"INS-502", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S-101", c7:"Diseño de Sistemas", c8:"4", c9:"A-10", c10:"Planta Baja - Edif A", c11:"Prof. Cesar Rengifo", c12:"16"},
+            {c1:"INS-503", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"15"},
+            {c1:"INS-504", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C-201", c7:"Resistencia de Materiales", c8:"4", c9:"B-05", c10:"Planta Baja - Edif B", c11:"Prof. Pedro Infante", c12:"17"},
+            {c1:"INS-505", c2:"2026-1", c3:"31781439", c4:"Eduardo Sifontes", c5:"Ing. de Sistemas", c6:"S-101", c7:"Diseño de Sistemas", c8:"4", c9:"A-10", c10:"Planta Baja - Edif A", c11:"Prof. Cesar Rengifo", c12:"14"},
+            {c1:"INS-506", c2:"2026-1", c3:"31791315", c4:"Jorvin Mota", c5:"Ing. Agronómica", c6:"A-301", c7:"Fitopatología", c8:"3", c9:"C-02", c10:"Piso 2 - Edif C", c11:"Prof. Luis Zambrano", c12:"16"},
+            {c1:"INS-507", c2:"2026-1", c3:"31791350", c4:"Estefani Itriago", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"19"},
+            {c1:"INS-508", c2:"2026-1", c3:"32679937", c4:"Yean Hernández", c5:"Ing. Civil", c6:"C-201", c7:"Resistencia de Materiales", c8:"4", c9:"B-05", c10:"Planta Baja - Edif B", c11:"Prof. Pedro Infante", c12:"13"},
+            {c1:"INS-509", c2:"2026-1", c3:"26166763", c4:"Victor Motarpon", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"17"},
+            {c1:"INS-510", c2:"2026-1", c3:"27664252", c4:"José Jiménez", c5:"Ing. de Sistemas", c6:"S-102", c7:"Base de Datos II", c8:"3", c9:"A-12", c10:"Piso 1 - Edif A", c11:"Prof. María Laya", c12:"15"},
+            {c1:"INS-511", c2:"2026-1", c3:"31464928", c4:"Juan Ojeda", c5:"Ing. de Sistemas", c6:"S-103", c7:"Redes de Computadoras", c8:"4", c9:"A-15", c10:"Piso 2 - Edif A", c11:"Prof. Alberto Sosa", c12:"18"},
+            {c1:"INS-512", c2:"2026-1", c3:"31537865", c4:"Reymari Jiménez", c5:"Ing. Civil", c6:"C-202", c7:"Mecánica de Suelos", c8:"3", c9:"B-08", c10:"Piso 1 - Edif B", c11:"Prof. Carlos Páez", c12:"16"}
+        ];
+
+        let sessionData = {
+            student: null,
+            isTeacherMode: false,
+            records: { ex1: [], ex2: [] },
+            normalizationTables: { ex1: [], ex2: [] },
+            tableRows: { ex1: {}, ex2: {} },
+            feedback: ""
         };
-        
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
 
-        let salaActual = null;
-        let maxDispositivos = 2;
-        let miIdDispositivo = 'dev_' + Math.random().toString(36).substring(2, 9);
-        let tiempoRestante = 90 * 60;
-        let timerInterval = null;
-        let examenEntregado = false;
-        let actualizandoRemoto = false;
-        let esModoDocente = false;
-        let salaSeleccionadaDocente = null;
-        let todasLasSalasCache = {};
+        let currentDocId = null;
+        let unsubscribe = null;
+        let isRemoteUpdating = false;
 
-        function cambiarModo(modo) {
-            document.getElementById('seccion-crear').classList.add('hidden');
-            document.getElementById('seccion-unirse').classList.add('hidden');
-            document.getElementById('seccion-docente-login').classList.add('hidden');
-
-            document.getElementById('btn-modo-crear').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
-            document.getElementById('btn-modo-unirse').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
-            document.getElementById('btn-modo-docente').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition text-amber-400 hover:text-amber-300";
-
-            if(modo === 'crear') {
-                document.getElementById('seccion-crear').classList.remove('hidden');
-                document.getElementById('btn-modo-crear').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-            } else if(modo === 'unirse') {
-                document.getElementById('seccion-unirse').classList.remove('hidden');
-                document.getElementById('btn-modo-unirse').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow";
-            } else if(modo === 'docente') {
-                document.getElementById('seccion-docente-login').classList.remove('hidden');
-                document.getElementById('btn-modo-docente').className = "py-2.5 text-xs md:text-sm font-bold rounded-lg transition bg-amber-600 text-white shadow";
-            }
-        }
-
-        // =====================================================================
-        // LÓGICA DEL MÓDULO DOCENTE EN TIEMPO REAL
-        // =====================================================================
-        function entrarPanelDocente() {
-            const clave = document.getElementById('docente-clave').value.trim();
-            if(clave !== "UNEFA2026" && clave !== "1234") {
-                alert("Clave incorrecta. Use UNEFA2026.");
-                return;
-            }
-
-            esModoDocente = true;
-            document.getElementById('pantalla-login').classList.add('hidden');
-            document.getElementById('pantalla-docente').classList.remove('hidden');
-
-            db.ref('salas').on('value', (snapshot) => {
-                todasLasSalasCache = snapshot.val() || {};
-                renderizarListaSalasDocente();
-                if(salaSeleccionadaDocente && todasLasSalasCache[salaSeleccionadaDocente]) {
-                    actualizarInspectorDocente(salaSeleccionadaDocente);
-                }
+        document.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('select-student');
+            estudiantesSeccion.forEach((est, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `${est.nombre} (C.I: ${est.cedula})`;
+                select.appendChild(opt);
             });
-        }
+        });
 
-        function cerrarSesionDocente() {
-            esModoDocente = false;
-            db.ref('salas').off();
-            document.getElementById('pantalla-docente').classList.add('hidden');
-            document.getElementById('pantalla-login').classList.remove('hidden');
-        }
+        window.switchProfile = function(profile) {
+            const btnStudent = document.getElementById('tab-student');
+            const btnTeacher = document.getElementById('tab-teacher');
+            const boxStudent = document.getElementById('profile-student-container');
+            const boxTeacher = document.getElementById('profile-teacher-container');
 
-        function renderizarListaSalasDocente() {
-            const contenedor = document.getElementById('lista-salas-docente');
-            const codigos = Object.keys(todasLasSalasCache);
-            
-            document.getElementById('doc-total-salas').textContent = codigos.length;
-            
-            let alertasCount = 0;
-            codigos.forEach(c => {
-                if(todasLasSalasCache[c].estado === 'finalizado_por_infraccion') alertasCount++;
-            });
-            document.getElementById('doc-total-alertas').textContent = alertasCount;
-
-            if(codigos.length === 0) {
-                contenedor.innerHTML = `<div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 text-center text-xs text-slate-500">No hay grupos conectados aún.</div>`;
-                return;
-            }
-
-            contenedor.innerHTML = "";
-            codigos.reverse().forEach(codigo => {
-                const sala = todasLasSalasCache[codigo];
-                const integrantes = Object.values(sala.integrantes || {});
-                const nombres = integrantes.map(i => i.nombre).join(', ') || 'Sin nombres';
-                const maxDev = sala.config?.tamanoGrupo || 2;
-                const activos = Object.keys(sala.dispositivosActivos || {}).length;
-                const respCount = Object.keys(sala.respuestas || {}).filter(k => sala.respuestas[k]).length;
-
-                let estadoBadge = `<span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">● En Curso</span>`;
-                let bordeClase = salaSeleccionadaDocente === codigo ? "border-amber-500 bg-slate-800/80" : "border-slate-800 bg-slate-900 hover:border-slate-700";
-
-                if(sala.estado === 'finalizado_por_infraccion') {
-                    estadoBadge = `<span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-bold">⚠️ Fuga Detectada</span>`;
-                    bordeClase = "border-red-500/60 bg-red-950/20";
-                } else if(sala.estado === 'entregado') {
-                    estadoBadge = `<span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-bold">✅ Entregado</span>`;
-                }
-
-                const card = document.createElement('div');
-                card.className = `border rounded-xl p-4 cursor-pointer transition ${bordeClase}`;
-                card.onclick = () => seleccionarSalaDocente(codigo);
-                card.innerHTML = `
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-black text-white">${codigo}</span>
-                        ${estadoBadge}
-                    </div>
-                    <p class="text-xs text-slate-300 font-semibold truncate">${nombres}</p>
-                    <div class="flex justify-between items-center mt-3 text-[11px] text-slate-400">
-                        <span>Dispositivos: <strong class="text-slate-200">${activos}/${maxDev}</strong></span>
-                        <span>Avance: <strong class="text-emerald-400">${respCount}/10</strong></span>
-                    </div>
-                `;
-                contenedor.appendChild(card);
-            });
-        }
-
-        function seleccionarSalaDocente(codigo) {
-            salaSeleccionadaDocente = codigo;
-            document.getElementById('inspector-vacio').classList.add('hidden');
-            document.getElementById('inspector-detalle').classList.remove('hidden');
-            renderizarListaSalasDocente();
-            actualizarInspectorDocente(codigo);
-        }
-
-        function actualizarInspectorDocente(codigo) {
-            const sala = todasLasSalasCache[codigo];
-            if(!sala) return;
-
-            document.getElementById('insp-codigo').textContent = codigo;
-            const integrantes = Object.values(sala.integrantes || {});
-            document.getElementById('insp-integrantes').textContent = integrantes.map(i => `${i.nombre} (${i.ci})`).join(' | ');
-
-            const badge = document.getElementById('insp-estado-badge');
-            if(sala.estado === 'finalizado_por_infraccion') {
-                badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/20 text-red-300";
-                badge.textContent = "⚠️ Finalizado por Salida de Pantalla";
-            } else if(sala.estado === 'entregado') {
-                badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300";
-                badge.textContent = "✅ Evaluación Entregada";
+            if (profile === 'student') {
+                btnStudent.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-blue-700 text-white shadow";
+                btnTeacher.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                boxStudent.classList.remove('hidden');
+                boxTeacher.classList.add('hidden');
             } else {
-                badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300";
-                badge.textContent = "● Resolviendo en Tiempo Real";
+                btnTeacher.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-slate-900 text-white shadow";
+                btnStudent.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 hover:text-slate-900";
+                boxTeacher.classList.remove('hidden');
+                boxStudent.classList.add('hidden');
             }
+        };
 
-            const resp = sala.respuestas || {};
-            const campos = ['resp_c1', 'resp_c2', 'resp_c3', 'resp_c4', 'p_sel1', 'p_sel2', 'resp_d1', 'resp_d2', 'resp_e1', 'resp_e2'];
-            let completados = campos.filter(c => resp[c] && resp[c].trim() !== "").length;
-            document.getElementById('insp-progreso-texto').textContent = `${completados} / 10 ítems respondidos`;
-
-            document.getElementById('live_c1').textContent = resp.resp_c1 || "---";
-            document.getElementById('live_c2').textContent = resp.resp_c2 || "---";
-            document.getElementById('live_c3').textContent = resp.resp_c3 || "---";
-            document.getElementById('live_c4').textContent = resp.resp_c4 || "---";
-
-            document.getElementById('live_sel1').textContent = resp.p_sel1 ? `Opción ${resp.p_sel1.toUpperCase()} ${resp.p_sel1 === 'b' ? '✅' : '❌'}` : "Sin responder";
-            document.getElementById('live_sel2').textContent = resp.p_sel2 ? `Opción ${resp.p_sel2.toUpperCase()} ${resp.p_sel2 === 'c' ? '✅' : '❌'}` : "Sin responder";
-
-            document.getElementById('live_d1').textContent = resp.resp_d1 || "Esperando respuesta...";
-            document.getElementById('live_d2').textContent = resp.resp_d2 || "Esperando respuesta...";
-            document.getElementById('live_e1').textContent = resp.resp_e1 || "Esperando desarrollo...";
-            document.getElementById('live_e2').textContent = resp.resp_e2 || "Esperando desarrollo...";
-        }
-
-        async function forzarCierreSalaDocente() {
-            if(!salaSeleccionadaDocente) return;
-            if(!confirm(`¿Desea bloquear y finalizar inmediatamente la sala ${salaSeleccionadaDocente}?`)) return;
-            await db.ref(`salas/${salaSeleccionadaDocente}/estado`).set('finalizado_por_infraccion');
-        }
-
-        // =====================================================================
-        // LÓGICA DEL ESTUDIANTE (COLABORATIVA MULTI-DISPOSITIVO)
-        // =====================================================================
-        async function crearSalaGrupo() {
-            const tamano = parseInt(document.getElementById('tamano-grupo').value);
-            const nombre1 = document.getElementById('crear-est1-nombre').value.trim();
-            const ci1 = document.getElementById('crear-est1-ci').value.trim();
-
-            if(!nombre1 || !ci1) {
-                alert("Por favor ingrese los datos del Líder (Integrante 1).");
-                return;
+        window.verifyTeacher = function() {
+            const pass = document.getElementById('teacher-password').value;
+            if (pass === "unefa2026" || pass === "admin123") {
+                document.getElementById('view-setup').classList.add('hidden');
+                document.getElementById('view-teacher-dashboard').classList.remove('hidden');
+                loadTeacherDashboard();
+            } else {
+                alert('⚠️ Contraseña de profesor incorrecta.');
             }
+        };
 
-            const codigoSala = 'UNEFA-' + Math.floor(1000 + Math.random() * 9000);
-            salaActual = codigoSala;
-            maxDispositivos = tamano;
+        async function loadTeacherDashboard() {
+            const teacherSelect = document.getElementById('teacher-student-select');
+            const headerSelect = document.getElementById('header-teacher-select');
+            
+            let optionsHTML = '<option value="">-- Seleccionar Estudiante --</option>';
 
-            const datosSala = {
-                config: { tamanoGrupo: tamano },
-                integrantes: {
-                    [miIdDispositivo]: { nombre: nombre1, ci: ci1, rol: 'Líder' }
-                },
-                dispositivosActivos: {
-                    [miIdDispositivo]: true
-                },
-                respuestas: {},
-                estado: 'en_progreso'
-            };
-
-            try {
-                await db.ref('salas/' + codigoSala).set(datosSala);
-                iniciarInterfazEvaluacion(codigoSala, `${nombre1} (C.I: ${ci1})`);
-                activarSeguridadAntifuga();
-            } catch(e) {
-                alert("Error al conectar con la sala. Verifique su conexión a internet.");
-            }
-        }
-
-        async function unirseSalaGrupo() {
-            const codigo = document.getElementById('join-codigo').value.trim().toUpperCase();
-            const nombre = document.getElementById('join-nombre').value.trim();
-            const ci = document.getElementById('join-ci').value.trim();
-
-            if(!codigo || !nombre || !ci) {
-                alert("Por favor complete todos los campos de acceso.");
-                return;
-            }
-
-            try {
-                const refSala = db.ref('salas/' + codigo);
-                const snapshot = await refSala.once('value');
-
-                if(!snapshot.exists()) {
-                    alert("El código de sala no existe o ha expirado.");
-                    return;
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const snapshot = await getDocs(collection(window.db, "laboratorio_normalizacion"));
+                    
+                    snapshot.forEach(docSnap => {
+                        let data = docSnap.data();
+                        let docId = docSnap.id;
+                        if (data.studentName) {
+                            optionsHTML += `<option value="${docId}">${data.studentName} (C.I: ${data.studentCedula})</option>`;
+                        }
+                    });
+                } catch (e) {
+                    console.error("Error cargando estudiantes en profesor:", e);
                 }
+            }
 
-                const data = snapshot.val();
-                const maxPermitido = data.config.tamanoGrupo;
-                const integrantesActuales = data.integrantes || {};
-                const numIntegrantes = Object.keys(integrantesActuales).length;
+            teacherSelect.innerHTML = optionsHTML;
+            headerSelect.innerHTML = optionsHTML;
+        }
 
-                for(let dev in integrantesActuales) {
-                    if(integrantesActuales[dev].ci === ci) {
-                        alert("Esta cédula ya está registrada en este grupo.");
-                        return;
+        function applyTeacherReadOnlyUI() {
+            document.getElementById('workspace-subtitle').textContent = `Supervisando en tiempo real a ${sessionData.student.nombre} (C.I: ${sessionData.student.cedula}) — Modo Solo Lectura.`;
+            document.getElementById('teacher-feedback-action-container').classList.remove('hidden');
+
+            // Ocultar botones de edición para el profesor
+            ['btn-add-row-ex1', 'btn-add-row-ex2', 'btn-add-table-ex1', 'btn-add-table-ex2'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.add('hidden');
+            });
+
+            // Mostrar estructura y vista previa en solo lectura
+            document.getElementById('container-normalizer-ex1').style.display = 'block';
+            document.getElementById('container-normalizer-ex2').style.display = 'block';
+        }
+
+        window.onTeacherSelectStudent = async function(docId) {
+            if (!docId) return;
+
+            if (unsubscribe) unsubscribe();
+            currentDocId = docId;
+            sessionData.isTeacherMode = true;
+
+            if (window.firebaseAvailable && window.db) {
+                const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const snap = await getDoc(doc(window.db, "laboratorio_normalizacion", docId));
+                if (snap.exists()) {
+                    let d = snap.data();
+                    sessionData.student = { nombre: d.studentName, cedula: d.studentCedula };
+                    sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
+                    sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
+                    sessionData.tableRows = d.tableRows || { ex1: {}, ex2: {} };
+                    sessionData.feedback = d.feedback || "";
+
+                    document.getElementById('view-teacher-dashboard').classList.add('hidden');
+                    document.getElementById('view-workspace').classList.remove('hidden');
+                    document.getElementById('room-info').classList.remove('hidden');
+                    
+                    document.getElementById('teacher-quick-switch-container').style.display = 'flex';
+                    document.getElementById('lbl-student-name').style.display = 'none';
+                    document.getElementById('header-teacher-select').value = docId;
+
+                    applyTeacherReadOnlyUI();
+
+                    renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
+                    renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
+                    renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+                    renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+                    updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
+                    updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
+                    renderFeedbackDisplay(sessionData.feedback);
+
+                    startRealtimeSync();
+                }
+            }
+        };
+
+        window.deleteAllFirebaseData = async function() {
+            if (confirm('⚠️ ¿ESTÁ SEGURO? Esto eliminará todos los registros y tablas guardados en Firebase para todos los estudiantes.')) {
+                if (window.firebaseAvailable && window.db) {
+                    try {
+                        const { collection, getDocs, deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                        const snapshot = await getDocs(collection(window.db, "laboratorio_normalizacion"));
+                        let deletions = [];
+                        snapshot.forEach(docSnap => {
+                            deletions.push(deleteDoc(doc(window.db, "laboratorio_normalizacion", docSnap.id)));
+                        });
+                        await Promise.all(deletions);
+                        alert('✅ Todos los datos de Firebase han sido eliminados.');
+                        loadTeacherDashboard();
+                    } catch (e) {
+                        console.error("Error borrando datos:", e);
                     }
                 }
-
-                if(numIntegrantes >= maxPermitido) {
-                    alert(`Acceso denegado: Este grupo ya alcanzó el límite máximo de ${maxPermitido} dispositivos.`);
-                    return;
-                }
-
-                salaActual = codigo;
-                maxDispositivos = maxPermitido;
-
-                await db.ref(`salas/${codigo}/integrantes/${miIdDispositivo}`).set({ nombre: nombre, ci: ci, rol: `Integrante ${numIntegrantes + 1}` });
-                await db.ref(`salas/${codigo}/dispositivosActivos/${miIdDispositivo}`).set(true);
-
-                let resumenNombres = Object.values({...integrantesActuales, [miIdDispositivo]: {nombre}}).map(i => i.nombre).join(', ');
-
-                iniciarInterfazEvaluacion(codigo, resumenNombres);
-                activarSeguridadAntifuga();
-            } catch(e) {
-                alert("Error al unirse a la sala.");
             }
-        }
+        };
 
-        function iniciarInterfazEvaluacion(codigo, resumenIntegrantes) {
-            document.getElementById('pantalla-login').classList.add('hidden');
-            document.getElementById('pantalla-evaluacion').classList.remove('hidden');
-            document.getElementById('lbl-codigo-sala').textContent = codigo;
-            document.getElementById('lbl-integrantes-resumen').textContent = resumenIntegrantes;
+        window.loginStudent = async function() {
+            const studentIdx = document.getElementById('select-student').value;
+            if (studentIdx === "") {
+                alert('Por favor selecciona tu nombre de la nómina.');
+                return;
+            }
 
-            iniciarCronometrosYListeners();
-        }
+            sessionData.student = estudiantesSeccion[studentIdx];
+            sessionData.isTeacherMode = false;
 
-        function iniciarCronometrosYListeners() {
-            db.ref(`salas/${salaActual}/respuestas`).on('value', (snapshot) => {
-                const resp = snapshot.val() || {};
-                actualizandoRemoto = true;
-                for (let key in resp) {
-                    if(key === 'p_sel1' || key === 'p_sel2') {
-                        const radio = document.querySelector(`input[name="${key}"][value="${resp[key]}"]`);
-                        if (radio) radio.checked = true;
+            if (window.firebaseAvailable && window.db) {
+                try {
+                    const { collection, addDoc, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const q = query(collection(window.db, "laboratorio_normalizacion"), where("studentCedula", "==", sessionData.student.cedula));
+                    const snap = await getDocs(q);
+
+                    if (!snap.empty) {
+                        currentDocId = snap.docs[0].id;
+                        let d = snap.docs[0].data();
+                        sessionData.records = d.records || { ex1: defaultEx1Records, ex2: defaultEx2Records };
+                        sessionData.normalizationTables = d.normalizationTables || { ex1: [], ex2: [] };
+                        sessionData.tableRows = d.tableRows || { ex1: {}, ex2: {} };
+                        sessionData.feedback = d.feedback || "";
                     } else {
-                        const el = document.getElementById(key);
-                        if (el && el !== document.activeElement) {
-                            el.value = resp[key];
+                        sessionData.records = { ex1: defaultEx1Records, ex2: defaultEx2Records };
+                        sessionData.tableRows = { ex1: {}, ex2: {} };
+                        sessionData.feedback = "";
+                        const docRef = await addDoc(collection(window.db, "laboratorio_normalizacion"), {
+                            studentName: sessionData.student.nombre,
+                            studentCedula: sessionData.student.cedula,
+                            records: sessionData.records,
+                            normalizationTables: { ex1: [], ex2: [] },
+                            tableRows: { ex1: {}, ex2: {} },
+                            feedback: "",
+                            timestamp: new Date()
+                        });
+                        currentDocId = docRef.id;
+                    }
+                } catch (e) {
+                    console.error("Error conectando con Firebase:", e);
+                }
+            }
+
+            enterWorkspace();
+        };
+
+        function enterWorkspace() {
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-workspace').classList.remove('hidden');
+            document.getElementById('room-info').classList.remove('hidden');
+            document.getElementById('teacher-quick-switch-container').style.display = 'none';
+            document.getElementById('teacher-feedback-action-container').classList.add('hidden');
+            document.getElementById('lbl-student-name').style.display = 'inline';
+            document.getElementById('lbl-student-name').textContent = sessionData.student.nombre + ` (C.I: ${sessionData.student.cedula})`;
+            document.getElementById('workspace-subtitle').textContent = "Analiza las tablas planas ampliadas, diseña las entidades relacionales y define las restricciones FK.";
+
+            ['btn-add-row-ex1', 'btn-add-row-ex2', 'btn-add-table-ex1', 'btn-add-table-ex2'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.remove('hidden');
+            });
+
+            document.getElementById('container-normalizer-ex1').style.display = 'block';
+            document.getElementById('container-normalizer-ex2').style.display = 'block';
+
+            renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
+            renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
+            renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+            renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+            updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
+            updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
+            renderFeedbackDisplay(sessionData.feedback);
+            startRealtimeSync();
+        }
+
+        window.leaveRoom = function() {
+            if (unsubscribe) unsubscribe();
+            location.reload();
+        };
+
+        function startRealtimeSync() {
+            if (!window.firebaseAvailable || !window.db || !currentDocId) return;
+
+            import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js").then(({ doc, onSnapshot }) => {
+                unsubscribe = onSnapshot(doc(window.db, "laboratorio_normalizacion", currentDocId), (docSnapshot) => {
+                    if (docSnapshot.exists() && !isRemoteUpdating) {
+                        const data = docSnapshot.data();
+                        const activeInside = !sessionData.isTeacherMode && document.querySelector('input:focus, select:focus');
+                        if (!activeInside) {
+                            if (data.records) {
+                                sessionData.records = data.records;
+                                renderRecordsFromCloud('ex1', sessionData.records.ex1 || []);
+                                renderRecordsFromCloud('ex2', sessionData.records.ex2 || []);
+                            }
+                            if (data.normalizationTables) {
+                                sessionData.normalizationTables = data.normalizationTables;
+                                renderTablesFromCloud('ex1', sessionData.normalizationTables.ex1 || []);
+                                renderTablesFromCloud('ex2', sessionData.normalizationTables.ex2 || []);
+                            }
+                            if (data.tableRows) {
+                                sessionData.tableRows = data.tableRows;
+                            }
+                            if (data.feedback !== undefined) {
+                                sessionData.feedback = data.feedback;
+                                renderFeedbackDisplay(sessionData.feedback);
+                            }
+                            updatePreview('ex1', sessionData.normalizationTables.ex1 || [], sessionData.tableRows.ex1 || {});
+                            updatePreview('ex2', sessionData.normalizationTables.ex2 || [], sessionData.tableRows.ex2 || {});
+                            if (sessionData.isTeacherMode) applyTeacherReadOnlyUI();
                         }
                     }
-                }
-                actualizandoRemoto = false;
-            });
-
-            db.ref(`salas/${salaActual}/integrantes`).on('value', (snapshot) => {
-                const integ = snapshot.val() || {};
-                const lista = Object.values(integ).map(i => `${i.nombre} (${i.ci})`).join(' | ');
-                document.getElementById('lbl-integrantes-resumen').textContent = lista;
-            });
-
-            db.ref(`salas/${salaActual}/dispositivosActivos`).on('value', (snapshot) => {
-                const activos = snapshot.val() || {};
-                const count = Object.keys(activos).length;
-                document.getElementById('lbl-contador-dispositivos').textContent = `${count} / ${maxDispositivos}`;
-            });
-
-            db.ref(`salas/${salaActual}/estado`).on('value', (snapshot) => {
-                if(snapshot.val() === 'finalizado_por_infraccion' && !examenEntregado) {
-                    alert("⚠️ ALERTA: La evaluación ha sido bloqueada por salida de pantalla o por orden del docente.");
-                    bloquearExamenInfraccion();
-                }
-            });
-
-            timerInterval = setInterval(() => {
-                if(tiempoRestante > 0) {
-                    tiempoRestante--;
-                    let m = Math.floor(tiempoRestante / 60);
-                    let s = tiempoRestante % 60;
-                    document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                } else {
-                    clearInterval(timerInterval);
-                    if(!examenEntregado) entregarEvaluacion();
-                }
-            }, 1000);
-        }
-
-        function sincronizarCampo(id) {
-            if(actualizandoRemoto || !salaActual) return;
-            const val = document.getElementById(id).value;
-            db.ref(`salas/${salaActual}/respuestas/${id}`).set(val);
-        }
-
-        function sincronizarRadio(nombreGrupo, valor) {
-            if(actualizandoRemoto || !salaActual) return;
-            db.ref(`salas/${salaActual}/respuestas/${nombreGrupo}`).set(valor);
-        }
-
-        function activarSeguridadAntifuga() {
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden && !examenEntregado && !esModoDocente) {
-                    reportarInfraccionYTerminar();
-                }
-            });
-
-            window.addEventListener('blur', () => {
-                if (!examenEntregado && !esModoDocente) {
-                    reportarInfraccionYTerminar();
-                }
-            });
-        }
-
-        async function reportarInfraccionYTerminar() {
-            if(examenEntregado) return;
-            examenEntregado = true;
-            await db.ref(`salas/${salaActual}/estado`).set('finalizado_por_infraccion');
-            bloquearExamenInfraccion();
-        }
-
-        function bloquearExamenInfraccion() {
-            const inputs = document.querySelectorAll('input, textarea, button');
-            inputs.forEach(i => i.disabled = true);
-            document.body.style.backgroundColor = '#450a0a';
-        }
-
-        function calcularCalificacion(resp) {
-            const c1 = (resp.resp_c1 || "").toLowerCase().trim();
-            const c2 = (resp.resp_c2 || "").toLowerCase().trim();
-            const c3 = (resp.resp_c3 || "").toLowerCase().trim();
-            const c4 = (resp.resp_c4 || "").toLowerCase().trim();
-
-            let eval_c1 = c1.includes("campo") || c1.includes("atributo") || c1.includes("lógico") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
-            let eval_c2 = c2.includes("centralizada") || c2.includes("relacional") || c2.includes("almacenada") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
-            let eval_c3 = c3.includes("lógicos") || c3.includes("relacionados") || c3.includes("estructurada") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
-            let eval_c4 = c4.includes("inversa") || c4.includes("reverse") ? "Correcto (1/1 pt)" : "Incorrecto (0/1 pt)";
-
-            let eval_s1 = resp.p_sel1 === 'b' ? "Correcto [Opción B] (1/1 pt)" : "Incorrecto (0/1 pt)";
-            let eval_s2 = resp.p_sel2 === 'c' ? "Correcto [Opción C] (1/1 pt)" : "Incorrecto (0/1 pt)";
-
-            return `
-            === AUTOEVALUACIÓN AUTOMÁTICA ===
-            - C1: ${resp.resp_c1 || 'N/R'} -> ${eval_c1}
-            - C2: ${resp.resp_c2 || 'N/R'} -> ${eval_c2}
-            - C3: ${resp.resp_c3 || 'N/R'} -> ${eval_c3}
-            - C4: ${resp.resp_c4 || 'N/R'} -> ${eval_c4}
-            - Selección 1: ${resp.p_sel1 || 'N/R'} -> ${eval_s1}
-            - Selección 2: ${resp.p_sel2 || 'N/R'} -> ${eval_s2}
-            - Desarrollo y 3FN: (Revisión Docente Manual)
-            `;
-        }
-
-        async function entregarEvaluacion() {
-            if(examenEntregado) return;
-            if(!confirm("¿Está seguro de finalizar y enviar la evaluación grupal?")) return;
-            
-            examenEntregado = true;
-            clearInterval(timerInterval);
-
-            await db.ref(`salas/${salaActual}/estado`).set('entregado');
-
-            const snapshot = await db.ref(`salas/${salaActual}`).once('value');
-            const data = snapshot.val() || {};
-            const integrantes = data.integrantes || {};
-            
-            const resp = {
-                resp_c1: document.getElementById('resp_c1').value,
-                resp_c2: document.getElementById('resp_c2').value,
-                resp_c3: document.getElementById('resp_c3').value,
-                resp_c4: document.getElementById('resp_c4').value,
-                p_sel1: document.querySelector('input[name="p_sel1"]:checked')?.value || '',
-                p_sel2: document.querySelector('input[name="p_sel2"]:checked')?.value || '',
-                resp_d1: document.getElementById('resp_d1').value,
-                resp_d2: document.getElementById('resp_d2').value,
-                resp_e1: document.getElementById('resp_e1').value,
-                resp_e2: document.getElementById('resp_e2').value
-            };
-
-            let textoIntegrantes = Object.values(integrantes).map(i => `${i.nombre} (C.I: ${i.ci})`).join(' | ');
-            let detalleCalificacion = calcularCalificacion(resp);
-
-            const templateParams = {
-                sala: salaActual,
-                integrantes: textoIntegrantes,
-                c1: resp.resp_c1,
-                c2: resp.resp_c2,
-                c3: resp.resp_c3,
-                c4: resp.resp_c4,
-                sel1: resp.p_sel1,
-                sel2: resp.p_sel2,
-                d1: resp.resp_d1,
-                d2: resp.resp_d2,
-                e1: resp.resp_e1,
-                e2: resp.resp_e2,
-                calificacion: detalleCalificacion
-            };
-
-            emailjs.send('service_uiz1wpi', 'Template_sw2of9p', templateParams)
-                .then(function(response) {
-                    alert('¡Evaluación entregada, autoevaluada y enviada al correo del profesor con éxito!');
-                    window.print();
-                }, function(error) {
-                    alert('Evaluación finalizada. Imprima su acta en PDF como comprobante.');
-                    window.print();
                 });
+            });
+        }
+
+        async function saveToCloud() {
+            if (sessionData.isTeacherMode || isRemoteUpdating || !window.firebaseAvailable || !window.db || !currentDocId) return;
+
+            sessionData.records.ex1 = extractRecordsDataFromDOM('ex1');
+            sessionData.records.ex2 = extractRecordsDataFromDOM('ex2');
+            sessionData.normalizationTables.ex1 = extractTablesDataFromDOM('ex1');
+            sessionData.normalizationTables.ex2 = extractTablesDataFromDOM('ex2');
+            sessionData.tableRows.ex1 = extractTableRowsFromDOM('ex1');
+            sessionData.tableRows.ex2 = extractTableRowsFromDOM('ex2');
+
+            updatePreview('ex1', sessionData.normalizationTables.ex1, sessionData.tableRows.ex1);
+            updatePreview('ex2', sessionData.normalizationTables.ex2, sessionData.tableRows.ex2);
+
+            try {
+                const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await updateDoc(doc(window.db, "laboratorio_normalizacion", currentDocId), {
+                    records: sessionData.records,
+                    normalizationTables: sessionData.normalizationTables,
+                    tableRows: sessionData.tableRows
+                });
+            } catch (e) {
+                console.error("Error sincronizando:", e);
+            }
+        }
+
+        // --- PAUTA DE CORRECCIÓN Y MODELO IDEAL (3FN) ---
+        window.generateTeacherFeedback = async function() {
+            if (!sessionData.isTeacherMode) return;
+
+            let feedbackHTML = `
+                <div class="space-y-4 text-xs">
+                    <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg space-y-2">
+                        <h4 class="font-bold text-blue-900 text-sm">📌 PAUTA OFICIAL DE CORRECCIÓN - EJERCICIO 1: E-commerce y Facturación</h4>
+                        <p class="text-slate-600">Para descomponer la tabla plana a 3FN, debió crear exactamente las siguientes 3 tablas maestras y relacionales:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                            <div class="bg-white p-2.5 rounded border border-blue-200 space-y-1">
+                                <p class="font-bold text-blue-900">1. CLIENTES (Maestra)</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> ID_Cliente (VARCHAR)</p>
+                                <p>• Nombre_Cliente (VARCHAR)</p>
+                                <p>• Rif_Cliente (VARCHAR)</p>
+                                <p>• Telefono_Cliente (VARCHAR)</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-blue-200 space-y-1">
+                                <p class="font-bold text-blue-900">2. PRODUCTOS (Maestra)</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cod_Producto (VARCHAR)</p>
+                                <p>• Descripcion_Producto (VARCHAR)</p>
+                                <p>• Categoria_Producto (VARCHAR)</p>
+                                <p>• Stock_Actual (INT)</p>
+                                <p>• Precio_Unitario (DECIMAL)</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-blue-200 space-y-1">
+                                <p class="font-bold text-blue-900">3. DETALLE_FACTURA (Transaccional)</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> ID_Factura (VARCHAR)</p>
+                                <p>• Fecha_Emision (DATE)</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> ID_Cliente → CLIENTES.ID_Cliente</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cod_Producto → PRODUCTOS.Cod_Producto</p>
+                                <p>• Cantidad_Comprada (INT)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-lg space-y-2">
+                        <h4 class="font-bold text-emerald-900 text-sm">📌 PAUTA OFICIAL DE CORRECCIÓN - EJERCICIO 2: Control Académico</h4>
+                        <p class="text-slate-600">Para el sistema universitario en 3FN, el diseño relacional correcto es el siguiente:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-2">
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">1. ESTUDIANTES</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cedula_Estudiante</p>
+                                <p>• Nombre_Estudiante</p>
+                                <p>• Carrera_Estudiante</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">2. ASIGNATURAS</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cod_Asignatura</p>
+                                <p>• Nombre_Asignatura</p>
+                                <p>• Creditos_Asignatura</p>
+                                <p>• Nombre_Profesor</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">3. AULAS</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> Cod_Aula</p>
+                                <p>• Ubicacion_Aula</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-emerald-200 space-y-1">
+                                <p class="font-bold text-emerald-900">4. INSCRIPCIONES</p>
+                                <p>• <strong class="text-amber-600">[PK]</strong> ID_Inscripcion</p>
+                                <p>• Periodo_Acad</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cedula_Estudiante → ESTUDIANTES</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cod_Asignatura → ASIGNATURAS</p>
+                                <p>• <strong class="text-blue-600">[FK]</strong> Cod_Aula → AULAS</p>
+                                <p>• Calificacion_Final</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            sessionData.feedback = feedbackHTML;
+            renderFeedbackDisplay(feedbackHTML);
+
+            if (window.firebaseAvailable && window.db && currentDocId) {
+                try {
+                    const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    await updateDoc(doc(window.db, "laboratorio_normalizacion", currentDocId), {
+                        feedback: feedbackHTML
+                    });
+                    alert('✅ Pauta de corrección y modelo ideal enviados con éxito a la pantalla del estudiante.');
+                } catch (e) {
+                    console.error("Error enviando feedback:", e);
+                }
+            }
+        };
+
+        function renderFeedbackDisplay(htmlContent) {
+            const container = document.getElementById('teacher-feedback-display');
+            if (!container) return;
+            if (!htmlContent || htmlContent.trim() === "") {
+                container.innerHTML = '<p class="text-slate-400 italic">El profesor aún no ha publicado la pauta de corrección y modelo ideal para este estudiante.</p>';
+            } else {
+                container.innerHTML = htmlContent;
+            }
+        }
+
+        // --- VALIDACIÓN DE INTEGRIDAD REFERENCIAL (FK) ---
+        function checkForeignKeyConstraint(exerciseId, targetTableName, insertedValue) {
+            let tables = extractTablesDataFromDOM(exerciseId);
+            let targetTable = tables.find(t => t.name.toUpperCase() === targetTableName.toUpperCase());
+            if (!targetTable) return true;
+
+            let safeName = escapeName(targetTable.name);
+            let tbody = document.getElementById(`preview-tbody-${exerciseId}-${safeName}`);
+            if (!tbody) return false;
+
+            let exists = false;
+            tbody.querySelectorAll('.preview-data-row').forEach(row => {
+                let inputs = row.querySelectorAll('.preview-cell-val');
+                if (inputs.length > 0 && inputs[0].value.trim() === insertedValue.trim()) {
+                    exists = true;
+                }
+            });
+
+            return exists;
+        }
+
+        // --- MANEJO DE REGISTROS (12 Columnas) ---
+        window.addRecordRow = function(exerciseId) {
+            if (sessionData.isTeacherMode) return;
+            const tbody = document.getElementById(`records-tbody-${exerciseId}`);
+            const tr = document.createElement('tr');
+            tr.className = "record-row divide-x divide-slate-200";
+            let tds = '';
+            for(let i=1; i<=12; i++) {
+                tds += `<td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c${i}" oninput="saveToCloud()" placeholder="..."></td>`;
+            }
+            tr.innerHTML = tds + `<td class="p-1 text-center action-col"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
+            tbody.appendChild(tr);
+            saveToCloud();
+        };
+
+        function renderRecordsFromCloud(exerciseId, recordsArray) {
+            const tbody = document.getElementById(`records-tbody-${exerciseId}`);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const dis = sessionData.isTeacherMode ? 'disabled' : '';
+            recordsArray.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "record-row divide-x divide-slate-200";
+                let tds = '';
+                for(let i=1; i<=12; i++) {
+                    tds += `<td class="p-1"><input type="text" value="${r['c'+i] || ''}" ${dis} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs r-c${i} ${sessionData.isTeacherMode?'cursor-not-allowed opacity-90':''}" oninput="saveToCloud()" placeholder="..."></td>`;
+                }
+                let actionTd = sessionData.isTeacherMode ? '' : `<td class="p-1 text-center action-col"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
+                tr.innerHTML = tds + actionTd;
+                tbody.appendChild(tr);
+            });
+            if(sessionData.isTeacherMode) {
+                document.querySelectorAll('.action-col').forEach(el => el.style.display = 'none');
+                let btn1 = document.getElementById('btn-add-row-ex1');
+                let btn2 = document.getElementById('btn-add-row-ex2');
+                if(btn1) btn1.style.display = 'none';
+                if(btn2) btn2.style.display = 'none';
+            }
+        }
+
+        function extractRecordsDataFromDOM(exerciseId) {
+            const rows = document.querySelectorAll(`#records-tbody-${exerciseId} .record-row`);
+            let records = [];
+            rows.forEach(row => {
+                let obj = {};
+                for(let i=1; i<=12; i++) {
+                    let input = row.querySelector(`.r-c${i}`);
+                    obj['c'+i] = input ? input.value : '';
+                }
+                records.push(obj);
+            });
+            return records;
+        }
+
+        // --- VISTA PREVIA CONSOLIDADA CON TABLAS Y SUS REGISTROS ---
+        window.addPreviewRow = function(exerciseId, tableName) {
+            if (sessionData.isTeacherMode) return;
+            const tbody = document.getElementById(`preview-tbody-${exerciseId}-${escapeName(tableName)}`);
+            if(!tbody) return;
+            
+            const tr = document.createElement('tr');
+            tr.className = "preview-data-row divide-x divide-slate-200";
+            
+            let cellsHTML = '';
+            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
+            cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim();
+                if(tName === tableName) {
+                    card.querySelectorAll('.field-row').forEach((row) => {
+                        let fType = row.querySelector('.f-type').value;
+                        let fRef = row.querySelector('.f-ref') ? row.querySelector('.f-ref').value : '';
+                        
+                        let onInputAttr = "saveToCloud()";
+                        if((fType === 'FK' || fType === 'PK-FK') && fRef) {
+                            let refTable = fRef.split('.')[0];
+                            onInputAttr = `validateFKInput(this, '${exerciseId}', '${refTable}')`;
+                        }
+
+                        cellsHTML += `<td class="p-1"><input type="text" class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs preview-cell-val" oninput="${onInputAttr}" placeholder="..."></td>`;
+                    });
+                }
+            });
+
+            tr.innerHTML = cellsHTML + `<td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
+            tbody.appendChild(tr);
+            saveToCloud();
+        };
+
+        window.validateFKInput = function(inputEl, exerciseId, refTableName) {
+            let val = inputEl.value;
+            let isValid = checkForeignKeyConstraint(exerciseId, refTableName, val);
+            if(!isValid && val.trim() !== "") {
+                inputEl.style.borderColor = "#ef4444";
+                inputEl.title = `⚠️ Error de integridad referencial: El valor no existe en la tabla principal '${refTableName}'.`;
+            } else {
+                inputEl.style.borderColor = "#cbd5e1";
+                inputEl.title = "";
+            }
+            saveToCloud();
+        };
+
+        function escapeName(name) {
+            return (name || '').replace(/[^a-zA-Z0-9]/g, '_');
+        }
+
+        function extractTableRowsFromDOM(exerciseId) {
+            let tableRowsObj = {};
+            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
+            cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim();
+                if(!tName) return;
+                
+                let safeName = escapeName(tName);
+                let tbody = document.getElementById(`preview-tbody-${exerciseId}-${safeName}`);
+                if(tbody) {
+                    let rowsData = [];
+                    tbody.querySelectorAll('.preview-data-row').forEach(row => {
+                        let rowVals = [];
+                        row.querySelectorAll('.preview-cell-val').forEach(input => {
+                            rowVals.push(input.value);
+                        });
+                        rowsData.push(rowVals);
+                    });
+                    tableRowsObj[tName] = rowsData;
+                }
+            });
+            return tableRowsObj;
+        }
+
+        function updatePreview(exerciseId, tablesArray, tableRowsObj = {}) {
+            const container = document.querySelector(`.preview-container-${exerciseId}`);
+            if (!container) return;
+
+            if (!tablesArray || tablesArray.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 italic">No hay tablas normalizadas definidas todavía...</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            const dis = sessionData.isTeacherMode ? 'disabled' : '';
+            tablesArray.forEach(tbl => {
+                let tName = tbl.name || 'TABLA_SIN_NOMBRE';
+                let safeName = escapeName(tName);
+                let fields = tbl.fields || [];
+
+                let card = document.createElement('div');
+                card.className = "bg-white border border-slate-300 rounded-xl p-4 shadow-sm space-y-3";
+                
+                let fieldsHTML = '';
+                fields.forEach(f => {
+                    let prefix = "";
+                    if (f.type === 'PK') prefix = '<span class="text-amber-600 font-bold">[PK]</span> ';
+                    else if (f.type === 'FK') prefix = '<span class="text-blue-600 font-bold">[FK]</span> ';
+                    else if (f.type === 'PK-FK') prefix = '<span class="text-purple-600 font-bold">[PK+FK]</span> ';
+
+                    let typeStr = `${f.datatype || 'VARCHAR'}${f.length ? '('+f.length+')' : ''}`;
+                    let refStr = f.ref ? ` <span class="text-[10px] text-slate-400">→ ${f.ref}</span>` : '';
+
+                    fieldsHTML += `<div class="text-[11px] text-slate-700 font-mono">${prefix}<strong>${f.name || 'campo'}</strong> : <span class="text-slate-500">${typeStr}</span>${refStr}</div>`;
+                });
+
+                let thsHTML = '';
+                fields.forEach(f => {
+                    thsHTML += `<th class="p-1.5 font-semibold">${f.name || 'col'}</th>`;
+                });
+
+                let savedRows = tableRowsObj[tName] || [];
+                let rowsHTML = '';
+
+                savedRows.forEach(rowVals => {
+                    let tdsHTML = '';
+                    fields.forEach((f, idx) => {
+                        let val = rowVals[idx] || '';
+                        let onInputAttr = "saveToCloud()";
+                        if((f.type === 'FK' || f.type === 'PK-FK') && f.ref) {
+                            let refTable = f.ref.split('.')[0];
+                            onInputAttr = `validateFKInput(this, '${exerciseId}', '${refTable}')`;
+                        }
+
+                        tdsHTML += `<td class="p-1"><input type="text" value="${val}" ${dis} class="w-full bg-slate-50 border border-slate-200 rounded p-1 text-xs preview-cell-val ${sessionData.isTeacherMode?'cursor-not-allowed opacity-90':''}" oninput="${onInputAttr}" placeholder="..."></td>`;
+                    });
+                    let actionTd = sessionData.isTeacherMode ? '' : `<td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); saveToCloud()" class="text-red-600 font-bold text-xs">🗑</button></td>`;
+                    rowsHTML += `<tr class="preview-data-row divide-x divide-slate-200">${tdsHTML}${actionTd}</tr>`;
+                });
+
+                let addRowBtnHTML = sessionData.isTeacherMode ? '' : `<button type="button" onclick="addPreviewRow('${exerciseId}', '${tName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-2.5 py-1 rounded transition">+ Añadir Registro</button>`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="text-xs font-bold text-blue-900 uppercase">📋 ${tName}</span>
+                        ${addRowBtnHTML}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estructura de la Tabla:</span>
+                            <div class="space-y-0.5">${fieldsHTML || '<span class="text-xs text-slate-400 italic">Sin atributos...</span>'}</div>
+                        </div>
+                        <div class="space-y-1 overflow-x-auto">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Registros de la Entidad:</span>
+                            <table class="w-full text-left text-xs text-slate-700 border border-slate-200 rounded">
+                                <thead class="bg-slate-200 uppercase text-[9px] text-slate-700 border-b border-slate-300">
+                                    <tr>${thsHTML}<th class="p-1.5 text-center action-col ${sessionData.isTeacherMode?'hidden':''}">Acción</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200" id="preview-tbody-${exerciseId}-${safeName}">
+                                    ${rowsHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            if(sessionData.isTeacherMode) {
+                document.querySelectorAll('.preview-container-' + exerciseId + ' .action-col').forEach(el => el.style.display = 'none');
+            }
+        }
+
+        // --- MANEJO DE TABLAS NORMALIZADAS 3FN ---
+        function extractTablesDataFromDOM(exerciseId) {
+            const cards = document.querySelectorAll(`.tables-wrapper[data-exercise="${exerciseId}"] .table-card`);
+            let tablesData = [];
+            cards.forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim();
+                let fields = [];
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fName = row.querySelector('.f-name').value.trim();
+                    let fDatatype = row.querySelector('.f-datatype').value;
+                    let fLength = row.querySelector('.f-length').value.trim();
+                    let fType = row.querySelector('.f-type').value;
+                    let refSel = row.querySelector('.f-ref');
+                    let fRef = refSel ? refSel.value.trim() : '';
+                    fields.push({ name: fName, datatype: fDatatype, length: fLength, type: fType, ref: fRef });
+                });
+                tablesData.push({ name: tName, fields: fields });
+            });
+            return tablesData;
+        }
+
+        function renderTablesFromCloud(exerciseId, tablesArray) {
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            if (!wrapper) return;
+
+            wrapper.innerHTML = '';
+            const dis = sessionData.isTeacherMode ? 'disabled' : '';
+            const roClass = sessionData.isTeacherMode ? 'cursor-not-allowed opacity-90' : '';
+
+            tablesArray.forEach((tblData, tIdx) => {
+                const tableId = `t_${exerciseId}_${tIdx}`;
+                const tableDiv = document.createElement('div');
+                tableDiv.className = 'bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+                tableDiv.id = tableId;
+
+                let fieldsHTML = '';
+                (tblData.fields || []).forEach((f, fIdx) => {
+                    let fieldId = `f_${tableId}_${fIdx}`;
+                    let delFieldBtn = sessionData.isTeacherMode ? '' : `<button type="button" onclick="this.closest('.field-row').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>`;
+                    fieldsHTML += `
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-white p-2 rounded border border-slate-200" id="${fieldId}">
+                            <div class="sm:col-span-3">
+                                <input type="text" value="${f.name || ''}" ${dis} placeholder="Nombre campo" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none ${roClass}" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <select ${dis} class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype ${roClass}" onchange="saveToCloud()">
+                                    <option value="INT" ${f.datatype === 'INT' ? 'selected' : ''}>INT</option>
+                                    <option value="VARCHAR" ${f.datatype === 'VARCHAR' ? 'selected' : ''}>VARCHAR</option>
+                                    <option value="DATE" ${f.datatype === 'DATE' ? 'selected' : ''}>DATE</option>
+                                    <option value="DECIMAL" ${f.datatype === 'DECIMAL' ? 'selected' : ''}>DECIMAL</option>
+                                    <option value="TEXT" ${f.datatype === 'TEXT' ? 'selected' : ''}>TEXT</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <input type="text" value="${f.length || ''}" ${dis} placeholder="Límite" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none ${roClass}" oninput="saveToCloud()">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <select ${dis} class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type ${roClass}" onchange="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                                    <option value="Normal" ${f.type === 'Normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="PK" ${f.type === 'PK' ? 'selected' : ''}>PK</option>
+                                    <option value="FK" ${f.type === 'FK' ? 'selected' : ''}>FK</option>
+                                    <option value="PK-FK" ${f.type === 'PK-FK' ? 'selected' : ''}>PK + FK</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2 f-ref-container" data-selected-ref="${f.ref || ''}">
+                                <span class="text-slate-600 text-xs font-mono">${f.ref || 'N/A'}</span>
+                            </div>
+                            <div class="sm:col-span-1 text-right">
+                                ${delFieldBtn}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                let delTableBtn = sessionData.isTeacherMode ? '' : `<button type="button" onclick="this.closest('.table-card').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>`;
+                let addColBtn = sessionData.isTeacherMode ? '' : `<button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-medium px-3 py-1.5 rounded transition">+ Añadir Columna</button>`;
+
+                tableDiv.innerHTML = `
+                    <div class="flex justify-between items-center gap-2">
+                        <input type="text" value="${tblData.name || ''}" ${dis} placeholder="NOMBRE_TABLA" class="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none ${roClass}" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                        ${delTableBtn}
+                    </div>
+                    <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
+                        <p class="text-xs text-slate-500">Atributos / Columnas:</p>
+                        ${fieldsHTML}
+                    </div>
+                    ${addColBtn}
+                `;
+                wrapper.appendChild(tableDiv);
+            });
+
+            if (!sessionData.isTeacherMode) {
+                updateAllFKDropdowns(exerciseId);
+            }
+        }
+
+        window.updateAllFKDropdowns = function(exerciseId) {
+            if (sessionData.isTeacherMode) return;
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            if (!wrapper) return;
+
+            let availablePKs = [];
+            wrapper.querySelectorAll('.table-card').forEach(card => {
+                let tName = card.querySelector('.tbl-name').value.trim() || 'TABLA';
+                card.querySelectorAll('.field-row').forEach(row => {
+                    let fType = row.querySelector('.f-type').value;
+                    let fName = row.querySelector('.f-name').value.trim();
+                    if ((fType === 'PK' || fType === 'PK-FK') && fName) {
+                        availablePKs.push({ table: tName, field: fName });
+                    }
+                });
+            });
+
+            wrapper.querySelectorAll('.field-row').forEach(row => {
+                let typeSelect = row.querySelector('.f-type');
+                let refContainer = row.querySelector('.f-ref-container');
+                let currentVal = refContainer.getAttribute('data-selected-ref') || '';
+
+                if (typeSelect.value === 'FK' || typeSelect.value === 'PK-FK') {
+                    refContainer.innerHTML = '';
+                    let selectRef = document.createElement('select');
+                    selectRef.className = 'bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-900 f-ref w-full focus:ring-1 focus:ring-blue-500 outline-none';
+                    
+                    let defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = '-- Seleccionar FK --';
+                    selectRef.appendChild(defaultOpt);
+
+                    availablePKs.forEach(pk => {
+                        let valStr = `${pk.table}.${pk.field}`;
+                        let opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = `${pk.table} (${pk.field})`;
+                        if (valStr === currentVal) opt.selected = true;
+                        selectRef.appendChild(opt);
+                    });
+
+                    selectRef.onchange = function() {
+                        refContainer.setAttribute('data-selected-ref', this.value);
+                        saveToCloud();
+                    };
+
+                    refContainer.appendChild(selectRef);
+                } else {
+                    refContainer.innerHTML = '<span class="text-slate-400 text-xs italic">N/A</span>';
+                    refContainer.removeAttribute('data-selected-ref');
+                }
+            });
+        };
+
+        window.addTable = function(exerciseId) {
+            if (sessionData.isTeacherMode) return;
+            const wrapper = document.querySelector(`.tables-wrapper[data-exercise="${exerciseId}"]`);
+            const tableId = 't_' + Math.random().toString(36).substring(2, 9);
+            const tableDiv = document.createElement('div');
+            tableDiv.className = 'bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 relative table-card shadow-sm';
+            tableDiv.innerHTML = `
+                <div class="flex justify-between items-center gap-2">
+                    <input type="text" placeholder="NOMBRE_TABLA" class="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs text-slate-900 font-bold w-full tbl-name uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                    <button type="button" onclick="this.closest('.table-card').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 hover:text-red-700 text-xs font-bold px-2 whitespace-nowrap">✕ Eliminar</button>
+                </div>
+                <div class="fields-container space-y-2 pl-2 border-l-2 border-blue-600">
+                    <p class="text-xs text-slate-500">Atributos / Columnas:</p>
+                </div>
+                <button type="button" onclick="addField('${tableId}', '${exerciseId}')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-medium px-3 py-1.5 rounded transition">+ Añadir Columna</button>
+            `;
+            tableDiv.id = tableId;
+            wrapper.appendChild(tableDiv);
+            saveToCloud();
+            updateAllFKDropdowns(exerciseId);
+        };
+
+        window.addField = function(tableId, exerciseId) {
+            if (sessionData.isTeacherMode) return;
+            const tableCard = document.getElementById(tableId);
+            const container = tableCard.querySelector('.fields-container');
+            const fieldRow = document.createElement('div');
+            fieldRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center field-row bg-white p-2 rounded border border-slate-200';
+            fieldRow.innerHTML = `
+                <div class="sm:col-span-3">
+                    <input type="text" placeholder="Nombre campo" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-name focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-datatype" onchange="saveToCloud()">
+                        <option value="INT">INT</option>
+                        <option value="VARCHAR">VARCHAR</option>
+                        <option value="DATE">DATE</option>
+                        <option value="DECIMAL">DECIMAL</option>
+                        <option value="TEXT">TEXT</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <input type="text" placeholder="Límite" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 w-full f-length focus:ring-1 focus:ring-blue-500 outline-none" oninput="saveToCloud()">
+                </div>
+                <div class="sm:col-span-2">
+                    <select class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 w-full f-type" onchange="saveToCloud(); updateAllFKDropdowns('${exerciseId}')">
+                        <option value="Normal">Normal</option>
+                        <option value="PK">PK</option>
+                        <option value="FK">FK</option>
+                        <option value="PK-FK">PK + FK</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2 f-ref-container">
+                    <span class="text-slate-400 text-xs italic">N/A</span>
+                </div>
+                <div class="sm:col-span-1 text-right">
+                    <button type="button" onclick="this.closest('.field-row').remove(); saveToCloud(); updateAllFKDropdowns('${exerciseId}');" class="text-red-600 text-xs font-bold px-1">🗑</button>
+                </div>
+            `;
+            container.appendChild(fieldRow);
+            saveToCloud();
+            updateAllFKDropdowns(exerciseId);
+        };
+
+        window.generatePDF = function() {
+            let ex1Records = sessionData.isTeacherMode ? (sessionData.records.ex1 || []) : extractRecordsDataFromDOM('ex1');
+            let ex2Records = sessionData.isTeacherMode ? (sessionData.records.ex2 || []) : extractRecordsDataFromDOM('ex2');
+            let ex1Tables = sessionData.isTeacherMode ? (sessionData.normalizationTables.ex1 || []) : extractTablesDataFromDOM('ex1');
+            let ex2Tables = sessionData.isTeacherMode ? (sessionData.normalizationTables.ex2 || []) : extractTablesDataFromDOM('ex2');
+            generatePDFCustom(sessionData.student.nombre + " (C.I: " + sessionData.student.cedula + ")", { ex1: ex1Records, ex2: ex2Records }, { ex1: ex1Tables, ex2: ex2Tables });
+        };
+
+        function generatePDFCustom(studentInfo, recordsObj, tablesObj) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 15;
+
+            function checkPageSpace(needed) {
+                if (y + needed > 275) {
+                    doc.addPage();
+                    y = 20;
+                }
+            }
+
+            function drawMySQLTable(tableName, fields) {
+                let rowHeight = 5.5;
+                let headerHeight = 7;
+                let totalHeight = headerHeight + (fields && fields.length > 0 ? fields.length * rowHeight : rowHeight);
+                checkPageSpace(totalHeight + 4);
+
+                doc.setDrawColor(100, 116, 139);
+                doc.setLineWidth(0.3);
+                doc.rect(20, y, 170, totalHeight);
+
+                doc.setFillColor(30, 41, 59);
+                doc.rect(20, y, 170, headerHeight, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8.5);
+                doc.text(tableName.toUpperCase(), 24, y + 4.8);
+                y += headerHeight;
+
+                doc.setFont("helvetica", "normal");
+                if (!fields || fields.length === 0) {
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFontSize(8);
+                    doc.text("(Sin atributos definidos)", 24, y + 4);
+                    y += rowHeight;
+                } else {
+                    fields.forEach((f, idx) => {
+                        if (idx > 0) {
+                            doc.setDrawColor(226, 232, 240);
+                            doc.line(20, y, 190, y);
+                        }
+
+                        doc.setTextColor(15, 23, 42);
+                        doc.setFontSize(8);
+
+                        let prefix = "  ";
+                        if (f.type === 'PK') prefix = "[PK] ";
+                        else if (f.type === 'FK') prefix = "[FK] ";
+                        else if (f.type === 'PK-FK') prefix = "[PK+FK] ";
+
+                        doc.setFont("helvetica", f.type !== 'Normal' ? "bold" : "normal");
+                        doc.text(prefix + (f.name || '-'), 24, y + 3.8);
+
+                        doc.setFont("helvetica", "normal");
+                        let typeStr = f.datatype || 'VARCHAR';
+                        if (f.length) typeStr += `(${f.length})`;
+                        doc.text(typeStr, 105, y + 3.8);
+
+                        let refText = "";
+                        if ((f.type === 'FK' || f.type === 'PK-FK') && f.ref) {
+                            refText = `-> ${f.ref}`;
+                        }
+                        doc.setTextColor(71, 85, 105);
+                        doc.text(refText, 140, y + 3.8);
+
+                        y += rowHeight;
+                    });
+                }
+                y += 6;
+            }
+
+            // Membrete
+            doc.setFillColor(30, 58, 138);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(11);
+            doc.text("UNIVERSIDAD NACIONAL EXPERIMENTAL POLITÉCNICA", 105, 9, { align: "center" });
+            doc.text("DE LA FUERZA ARMADA NACIONAL BOLIVARIANA (UNEFA)", 105, 14, { align: "center" });
+            doc.setFontSize(8);
+            doc.text("NÚCLEO GUÁRICO - SEDE TUCUPIDO | LABORATORIO DE BASES DE DATOS", 105, 20, { align: "center" });
+
+            y = 33;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`ESTUDIANTE: ${studentInfo}`, 20, y); y += 10;
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("REPORTE DE PRÁCTICA: NORMALIZACIÓN Y REGISTROS (3FN)", 20, y);
+            y += 8;
+
+            // Ejercicio 1
+            checkPageSpace(20);
+            doc.setFontSize(10);
+            doc.text("• Ejercicio 1: Sistema de Ventas, Inventario y Facturación", 20, y); y += 6;
+            doc.setFontSize(8);
+            doc.text(`Total de registros en tabla plana: ${(recordsObj.ex1 || []).length} filas`, 22, y); y += 6;
+            
+            let ex1 = tablesObj.ex1 || [];
+            if (ex1.length === 0) {
+                doc.setFont("helvetica", "normal");
+                doc.text("   (No se definieron tablas normalizadas en este ejercicio)", 24, y); y += 8;
+            } else {
+                ex1.forEach(tbl => {
+                    drawMySQLTable(`Ej 1 [3FN] - ${tbl.name}`, tbl.fields);
+                });
+            }
+
+            y += 4;
+            // Ejercicio 2
+            checkPageSpace(20);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("• Ejercicio 2: Control Académico de Inscripciones y Aulas", 20, y); y += 6;
+            doc.setFontSize(8);
+            doc.text(`Total de registros en tabla plana: ${(recordsObj.ex2 || []).length} filas`, 22, y); y += 6;
+
+            let ex2 = tablesObj.ex2 || [];
+            if (ex2.length === 0) {
+                doc.setFont("helvetica", "normal");
+                doc.text("   (No se definieron tablas normalizadas en este ejercicio)", 24, y); y += 8;
+            } else {
+                ex2.forEach(tbl => {
+                    drawMySQLTable(`Ej 2 [3FN] - ${tbl.name}`, tbl.fields);
+                });
+            }
+
+            doc.save(`Reporte_Normalizacion_${sessionData.student.cedula}.pdf`);
         }
     </script>
 </body>
